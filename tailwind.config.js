@@ -17,80 +17,72 @@ module.exports = {
         },
         extend: {
             colors: {
-                // Primary colors
-                bubblegum: '#FF70A6',
-                skyblue: '#70D6FF',
-                sunny: '#FFD670',
-                lime: '#89FC00',
-                purple: '#9B5DE5',
-                tangerine: '#FF9770',
+                // Brand primary colors - using direct CSS variables
+                tp_red: 'var(--tp-red)',
+                bubblegum: 'var(--bubblegum)',
+                skyblue: 'var(--skyblue)',
+                sunny: 'var(--sunny)',
+                lime: 'var(--lime)',
+                purple: 'var(--purple)',
+                tangerine: 'var(--tangerine)',
 
-                // Feedback colors
-                success: '#00C853',
-                warning: '#FFD600',
-                error: '#FF5252',
-                info: '#00B0FF',
-
-                // Light mode
-                light: {
-                    background: '#FFFFFF',
-                    card: '#F5F5F5',
-                    primary: '#333333',
-                    secondary: '#666666',
-                    border: '#E0E0E0',
-                    disabled: '#BDBDBD',
+                // Feedback colors - using direct CSS variables
+                success: 'var(--success)',
+                warning: 'var(--warning)',
+                error: 'var(--error)',
+                info: 'var(--info)',
+                
+                // Typography colors - automatically switch with theme
+                text: {
+                    primary: 'var(--text-primary)',
+                    secondary: 'var(--text-secondary)',
                 },
-
-                // Dark mode
-                dark: {
-                    background: '#212121',
-                    card: '#2C2C2C',
-                    primary: '#F5F5F5',
-                    secondary: '#BDBDBD',
-                    border: '#424242',
-                    disabled: '#757575',
-                },
-
+                heading: 'var(--heading-color)',
+                subheading: 'var(--subheading-color)',
+                link: 'var(--link-color)',
+                
                 // Accent colors
-                accent: {
-                    1: '#FF3D7F',
-                    2: '#32CD32',
-                    3: '#FF8C00',
-                },
+                accent1: 'var(--accent1)',
+                accent2: 'var(--accent2)',
+                accent3: 'var(--accent3)',
 
-                // Shadcn UI compatibility
-                border: 'var(--border)',
-                input: 'var(--input)',
-                ring: 'var(--ring)',
-                background: 'var(--background)',
-                foreground: 'var(--foreground)',
-                primary: {
-                    DEFAULT: 'var(--primary)',
-                    foreground: 'var(--primary-foreground)',
-                },
-                secondary: {
-                    DEFAULT: 'var(--secondary)',
-                    foreground: 'var(--secondary-foreground)',
-                },
-                destructive: {
-                    DEFAULT: 'var(--destructive)',
-                    foreground: 'var(--destructive-foreground)',
-                },
-                muted: {
-                    DEFAULT: 'var(--muted)',
-                    foreground: 'var(--muted-foreground)',
-                },
-                accent: {
-                    DEFAULT: 'var(--accent)',
-                    foreground: 'var(--accent-foreground)',
-                },
-                popover: {
-                    DEFAULT: 'var(--popover)',
-                    foreground: 'var(--popover-foreground)',
+                // Theme colors using CSS variables - these automatically switch between light/dark
+                page: {
+                    DEFAULT: 'var(--page-background)',
                 },
                 card: {
-                    DEFAULT: 'var(--card)',
-                    foreground: 'var(--card-foreground)',
+                    DEFAULT: 'var(--card-background)',
+                    foreground: 'hsl(var(--card-foreground))',
+                },
+                // Using Shadcn UI compatibility
+                border: 'hsl(var(--border))',
+                input: 'hsl(var(--input))',
+                ring: 'hsl(var(--ring))',
+                background: 'hsl(var(--background))',
+                foreground: 'hsl(var(--foreground))',
+                primary: {
+                    DEFAULT: 'hsl(var(--primary))',
+                    foreground: 'hsl(var(--primary-foreground))',
+                },
+                secondary: {
+                    DEFAULT: 'hsl(var(--secondary))',
+                    foreground: 'hsl(var(--secondary-foreground))',
+                },
+                destructive: {
+                    DEFAULT: 'hsl(var(--destructive))',
+                    foreground: 'hsl(var(--destructive-foreground))',
+                },
+                muted: {
+                    DEFAULT: 'hsl(var(--muted))',
+                    foreground: 'hsl(var(--muted-foreground))',
+                },
+                accent: {
+                    DEFAULT: 'hsl(var(--accent))',
+                    foreground: 'hsl(var(--accent-foreground))',
+                },
+                popover: {
+                    DEFAULT: 'hsl(var(--popover))',
+                    foreground: 'hsl(var(--popover-foreground))',
                 },
             },
             borderRadius: {
@@ -111,6 +103,10 @@ module.exports = {
             animation: {
                 'accordion-down': 'accordion-down 0.2s ease-out',
                 'accordion-up': 'accordion-up 0.2s ease-out',
+            },
+            fontFamily: {
+                sans: ['var(--font-sans)'],
+                bengali: ['var(--font-bengali)'],
             },
         },
     },
