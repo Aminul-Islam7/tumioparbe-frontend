@@ -40,7 +40,7 @@ interface SidebarLink {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuth(true); // Require authentication for all dashboard routes
 
     const sidebarLinks: SidebarLink[] = [
         { href: '/dashboard', label: 'Overview', icon: <LayoutDashboard className="w-5 h-5" /> },

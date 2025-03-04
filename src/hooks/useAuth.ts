@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, redirect } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { getAuthTokens, tokenExpired } from '@/lib/auth';
-import { authApi } from '@/lib/api';
 
 export function useAuth(requireAuth = false, adminOnly = false) {
     const router = useRouter();
-    const { user, isAuthenticated, isAdmin, login, logout } = useAuthStore();
+    const { user, isAuthenticated, isAdmin, logout } = useAuthStore();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -14,27 +13,17 @@ export function useAuth(requireAuth = false, adminOnly = false) {
 
             // If no tokens and auth is required, redirect to login
             if (!tokens && requireAuth) {
-                router.push('/login');
+                redirect('/login');
                 return;
             }
 
-            // If tokens exist but access token expired, try to refresh
+            // If tokens exist but access token expired, logout and redirect
             if (tokens && tokenExpired(tokens.access)) {
-                try {
-                    const response = await authApi.refreshToken(tokens.refresh);
-                    login(
-                        {
-                            ...tokens,
-                            access: response.data.access,
-                        },
-                        user
-                    );
-                } catch (error) {
-                    logout();
-                    if (requireAuth) {
-                        router.push('/login');
-                    }
+                logout();
+                if (requireAuth) {
+                    redirect('/login');
                 }
+                return;
             }
 
             // If admin page but user is not admin, redirect to dashboard
@@ -44,13 +33,12 @@ export function useAuth(requireAuth = false, adminOnly = false) {
         };
 
         checkAuth();
-    }, [requireAuth, adminOnly, isAuthenticated, isAdmin, router]);
+    }, [requireAuth, adminOnly, isAdmin, router, logout]);
 
     return {
         user,
         isAuthenticated,
         isAdmin,
-        login,
         logout,
     };
 }

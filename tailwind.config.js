@@ -31,7 +31,7 @@ module.exports = {
                 warning: 'var(--warning)',
                 error: 'var(--error)',
                 info: 'var(--info)',
-                
+
                 // Typography colors - automatically switch with theme
                 text: {
                     primary: 'var(--text-primary)',
@@ -40,7 +40,7 @@ module.exports = {
                 heading: 'var(--heading-color)',
                 subheading: 'var(--subheading-color)',
                 link: 'var(--link-color)',
-                
+
                 // Accent colors
                 accent1: 'var(--accent1)',
                 accent2: 'var(--accent2)',
@@ -106,7 +106,7 @@ module.exports = {
             },
             fontFamily: {
                 sans: ['var(--font-sans)'],
-                bengali: ['var(--font-bengali)'],
+                bengali: ['var(--font-bengali)', 'serif'],
             },
         },
     },
