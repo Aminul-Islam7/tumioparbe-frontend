@@ -3,7 +3,9 @@ import { Inter as FontSans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { TouchHandler } from '@/components/providers/touch-handler';
 import { Toaster } from '@/components/ui/toaster';
+import Navbar from '@/components/shared/navbar';
 
 const fontSans = FontSans({
     subsets: ['latin'],
@@ -25,14 +27,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     fontSans.variable
                 )}
             >
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    {children}
-                    <Toaster />
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                    <div className="relative flex min-h-screen flex-col">
+                        <Navbar />
+                        <main className="flex-1">{children}</main>
+                    </div>
                 </ThemeProvider>
             </body>
         </html>

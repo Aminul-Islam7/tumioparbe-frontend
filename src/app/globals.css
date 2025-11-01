@@ -4,134 +4,198 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@config "../../tailwind.config.js";
 @theme {
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --font-sans: var(--font-sans);
+    --font-mono: var(--font-mono);
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import 'react-toastify/dist/ReactToastify.css';
+@import '../styles/toast.css';
+
 @layer base {
     :root {
+        /* System colors - keeping HSL format for shadcn UI compatibility */
         --background: 0 0% 100%;
-        --foreground: 222.2 84% 4.9%;
-
-        --card: 0 0% 100%;
-        --card-foreground: 222.2 84% 4.9%;
-
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 96.1%;
+        --card-foreground: 240 10% 3.9%;
         --popover: 0 0% 100%;
-        --popover-foreground: 222.2 84% 4.9%;
-
-        --primary: 340 100% 72%; /* Bubblegum Pink */
-        --primary-foreground: 210 40% 98%;
-
-        --secondary: 199 100% 72%; /* Sky Blue */
-        --secondary-foreground: 222.2 47.4% 11.2%;
-
-        --muted: 210 40% 96.1%;
-        --muted-foreground: 215.4 16.3% 46.9%;
-
-        --accent: 210 40% 96.1%;
-        --accent-foreground: 222.2 47.4% 11.2%;
-
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 0 100% 43.53%;
+        --primary-foreground: 0 0% 255%;
+        --secondary: 337.34 100% 71.96%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
         --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 210 40% 98%;
-
-        --border: 214.3 31.8% 91.4%;
-        --input: 214.3 31.8% 91.4%;
-        --ring: 222.2 84% 4.9%;
-
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 87.84%; /* E0E0E0 in HSL - matches light-border */
+        --input: 0 0% 87.84%; /* Same as border */
+        --ring: 340 100% 72%;
         --radius: 0.5rem;
+
+        /* Base color variables using direct HEX values from color-palette.md */
+        --tp-red: #de0000;
+        --bubblegum: #ff70a6;
+        --skyblue: #70d6ff;
+        --sunny: #ffd670;
+        --lime: #89fc00;
+        --purple: #9b5de5;
+        --tangerine: #ff9770;
+
+        /* Feedback colors */
+        --success: #00c853;
+        --warning: #ffd600;
+        --error: #ff5252;
+        --info: #00b0ff;
+
+        /* Neutral colors for light mode */
+        --light-background: #ffffff;
+        --light-card: #f5f5f5;
+        --light-text-primary: #333333;
+        --light-text-secondary: #666666;
+        --light-border: #e0e0e0;
+        --light-disabled: #bdbdbd;
+
+        /* Typography colors for light mode */
+        --light-heading: #333333;
+        --light-subheading: #666666;
+        --light-link: #ff70a6; /* Updated to Bubblegum color */
+
+        /* Accent colors */
+        --accent1: #ff3d7f;
+        --accent2: #32cd32;
+        --accent3: #ff8c00;
+
+        /* Custom theme variables for direct use */
+        --page-background: #ffffff;
+        --card-background: #f5f5f5;
+
+        /* Typography direct variables */
+        --text-primary: var(--light-text-primary);
+        --text-secondary: var(--light-text-secondary);
+        --heading-color: var(--light-heading);
+        --subheading-color: var(--light-subheading);
+        --link-color: var(--light-link);
     }
 
     .dark {
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
+        /* System colors for dark mode - keeping HSL format for shadcn UI compatibility */
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 240 10% 17.5%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 10% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 100% 43.53%;
+        --primary-foreground: 0 0% 255%;
+        --secondary: 337.34 100% 71.96%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 26%; /* #424242 in HSL format - matching color-palette.md */
+        --input: 0 0% 26%; /* Same as border */
+        --ring: 340 100% 72%;
 
-        --card: 222.2 84% 4.9%;
-        --card-foreground: 210 40% 98%;
+        /* Neutral colors for dark mode */
+        --dark-background: #212121;
+        --dark-card: #2c2c2c;
+        --dark-text-primary: #f5f5f5;
+        --dark-text-secondary: #bdbdbd;
+        --dark-border: #424242;
+        --dark-disabled: #757575;
 
-        --popover: 222.2 84% 4.9%;
-        --popover-foreground: 210 40% 98%;
+        /* Typography colors for dark mode */
+        --dark-heading: #ffffff;
+        --dark-subheading: #bdbdbd;
+        --dark-link: #ff70a6; /* Updated to Bubblegum color */
 
-        --primary: 340 100% 72%; /* Same Bubblegum Pink for consistency */
-        --primary-foreground: 210 40% 98%;
+        /* Custom theme variables will automatically update in dark mode */
+        --page-background: var(--dark-background);
+        --card-background: var(--dark-card);
 
-        --secondary: 199 100% 72%; /* Same Sky Blue for consistency */
-        --secondary-foreground: 210 40% 98%;
-
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
-
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
-
-        --destructive: 0 62.8% 50.6%;
-        --destructive-foreground: 210 40% 98%;
-
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 212.7 26.8% 83.9%;
+        /* Typography direct variables */
+        --text-primary: var(--dark-text-primary);
+        --text-secondary: var(--dark-text-secondary);
+        --heading-color: var(--dark-heading);
+        --subheading-color: var(--dark-subheading);
+        --link-color: var(--dark-link);
     }
-}
 
-@theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
-}
-
-@layer base {
     * {
         @apply border-border;
     }
+
     body {
-        @apply bg-background text-foreground;
+        background-color: var(--page-background);
+        color: var(--text-primary);
     }
+
+    /* Add pointer cursor to all buttons and interactive elements */
+    button,
+    [type='button'],
+    [type='reset'],
+    [type='submit'] {
+        cursor: pointer;
+    }
+
+    /* Typography styling */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--heading-color);
+    }
+
+    .subheading {
+        color: var(--subheading-color);
+    }
+
+    a:not(.unstyled) {
+        color: var(--link-color);
+        text-decoration: none;
+    }
+
+    a:not(.unstyled):hover {
+        text-decoration: none;
+    }
+}
+
+/* Fix for hover effects on touch devices */
+@media (hover: none) {
+    /* Only disable hover styles, don't affect backgrounds */
+    .hover\:bg-primary\/90:hover,
+    .hover\:bg-destructive\/90:hover,
+    .hover\:bg-accent:hover,
+    .hover\:text-accent-foreground:hover,
+    .hover\:bg-secondary\/80:hover,
+    .hover\:underline:hover,
+    .hover\:bg-success\/90:hover {
+        opacity: 1;
+    }
+}
+
+/* For devices that support true hover */
+@media (hover: hover) {
+    /* Hover styles will work normally on devices that support hover */
+}
+
+/* Prevent hover effects during scrolling on touch devices */
+.touch-scrolling *:hover {
+    opacity: 1 !important;
 }
 
 /* Custom Scrollbar */
@@ -140,15 +204,16 @@
 }
 
 ::-webkit-scrollbar-track {
-    @apply bg-muted;
+    @apply bg-neutral-100 dark:bg-neutral-700;
 }
 
 ::-webkit-scrollbar-thumb {
-    @apply bg-primary/50 rounded-full;
+    background-color: rgba(222, 0, 0, 0.5); /* tp_red with 0.5 opacity */
+    @apply rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/70;
+    background-color: rgba(224, 0, 0, 0.7); /* tp_red with 0.7 opacity */
 }
 
 /* Animation for page transitions */

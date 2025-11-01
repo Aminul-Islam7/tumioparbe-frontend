@@ -22,7 +22,7 @@ export function formatCurrency(amount: number): string {
 }
 
 export function validateBangladeshiPhone(phone: string): boolean {
-    const regex = /^01[3-9]\d{8}$/;
+    const regex = /^01[2-9]\d{8}$/;
     return regex.test(phone);
 }
 

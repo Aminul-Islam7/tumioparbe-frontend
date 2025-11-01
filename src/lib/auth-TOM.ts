@@ -1,12 +1,22 @@
 import { AuthTokens } from '@/types';
+import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 
 const AUTH_TOKENS_KEY = 'tumio_parbe_auth_tokens';
 const USER_DATA_KEY = 'tumio_parbe_user_data';
 
 // Token management functions
 export function getAuthTokens(): AuthTokens | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') {
+        // Server-side: try to get from cookie
+        const accessToken = getCookie('access_token');
+        const refreshToken = getCookie('refresh_token');
+        if (accessToken && refreshToken) {
+            return { access: accessToken.toString(), refresh: refreshToken.toString() };
+        }
+        return null;
+    }
 
+    // Client-side: try localStorage first
     const tokensStr = localStorage.getItem(AUTH_TOKENS_KEY);
     if (!tokensStr) return null;
 
@@ -19,46 +29,34 @@ export function getAuthTokens(): AuthTokens | null {
 }
 
 export function setAuthTokens(tokens: AuthTokens): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(AUTH_TOKENS_KEY, JSON.stringify(tokens));
-    // Also set a cookie for the access token so server-side middleware can read it
-    setAccessTokenCookie(tokens.access);
+    // Set in localStorage for client-side
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(AUTH_TOKENS_KEY, JSON.stringify(tokens));
+    }
+
+    // Set in cookies for server-side (middleware)
+    setCookie('access_token', tokens.access, {
+        maxAge: 60 * 60 * 24, // 24 hours
+        path: '/',
+        sameSite: 'lax',
+    });
+
+    setCookie('refresh_token', tokens.refresh, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: '/',
+        sameSite: 'lax',
+    });
 }
 
 export function clearAuthTokens(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(AUTH_TOKENS_KEY);
-    // Remove the access token cookie as well
-    setAccessTokenCookie(undefined);
-}
-
-// Set access token as a cookie so middleware (Edge) can read it on server-side
-function setAccessTokenCookie(token?: string) {
-    if (typeof window === 'undefined') return;
-    if (!token) {
-        // Remove cookie
-        document.cookie = `access_token=; path=/; max-age=0;`;
-        return;
+    // Clear from localStorage
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(AUTH_TOKENS_KEY);
     }
 
-    // Try to set cookie expiry based on token exp claim
-    const decoded = parseJwt(token);
-    let maxAge = undefined as number | undefined;
-
-    if (decoded && decoded.exp) {
-        const current = Math.floor(Date.now() / 1000);
-        const ttl = Number(decoded.exp) - current;
-        if (!Number.isNaN(ttl) && ttl > 0) {
-            maxAge = ttl;
-        }
-    }
-
-    if (typeof maxAge === 'number') {
-        document.cookie = `access_token=${encodeURIComponent(token)}; path=/; max-age=${maxAge};`;
-    } else {
-        // Fallback to session cookie
-        document.cookie = `access_token=${encodeURIComponent(token)}; path=/;`;
-    }
+    // Clear cookies
+    deleteCookie('access_token');
+    deleteCookie('refresh_token');
 }
 
 // User data management
@@ -96,10 +94,16 @@ export function logout(): void {
     clearUserData();
 }
 
-export function parseJwt(token: string): any {
+interface JwtPayload {
+    exp: number;
+    is_admin: boolean;
+    [key: string]: any;
+}
+
+export function parseJwt(token: string): JwtPayload | null {
     try {
-        return JSON.parse(atob(token.split('.')[1]));
-    } catch (e) {
+        return JSON.parse(atob(token.split('.')[1])) as JwtPayload;
+    } catch {
         return null;
     }
 }

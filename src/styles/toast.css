@@ -1,0 +1,78 @@
+/* Toast Container Customization */
+.Toastify__toast-container {
+    font-family: var(--font-sans);
+}
+
+/* Base Toast Styles */
+.Toastify__toast {
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 12px;
+}
+
+/* Success Toast */
+.Toastify__toast--success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Error Toast */
+.Toastify__toast--error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Warning Toast */
+.Toastify__toast--warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Info Toast */
+.Toastify__toast--info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+/* Progress Bar */
+.Toastify__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Close Button */
+.Toastify__close-button {
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.8;
+    padding: 4px;
+}
+
+.Toastify__close-button:hover {
+    color: white;
+    opacity: 1;
+}
+
+/* Toast Body Content */
+.toast-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: white;
+}
+
+.toast-body .toast-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.toast-body .toast-content {
+    flex: 1;
+}
+
+.toast-body .toast-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.toast-body .toast-message {
+    opacity: 0.9;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
