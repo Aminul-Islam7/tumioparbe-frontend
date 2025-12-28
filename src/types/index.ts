@@ -58,6 +58,12 @@ export interface Invoice {
     amount: number;
     is_paid: boolean;
     coupon?: number;
+    created_at?: string;
+    // Enriched fields from API
+    student_name?: string;
+    course_name?: string;
+    batch_name?: string;
+    month_display?: string;
 }
 
 export interface Payment {
@@ -71,6 +77,11 @@ export interface Payment {
     payer_reference: string;
     payment_create_time: string;
     payment_execute_time: string;
+    // Enriched fields from API
+    student_name?: string;
+    course_name?: string;
+    batch_name?: string;
+    month?: string;
 }
 
 export interface AuthTokens {

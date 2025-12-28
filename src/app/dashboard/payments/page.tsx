@@ -1,250 +1,80 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
-import { paymentApi, userApi, enrollmentApi, courseApi } from '@/lib/api';
-import { Invoice, Payment, Student, Enrollment, Course } from '@/types';
+import { paymentApi } from '@/lib/api';
+import { Invoice, Payment } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-    FileText,
     CheckCircle,
     AlertCircle,
-    ExternalLink,
-    Download,
-    Calendar,
-    User,
-    BookOpen,
     CreditCard,
     Loader2,
-    Search,
-    Filter,
-    ArrowUpDown,
+    CheckSquare,
+    Square,
 } from 'lucide-react';
+
+// Combined type for display
+interface PaymentItem {
+    id: number;
+    type: 'invoice' | 'payment';
+    studentName: string;
+    courseName: string;
+    batchName: string;
+    month: string;
+    monthDisplay: string;
+    amount: number;
+    isPaid: boolean;
+    transactionId?: string;
+    paymentMethod?: string;
+    paymentDate?: string;
+}
 
 export default function PaymentsPage() {
     const { user } = useAuth(true);
-    const searchParams = useSearchParams();
     const { showSuccess, showError } = useToast();
 
     const [loading, setLoading] = useState(true);
     const [pendingInvoices, setPendingInvoices] = useState<Invoice[]>([]);
-    const [paymentHistory, setPaymentHistory] = useState<Payment[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
-    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [paidPayments, setPaidPayments] = useState<Payment[]>([]);
     const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
     const [processingPayment, setProcessingPayment] = useState(false);
-
-    // For filtering and sorting
-    const [studentFilter, setStudentFilter] = useState<number | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-    const [activeTab, setActiveTab] = useState('pending');
 
     // Track if initial fetch has been done
     const hasFetched = useRef(false);
 
-    // Enriched invoice data with student and course names
-    const [enrichedInvoices, setEnrichedInvoices] = useState<
-        {
-            invoiceId: number;
-            studentId: number;
-            studentName: string;
-            courseName: string;
-            batchName: string;
-            month: string;
-            amount: number;
-            isPaid: boolean;
-        }[]
-    >([]);
-
-    // Enriched payment data
-    const [enrichedPayments, setEnrichedPayments] = useState<
-        {
-            paymentId: number;
-            invoiceId: number;
-            studentName: string;
-            courseName: string;
-            month: string;
-            amount: number;
-            transactionId: string;
-            paymentMethod: string;
-            paymentDate: string;
-        }[]
-    >([]);
-
-    // Check if there's a specific invoice to pay (from URL param)
-    useEffect(() => {
-        const invoiceIdToPayParam = searchParams.get('pay');
-        if (invoiceIdToPayParam) {
-            const invoiceId = parseInt(invoiceIdToPayParam);
-            setSelectedInvoices([invoiceId]);
-        }
-    }, [searchParams]);
-
-    // Memoize the process enriched data function to prevent recreating it on each render
-    const processEnrichedData = useCallback(
-        async (
-            students: Student[],
-            enrollments: Enrollment[],
-            invoices: Invoice[],
-            payments: Payment[]
-        ) => {
-            try {
-                // Process invoice data
-                const enrichedInvoicesData = [];
-
-                // Create a map to cache batch and course data
-                const batchDataMap = new Map();
-                let coursesData: Course[] = [];
-
-                // Fetch courses just once
-                const coursesResponse = await courseApi.getCourses();
-                coursesData = coursesResponse.data.results || [];
-
-                for (const invoice of invoices) {
-                    const enrollment = enrollments.find((e) => e.id === invoice.enrollment);
-
-                    if (enrollment) {
-                        const student = students.find((s) => s.id === enrollment.student);
-
-                        if (student) {
-                            // Get batch info (use cached version if available)
-                            let batch;
-                            if (batchDataMap.has(enrollment.batch)) {
-                                batch = batchDataMap.get(enrollment.batch);
-                            } else {
-                                const batchResponse = await courseApi.getBatch(enrollment.batch);
-                                batch = batchResponse.data;
-                                batchDataMap.set(enrollment.batch, batch);
-                            }
-
-                            // Find course that contains this batch
-                            const course = coursesData.find((c) =>
-                                c.batches.some((b) => b.id === batch.id)
-                            );
-
-                            if (course && batch) {
-                                enrichedInvoicesData.push({
-                                    invoiceId: invoice.id,
-                                    studentId: student.id,
-                                    studentName: student.name,
-                                    courseName: course.name,
-                                    batchName: batch.name,
-                                    month: invoice.month,
-                                    amount: invoice.amount,
-                                    isPaid: invoice.is_paid,
-                                });
-                            }
-                        }
-                    }
-                }
-
-                setEnrichedInvoices(enrichedInvoicesData);
-
-                // Process payment history data
-                const enrichedPaymentsData = [];
-
-                for (const payment of payments) {
-                    // Find corresponding invoice
-                    const invoice = invoices.find((i) => i.id === payment.invoice);
-
-                    if (invoice) {
-                        const enrollment = enrollments.find((e) => e.id === invoice.enrollment);
-
-                        if (enrollment) {
-                            const student = students.find((s) => s.id === enrollment.student);
-
-                            if (student) {
-                                // Get batch info (use cached version if available)
-                                let batch;
-                                if (batchDataMap.has(enrollment.batch)) {
-                                    batch = batchDataMap.get(enrollment.batch);
-                                } else {
-                                    const batchResponse = await courseApi.getBatch(
-                                        enrollment.batch
-                                    );
-                                    batch = batchResponse.data;
-                                    batchDataMap.set(enrollment.batch, batch);
-                                }
-
-                                // Find course that contains this batch
-                                const course = coursesData.find((c) =>
-                                    c.batches.some((b) => b.id === batch.id)
-                                );
-
-                                if (course) {
-                                    enrichedPaymentsData.push({
-                                        paymentId: payment.id,
-                                        invoiceId: invoice.id,
-                                        studentName: student.name,
-                                        courseName: course.name,
-                                        month: invoice.month,
-                                        amount: payment.amount,
-                                        transactionId: payment.transaction_id,
-                                        paymentMethod: payment.payment_method,
-                                        paymentDate: payment.payment_execute_time,
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-
-                setEnrichedPayments(enrichedPaymentsData);
-            } catch (error) {
-                console.error('Error processing enriched data:', error);
-                showError('Error', 'Failed to process payment data.');
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-    );
-
-    // Memoize the fetch data function to prevent recreating it on each render
-    const fetchData = useCallback(async () => {
+    // Fetch data
+    const fetchData = async () => {
         try {
             setLoading(true);
 
-            // Fetch students
-            const studentsResponse = await userApi.getStudents();
-            const fetchedStudents = studentsResponse.data.results || [];
-            setStudents(fetchedStudents);
+            // Fetch pending invoices and payment history in parallel
+            const [invoicesRes, paymentsRes] = await Promise.all([
+                paymentApi.getPendingInvoices(),
+                paymentApi.getPaymentHistory(),
+            ]);
 
-            // Fetch enrollments
-            const enrollmentsResponse = await enrollmentApi.getEnrollments();
-            const fetchedEnrollments = enrollmentsResponse.data.results || [];
-            setEnrollments(fetchedEnrollments);
+            // Parse responses - handle both array and paginated formats
+            const invoices = Array.isArray(invoicesRes.data)
+                ? invoicesRes.data
+                : invoicesRes.data?.results || [];
 
-            // Fetch pending invoices
-            const invoicesResponse = await paymentApi.getPendingInvoices();
-            const fetchedInvoices = invoicesResponse.data.results || [];
-            setPendingInvoices(fetchedInvoices);
+            const payments = Array.isArray(paymentsRes.data)
+                ? paymentsRes.data
+                : paymentsRes.data?.results || [];
 
-            // Fetch payment history
-            const paymentsResponse = await paymentApi.getPaymentHistory();
-            const fetchedPayments = paymentsResponse.data.results || [];
-            setPaymentHistory(fetchedPayments);
-
-            // Process enriched data
-            await processEnrichedData(
-                fetchedStudents,
-                fetchedEnrollments,
-                fetchedInvoices,
-                fetchedPayments
-            );
+            setPendingInvoices(invoices);
+            setPaidPayments(payments);
         } catch (error) {
             console.error('Failed to fetch payment data:', error);
             showError('Error', 'Failed to load payment data. Please try again.');
         } finally {
             setLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
-    // Fetch all data once on component mount
+    // Fetch data on mount
     useEffect(() => {
         if (!hasFetched.current) {
             hasFetched.current = true;
@@ -253,17 +83,110 @@ export default function PaymentsPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Combine and sort items - unpaid first, then by date
+    const allItems = useMemo((): PaymentItem[] => {
+        const items: PaymentItem[] = [];
+
+        // Add pending invoices (unpaid)
+        pendingInvoices.forEach((inv) => {
+            items.push({
+                id: inv.id,
+                type: 'invoice',
+                studentName: inv.student_name || 'Unknown Student',
+                courseName: inv.course_name || 'Unknown Course',
+                batchName: inv.batch_name || '',
+                month: inv.month,
+                monthDisplay: inv.month_display || formatMonth(inv.month),
+                amount: inv.amount,
+                isPaid: false,
+            });
+        });
+
+        // Add paid payments
+        paidPayments.forEach((pay) => {
+            items.push({
+                id: pay.id,
+                type: 'payment',
+                studentName: pay.student_name || 'Unknown Student',
+                courseName: pay.course_name || 'Unknown Course',
+                batchName: pay.batch_name || '',
+                month: pay.month || '',
+                monthDisplay: pay.month || '',
+                amount: pay.amount,
+                isPaid: true,
+                transactionId: pay.transaction_id,
+                paymentMethod: pay.payment_method,
+                paymentDate: pay.payment_execute_time,
+            });
+        });
+
+        // Sort: unpaid first, then by date descending
+        items.sort((a, b) => {
+            // Unpaid items first
+            if (!a.isPaid && b.isPaid) return -1;
+            if (a.isPaid && !b.isPaid) return 1;
+
+            // Then sort by month/date descending
+            const dateA = new Date(a.month || '');
+            const dateB = new Date(b.month || '');
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        return items;
+    }, [pendingInvoices, paidPayments]);
+
+    // Format month string
+    function formatMonth(monthStr: string): string {
+        try {
+            const date = new Date(monthStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        } catch {
+            return monthStr;
+        }
+    }
+
+    // Toggle invoice selection
+    const toggleInvoiceSelection = (invoiceId: number) => {
+        setSelectedInvoices((prev) =>
+            prev.includes(invoiceId)
+                ? prev.filter((id) => id !== invoiceId)
+                : [...prev, invoiceId]
+        );
+    };
+
+    // Select all pending invoices
+    const selectAllPending = () => {
+        const allPendingIds = pendingInvoices.map((inv) => inv.id);
+        if (selectedInvoices.length === allPendingIds.length) {
+            setSelectedInvoices([]);
+        } else {
+            setSelectedInvoices(allPendingIds);
+        }
+    };
+
+    // Calculate total for selected invoices
+    const selectedTotal = useMemo(() => {
+        return pendingInvoices
+            .filter((inv) => selectedInvoices.includes(inv.id))
+            .reduce((sum, inv) => sum + parseFloat(String(inv.amount)), 0);
+    }, [pendingInvoices, selectedInvoices]);
+
+    // Calculate total pending
+    const totalPending = useMemo(() => {
+        return pendingInvoices.reduce((sum, inv) => sum + parseFloat(String(inv.amount)), 0);
+    }, [pendingInvoices]);
+
     // Handle single invoice payment
     const handlePayInvoice = async (invoiceId: number) => {
         try {
             setProcessingPayment(true);
-
             const response = await paymentApi.payInvoice(invoiceId);
 
-            // Redirect to bKash payment URL or handle as needed
             if (response.data) {
-                // This should be replaced with actual code to handle the payment gateway
                 showSuccess('Payment Initiated', 'You will be redirected to the payment gateway.');
+                // If the API returns a bkash_url, redirect to it
+                // For now, just refresh the data
+                await fetchData();
             }
         } catch (error) {
             console.error('Failed to initiate payment:', error);
@@ -282,13 +205,15 @@ export default function PaymentsPage() {
 
         try {
             setProcessingPayment(true);
-
             const response = await paymentApi.bulkPayInvoices(selectedInvoices);
 
-            // Redirect to bKash payment URL or handle as needed
             if (response.data) {
-                // This should be replaced with actual code to handle the payment gateway
-                showSuccess('Payment Initiated', 'You will be redirected to the payment gateway.');
+                showSuccess(
+                    'Payment Initiated',
+                    `Payment for ${selectedInvoices.length} invoice(s) has been initiated.`
+                );
+                setSelectedInvoices([]);
+                await fetchData();
             }
         } catch (error) {
             console.error('Failed to initiate bulk payment:', error);
@@ -298,106 +223,32 @@ export default function PaymentsPage() {
         }
     };
 
-    // Toggle invoice selection
-    const toggleInvoiceSelection = (invoiceId: number) => {
-        setSelectedInvoices((prevSelected) => {
-            if (prevSelected.includes(invoiceId)) {
-                return prevSelected.filter((id) => id !== invoiceId);
-            } else {
-                return [...prevSelected, invoiceId];
+    // Handle pay all
+    const handlePayAll = async () => {
+        if (pendingInvoices.length === 0) {
+            showError('Error', 'No pending invoices to pay.');
+            return;
+        }
+
+        const allIds = pendingInvoices.map((inv) => inv.id);
+        try {
+            setProcessingPayment(true);
+            const response = await paymentApi.bulkPayInvoices(allIds);
+
+            if (response.data) {
+                showSuccess(
+                    'Payment Initiated',
+                    `Payment for all ${allIds.length} invoice(s) has been initiated.`
+                );
+                setSelectedInvoices([]);
+                await fetchData();
             }
-        });
-    };
-
-    // Select all invoices
-    const selectAllInvoices = () => {
-        if (selectedInvoices.length === enrichedInvoices.length) {
-            setSelectedInvoices([]);
-        } else {
-            setSelectedInvoices(enrichedInvoices.map((invoice) => invoice.invoiceId));
+        } catch (error) {
+            console.error('Failed to initiate payment:', error);
+            showError('Error', 'Failed to initiate payment. Please try again.');
+        } finally {
+            setProcessingPayment(false);
         }
-    };
-
-    // Calculate total due
-    const calculateTotalDue = () => {
-        if (selectedInvoices.length === 0) {
-            return enrichedInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-        }
-
-        return enrichedInvoices
-            .filter((invoice) => selectedInvoices.includes(invoice.invoiceId))
-            .reduce((sum, invoice) => sum + invoice.amount, 0);
-    };
-
-    // Filter and sort invoices
-    const getFilteredInvoices = () => {
-        return enrichedInvoices
-            .filter((invoice) => {
-                // Apply student filter
-                if (studentFilter && invoice.studentId !== studentFilter) {
-                    return false;
-                }
-
-                // Apply search filter
-                if (searchTerm) {
-                    const term = searchTerm.toLowerCase();
-                    return (
-                        invoice.studentName.toLowerCase().includes(term) ||
-                        invoice.courseName.toLowerCase().includes(term) ||
-                        invoice.month.includes(term)
-                    );
-                }
-
-                return true;
-            })
-            .sort((a, b) => {
-                // Sort by date
-                const dateA = new Date(a.month);
-                const dateB = new Date(b.month);
-
-                return sortOrder === 'asc'
-                    ? dateA.getTime() - dateB.getTime()
-                    : dateB.getTime() - dateA.getTime();
-            });
-    };
-
-    // Filter and sort payment history
-    const getFilteredPayments = () => {
-        return enrichedPayments
-            .filter((payment) => {
-                // Apply student filter
-                if (studentFilter) {
-                    const invoiceIds = enrichedInvoices
-                        .filter((invoice) => invoice.studentId === studentFilter)
-                        .map((invoice) => invoice.invoiceId);
-
-                    if (!invoiceIds.includes(payment.invoiceId)) {
-                        return false;
-                    }
-                }
-
-                // Apply search filter
-                if (searchTerm) {
-                    const term = searchTerm.toLowerCase();
-                    return (
-                        payment.studentName.toLowerCase().includes(term) ||
-                        payment.courseName.toLowerCase().includes(term) ||
-                        payment.month.includes(term) ||
-                        payment.transactionId.toLowerCase().includes(term)
-                    );
-                }
-
-                return true;
-            })
-            .sort((a, b) => {
-                // Sort by payment date
-                const dateA = new Date(a.paymentDate);
-                const dateB = new Date(b.paymentDate);
-
-                return sortOrder === 'asc'
-                    ? dateA.getTime() - dateB.getTime()
-                    : dateB.getTime() - dateA.getTime();
-            });
     };
 
     if (loading) {
@@ -409,14 +260,8 @@ export default function PaymentsPage() {
         );
     }
 
-    const filteredInvoices = getFilteredInvoices();
-    const filteredPayments = getFilteredPayments();
-    const totalDue = calculateTotalDue();
-
     return (
         <div className="space-y-6">
-            {/* Header removed as it is now in layout */}
-
             {/* Payment Summary */}
             <div className="bg-background rounded-lg border p-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -429,315 +274,182 @@ export default function PaymentsPage() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-muted/50 p-4 rounded-lg">
-                        <div className="text-sm text-muted-foreground">Total Due:</div>
-                        <div className="text-2xl font-bold">৳{totalDue.toLocaleString()}</div>
+                    {pendingInvoices.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div className="bg-muted/50 px-4 py-2 rounded-lg">
+                                <div className="text-xs text-muted-foreground">Total Due</div>
+                                <div className="text-xl font-bold">৳{totalPending.toLocaleString()}</div>
+                            </div>
 
-                        {selectedInvoices.length > 0 && (
                             <Button
-                                className="ml-4 bg-tp_red hover:bg-red-600"
-                                onClick={handleBulkPayment}
+                                onClick={handlePayAll}
                                 disabled={processingPayment}
+                                className="bg-tp_red hover:bg-red-600"
                             >
                                 {processingPayment ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : (
                                     <CreditCard className="mr-2 h-4 w-4" />
                                 )}
-                                Pay Selected ({selectedInvoices.length})
+                                Pay All (৳{totalPending.toLocaleString()})
                             </Button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Filter and Search */}
-            <div className="bg-background rounded-lg border p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    {/* Student Filter */}
-                    <div className="flex-1">
-                        <label className="text-sm font-medium mb-2 block">Filter by Student:</label>
-                        <select
-                            className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tp_red focus:ring-offset-2"
-                            value={studentFilter || ''}
-                            onChange={(e) =>
-                                setStudentFilter(e.target.value ? parseInt(e.target.value) : null)
-                            }
-                        >
-                            <option value="">All Students</option>
-                            {students.map((student) => (
-                                <option key={student.id} value={student.id}>
-                                    {student.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Search */}
-                    <div className="flex-1">
-                        <label className="text-sm font-medium mb-2 block">Search:</label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search by name, course..."
-                                className="w-full h-10 rounded-md border bg-background pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tp_red focus:ring-offset-2"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                         </div>
-                    </div>
-
-                    {/* Sort Order */}
-                    <div className="flex-1">
-                        <label className="text-sm font-medium mb-2 block">Sort by Date:</label>
-                        <button
-                            className="flex items-center gap-2 h-10 px-4 rounded-md border bg-background text-sm hover:bg-muted"
-                            onClick={() =>
-                                setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-                            }
-                        >
-                            <ArrowUpDown className="h-4 w-4" />
-                            {sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}
-                        </button>
-                    </div>
+                    )}
                 </div>
-            </div>
 
-            {/* Tabs for Pending and History */}
-            <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="pending">Pending Payments</TabsTrigger>
-                    <TabsTrigger value="history">Payment History</TabsTrigger>
-                </TabsList>
-
-                {/* Pending Payments Tab */}
-                <TabsContent value="pending" className="mt-4">
-                    {filteredInvoices.length === 0 ? (
-                        <div className="bg-background rounded-lg border p-8 text-center">
-                            <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-3" />
-                            <h2 className="text-xl font-medium mb-2">All Payments Up to Date!</h2>
-                            <p className="text-muted-foreground mb-4">
-                                You don't have any pending payments at the moment.
-                            </p>
+                {/* Bulk selection controls */}
+                {pendingInvoices.length > 1 && selectedInvoices.length > 0 && (
+                    <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                        <div className="text-sm">
+                            <span className="font-medium">{selectedInvoices.length}</span> invoice(s)
+                            selected (৳{selectedTotal.toLocaleString()})
                         </div>
-                    ) : (
-                        <div className="bg-background rounded-lg border overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-muted">
-                                        <tr>
-                                            <th className="p-3 text-left">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="rounded border-gray-300 text-tp_red focus:ring-tp_red h-4 w-4"
-                                                        checked={
-                                                            selectedInvoices.length ===
-                                                                filteredInvoices.length &&
-                                                            filteredInvoices.length > 0
-                                                        }
-                                                        onChange={selectAllInvoices}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th className="p-3 text-left">Student</th>
-                                            <th className="p-3 text-left">Month</th>
-                                            <th className="p-3 text-left">Course</th>
-                                            <th className="p-3 text-right">Amount</th>
-                                            <th className="p-3 text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {filteredInvoices.map((invoice) => (
-                                            <tr
-                                                key={invoice.invoiceId}
-                                                className="hover:bg-muted/50"
-                                            >
-                                                <td className="p-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="rounded border-gray-300 text-tp_red focus:ring-tp_red h-4 w-4"
-                                                        checked={selectedInvoices.includes(
-                                                            invoice.invoiceId
-                                                        )}
-                                                        onChange={() =>
-                                                            toggleInvoiceSelection(
-                                                                invoice.invoiceId
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="p-3">{invoice.studentName}</td>
-                                                <td className="p-3">
-                                                    {new Date(invoice.month).toLocaleDateString(
-                                                        'en-US',
-                                                        {
-                                                            year: 'numeric',
-                                                            month: 'long',
-                                                        }
-                                                    )}
-                                                </td>
-                                                <td className="p-3">
-                                                    {invoice.courseName}
-                                                    <div className="text-xs text-muted-foreground">
-                                                        Batch: {invoice.batchName}
-                                                    </div>
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    ৳{invoice.amount.toLocaleString()}
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center gap-1"
-                                                            onClick={() => {
-                                                                // View invoice details
-                                                            }}
-                                                        >
-                                                            <FileText className="h-3.5 w-3.5" />
-                                                            <span className="hidden sm:inline">
-                                                                View
-                                                            </span>
-                                                        </Button>
-
-                                                        <Button
-                                                            size="sm"
-                                                            className="bg-tp_red hover:bg-red-600 flex items-center gap-1"
-                                                            onClick={() =>
-                                                                handlePayInvoice(invoice.invoiceId)
-                                                            }
-                                                            disabled={processingPayment}
-                                                        >
-                                                            {processingPayment ? (
-                                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                            ) : (
-                                                                <CreditCard className="h-3.5 w-3.5" />
-                                                            )}
-                                                            <span className="hidden sm:inline">
-                                                                Pay Now
-                                                            </span>
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {selectedInvoices.length > 0 && (
-                                <div className="bg-muted/50 p-3 flex justify-between items-center">
-                                    <div className="text-sm">
-                                        <span className="font-medium">
-                                            {selectedInvoices.length}
-                                        </span>{' '}
-                                        invoices selected (
-                                        {filteredInvoices
-                                            .filter((invoice) =>
-                                                selectedInvoices.includes(invoice.invoiceId)
-                                            )
-                                            .reduce((sum, invoice) => sum + invoice.amount, 0)
-                                            .toLocaleString()}{' '}
-                                        ৳)
-                                    </div>
-                                    <Button
-                                        className="bg-tp_red hover:bg-red-600"
-                                        onClick={handleBulkPayment}
-                                        disabled={processingPayment}
-                                    >
-                                        {processingPayment ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <CreditCard className="mr-2 h-4 w-4" />
-                                        )}
-                                        Pay Selected
-                                    </Button>
-                                </div>
+                        <Button
+                            onClick={handleBulkPayment}
+                            disabled={processingPayment}
+                            className="bg-tp_red hover:bg-red-600"
+                        >
+                            {processingPayment ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <CreditCard className="mr-2 h-4 w-4" />
                             )}
-                        </div>
-                    )}
-                </TabsContent>
+                            Pay Selected
+                        </Button>
+                    </div>
+                )}
+            </div>
 
-                {/* Payment History Tab */}
-                <TabsContent value="history" className="mt-4">
-                    {filteredPayments.length === 0 ? (
-                        <div className="bg-background rounded-lg border p-8 text-center">
-                            <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                            <h2 className="text-xl font-medium mb-2">No Payment History</h2>
-                            <p className="text-muted-foreground mb-4">
-                                You haven't made any payments yet.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="bg-background rounded-lg border overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-muted">
-                                        <tr>
-                                            <th className="p-3 text-left">Student</th>
-                                            <th className="p-3 text-left">Month</th>
-                                            <th className="p-3 text-left">Course</th>
-                                            <th className="p-3 text-left">Payment Date</th>
-                                            <th className="p-3 text-right">Amount</th>
-                                            <th className="p-3 text-left">Transaction ID</th>
-                                            <th className="p-3 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {filteredPayments.map((payment) => (
-                                            <tr
-                                                key={payment.paymentId}
-                                                className="hover:bg-muted/50"
-                                            >
-                                                <td className="p-3">{payment.studentName}</td>
-                                                <td className="p-3">
-                                                    {new Date(payment.month).toLocaleDateString(
-                                                        'en-US',
-                                                        {
-                                                            year: 'numeric',
-                                                            month: 'long',
-                                                        }
-                                                    )}
-                                                </td>
-                                                <td className="p-3">{payment.courseName}</td>
-                                                <td className="p-3">
-                                                    {new Date(
-                                                        payment.paymentDate
-                                                    ).toLocaleDateString()}
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    ৳{payment.amount.toLocaleString()}
-                                                </td>
-                                                <td className="p-3 font-mono text-xs">
-                                                    {payment.transactionId}
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center gap-1"
-                                                            title="View Receipt"
-                                                        >
-                                                            <FileText className="h-3.5 w-3.5" />
-                                                            <span className="hidden sm:inline">
-                                                                Receipt
-                                                            </span>
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+            {/* All Payments List */}
+            {allItems.length === 0 ? (
+                <div className="bg-background rounded-lg border p-8 text-center">
+                    <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                    <h2 className="text-xl font-medium mb-2">No Payment Records</h2>
+                    <p className="text-muted-foreground">
+                        You don&apos;t have any payment records yet.
+                    </p>
+                </div>
+            ) : (
+                <div className="bg-background rounded-lg border overflow-hidden">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 gap-2 p-4 bg-muted font-medium text-sm">
+                        {pendingInvoices.length > 0 && (
+                            <div className="col-span-1 flex items-center">
+                                <button
+                                    onClick={selectAllPending}
+                                    className="p-1 hover:bg-background/50 rounded"
+                                    title={
+                                        selectedInvoices.length === pendingInvoices.length
+                                            ? 'Deselect all'
+                                            : 'Select all pending'
+                                    }
+                                >
+                                    {selectedInvoices.length === pendingInvoices.length &&
+                                    pendingInvoices.length > 0 ? (
+                                        <CheckSquare className="h-5 w-5 text-tp_red" />
+                                    ) : (
+                                        <Square className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
+                        )}
+                        <div className={pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'}>
+                            Student
                         </div>
-                    )}
-                </TabsContent>
-            </Tabs>
+                        <div className="col-span-3">Course</div>
+                        <div className="col-span-2">Month</div>
+                        <div className="col-span-2 text-right">Amount</div>
+                        <div className="col-span-2 text-right">Action</div>
+                    </div>
+
+                    {/* Table Body */}
+                    <div className="divide-y">
+                        {allItems.map((item) => (
+                            <div
+                                key={`${item.type}-${item.id}`}
+                                className={`grid grid-cols-12 gap-2 p-4 items-center text-sm ${
+                                    !item.isPaid
+                                        ? 'bg-yellow-50/50 dark:bg-yellow-900/10'
+                                        : 'hover:bg-muted/30'
+                                }`}
+                            >
+                                {/* Checkbox for pending invoices */}
+                                {pendingInvoices.length > 0 && (
+                                    <div className="col-span-1 flex items-center">
+                                        {!item.isPaid ? (
+                                            <button
+                                                onClick={() => toggleInvoiceSelection(item.id)}
+                                                className="p-1 hover:bg-background/50 rounded"
+                                            >
+                                                {selectedInvoices.includes(item.id) ? (
+                                                    <CheckSquare className="h-5 w-5 text-tp_red" />
+                                                ) : (
+                                                    <Square className="h-5 w-5" />
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <CheckCircle className="h-5 w-5 text-green-500" />
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Student Name */}
+                                <div
+                                    className={
+                                        pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'
+                                    }
+                                >
+                                    <span className="font-medium">{item.studentName}</span>
+                                </div>
+
+                                {/* Course & Batch */}
+                                <div className="col-span-3">
+                                    <div>{item.courseName}</div>
+                                    {item.batchName && (
+                                        <div className="text-xs text-muted-foreground">
+                                            {item.batchName}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Month */}
+                                <div className="col-span-2">{item.monthDisplay}</div>
+
+                                {/* Amount */}
+                                <div className="col-span-2 text-right font-medium">
+                                    ৳{item.amount.toLocaleString()}
+                                </div>
+
+                                {/* Action */}
+                                <div className="col-span-2 text-right">
+                                    {!item.isPaid ? (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handlePayInvoice(item.id)}
+                                            disabled={processingPayment}
+                                            className="bg-tp_red hover:bg-red-600"
+                                        >
+                                            {processingPayment ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <CreditCard className="h-4 w-4 mr-1" />
+                                                    Pay
+                                                </>
+                                            )}
+                                        </Button>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                                            <CheckCircle className="h-3.5 w-3.5" />
+                                            Paid
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
