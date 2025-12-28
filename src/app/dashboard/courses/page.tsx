@@ -368,7 +368,7 @@ export default function CoursesPage() {
         return (
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold">My Courses</h1>
+                    <h1 className="text-3xl font-bold">Courses</h1>
                     <p className="text-muted-foreground mt-2">
                         View and manage your course enrollments
                     </p>
@@ -407,7 +407,7 @@ export default function CoursesPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">My Courses</h1>
+                <h1 className="text-3xl font-bold">Courses</h1>
                 <p className="text-muted-foreground mt-2">
                     View and manage your course enrollments
                 </p>
