@@ -50,7 +50,7 @@ const MOCK_COURSES = [
         name: 'Mathematics Fundamentals',
         description: 'Basic mathematics skills for primary students',
         admission_fee: 1000,
-        tuition_fee: 800,
+        monthly_fee: 800,
         is_active: true,
         batches: [
             {
@@ -78,7 +78,7 @@ const MOCK_COURSES = [
         name: 'English Language',
         description: 'English grammar and communication',
         admission_fee: 1000,
-        tuition_fee: 900,
+        monthly_fee: 900,
         is_active: true,
         batches: [
             {
@@ -492,7 +492,7 @@ export default function CoursesPage() {
                                             <div className="flex justify-between text-sm">
                                                 <span>Monthly Fee</span>
                                                 <span className="font-medium">
-                                                    ৳{course.tuition_fee || 0}
+                                                    ৳{course.monthly_fee || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between text-sm">

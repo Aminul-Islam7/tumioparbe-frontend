@@ -24,7 +24,7 @@ export interface Course {
     name: string;
     description?: string;
     admission_fee: number;
-    tuition_fee: number;
+    monthly_fee: number;
     is_active: boolean;
     batches: Batch[];
 }
