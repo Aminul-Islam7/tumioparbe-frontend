@@ -229,6 +229,10 @@ export default function Navbar({ className }: NavbarProps) {
 
     const isLinkActive = (href: string) => pathname === href;
 
+    if (pathname?.startsWith('/dashboard')) {
+        return null;
+    }
+
     return (
         <header
             className={cn(

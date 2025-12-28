@@ -183,7 +183,7 @@ export default function CoursesPage() {
                 throw error;
             }
         },
-        [useMockData]
+        [useMockData, user?.id]
     );
 
     // Fetch enrollments data with caching
@@ -224,7 +224,7 @@ export default function CoursesPage() {
                 throw error;
             }
         },
-        [useMockData]
+        [useMockData, user?.id]
     );
 
     // Fetch courses data with caching

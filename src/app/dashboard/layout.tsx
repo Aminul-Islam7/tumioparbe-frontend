@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, User, BookOpen, CreditCard, LogOut } from 'lucide-react';
+import { LayoutDashboard, User, BookOpen, CreditCard, LogOut, Home } from 'lucide-react';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pathname = usePathname();
 
     const sidebarLinks = [
+        { href: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
         { href: '/dashboard', label: 'Overview', icon: <LayoutDashboard className="w-5 h-5" /> },
         { href: '/dashboard/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
         { href: '/dashboard/courses', label: 'My Courses', icon: <BookOpen className="w-5 h-5" /> },
@@ -28,7 +30,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Sidebar */}
             <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h1 className="text-xl font-bold">Tumio Parbe</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10">
+                            <Image 
+                                src="/logo.png" 
+                                alt="Tumio Parbe" 
+                                fill 
+                                className="object-contain object-left"
+                                priority
+                            />
+                        </div>
+                        <span className="font-bold text-lg">তুমিও পারবে</span>
+                    </div>
                 </div>
 
                 <nav className="p-4 space-y-1">

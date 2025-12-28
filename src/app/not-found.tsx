@@ -2,12 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Home } from 'lucide-react';
-import Navbar from '@/components/shared/navbar';
 
 export default function NotFound() {
     return (
         <div className="flex flex-col min-h-screen">
-            <Navbar />
             <main className="flex-1 flex flex-col items-center justify-center text-center p-4">
                 <div className="space-y-8 max-w-md">
                     <div className="space-y-2">
