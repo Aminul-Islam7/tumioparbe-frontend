@@ -31,19 +31,23 @@ export default function DashboardPage() {
 
                 // Fetch students
                 const studentsResponse = await userApi.getStudents();
-                const fetchedStudents = studentsResponse.data.results || [];
+                const fetchedStudents = Array.isArray(studentsResponse.data)
+                    ? studentsResponse.data
+                    : studentsResponse.data?.results || [];
                 setStudents(fetchedStudents);
 
                 // Fetch enrollments
-                const enrollmentsResponse = await enrollmentApi.getEnrollments({
-                    is_active: true,
-                });
-                const fetchedEnrollments = enrollmentsResponse.data.results || [];
+                const enrollmentsResponse = await enrollmentApi.getEnrollments({ is_active: true });
+                const fetchedEnrollments = Array.isArray(enrollmentsResponse.data)
+                    ? enrollmentsResponse.data
+                    : enrollmentsResponse.data?.results || [];
                 setEnrollments(fetchedEnrollments);
 
                 // Fetch pending invoices
                 const invoicesResponse = await paymentApi.getPendingInvoices();
-                const fetchedInvoices = invoicesResponse.data.results || [];
+                const fetchedInvoices = Array.isArray(invoicesResponse.data)
+                    ? invoicesResponse.data
+                    : invoicesResponse.data?.results || [];
                 setPendingInvoices(fetchedInvoices);
 
                 // Calculate stats
@@ -76,8 +80,7 @@ export default function DashboardPage() {
             <div>
                 <h1 className="text-3xl font-bold">Welcome, {user?.name || 'Back'}!</h1>
                 <p className="text-muted-foreground mt-2">
-                    This is your dashboard where you can manage your children's courses and
-                    payments.
+                    This is your dashboard where you can manage your children's courses and payments.
                 </p>
             </div>
 
@@ -85,16 +88,9 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="p-6 bg-background rounded-lg shadow-sm border">
                     <h3 className="font-semibold mb-2">Total Due</h3>
-                    <p className="text-3xl font-bold">
-                        {loading ? '...' : `৳${stats.totalDue.toLocaleString()}`}
-                    </p>
+                    <p className="text-3xl font-bold">{loading ? '...' : `৳${stats.totalDue.toLocaleString()}`}</p>
                     {stats.totalDue > 0 && (
-                        <Button
-                            variant="default"
-                            size="sm"
-                            className="mt-4 bg-tp_red hover:bg-red-600"
-                            asChild
-                        >
+                        <Button variant="default" size="sm" className="mt-4 bg-tp_red hover:bg-red-600" asChild>
                             <Link href="/dashboard/payments">
                                 Pay Now <CreditCard className="ml-2 h-4 w-4" />
                             </Link>
@@ -104,9 +100,7 @@ export default function DashboardPage() {
 
                 <div className="p-6 bg-background rounded-lg shadow-sm border">
                     <h3 className="font-semibold mb-2">Active Enrollments</h3>
-                    <p className="text-3xl font-bold">
-                        {loading ? '...' : stats.activeEnrollments}
-                    </p>
+                    <p className="text-3xl font-bold">{loading ? '...' : stats.activeEnrollments}</p>
                     <Button variant="outline" size="sm" className="mt-4" asChild>
                         <Link href="/dashboard/courses">
                             View Courses <BookOpen className="ml-2 h-4 w-4" />
@@ -142,9 +136,7 @@ export default function DashboardPage() {
                     <div className="text-center p-8 border border-dashed rounded-lg">
                         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
                         <h3 className="font-medium text-lg mb-2">No Students Added Yet</h3>
-                        <p className="text-muted-foreground mb-4">
-                            Add your child's information to enroll in courses.
-                        </p>
+                        <p className="text-muted-foreground mb-4">Add your child's information to enroll in courses.</p>
                         <Button asChild className="bg-tp_red hover:bg-red-600">
                             <Link href="/dashboard/profile#add-student">
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Your First Student
@@ -157,52 +149,31 @@ export default function DashboardPage() {
                             <div key={student.id} className="border rounded-lg p-4">
                                 <h3 className="font-semibold text-lg">{student.name}</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {student.current_class
-                                        ? `Class: ${student.current_class}`
-                                        : 'No class specified'}
+                                    {student.current_class ? `Class: ${student.current_class}` : 'No class specified'}
                                 </p>
 
                                 {/* Count enrollments for this student */}
                                 {(() => {
-                                    const studentEnrollments = enrollments.filter(
-                                        (e) => e.student === student.id
-                                    );
+                                    const studentEnrollments = enrollments.filter((e) => e.student === student.id);
                                     return (
                                         <div className="mt-2">
                                             <p className="text-sm">
                                                 <span className="font-medium">
-                                                    {studentEnrollments.length}{' '}
-                                                    {studentEnrollments.length === 1
-                                                        ? 'Course'
-                                                        : 'Courses'}
+                                                    {studentEnrollments.length} {studentEnrollments.length === 1 ? 'Course' : 'Courses'}
                                                 </span>{' '}
                                                 enrolled
                                             </p>
 
                                             {studentEnrollments.length > 0 ? (
-                                                <Button
-                                                    variant="link"
-                                                    size="sm"
-                                                    className="pl-0 text-tp_red"
-                                                    asChild
-                                                >
-                                                    <Link
-                                                        href={`/dashboard/courses?student=${student.id}`}
-                                                    >
-                                                        View Courses{' '}
-                                                        <ArrowRight className="ml-1 h-3 w-3" />
+                                                <Button variant="link" size="sm" className="pl-0 text-tp_red" asChild>
+                                                    <Link href={`/dashboard/courses?student=${student.id}`}>
+                                                        View Courses <ArrowRight className="ml-1 h-3 w-3" />
                                                     </Link>
                                                 </Button>
                                             ) : (
-                                                <Button
-                                                    variant="link"
-                                                    size="sm"
-                                                    className="pl-0 text-tp_red"
-                                                    asChild
-                                                >
+                                                <Button variant="link" size="sm" className="pl-0 text-tp_red" asChild>
                                                     <Link href="/dashboard/courses">
-                                                        Browse Courses{' '}
-                                                        <ArrowRight className="ml-1 h-3 w-3" />
+                                                        Browse Courses <ArrowRight className="ml-1 h-3 w-3" />
                                                     </Link>
                                                 </Button>
                                             )}
@@ -243,9 +214,7 @@ export default function DashboardPage() {
                                     <tr key={invoice.id} className="border-b">
                                         <td className="p-2">
                                             {students.find((s) => {
-                                                const enrollment = enrollments.find(
-                                                    (e) => e.id === invoice.enrollment
-                                                );
+                                                const enrollment = enrollments.find((e) => e.id === invoice.enrollment);
                                                 return enrollment && s.id === enrollment.student;
                                             })?.name || 'Unknown'}
                                         </td>
@@ -257,9 +226,7 @@ export default function DashboardPage() {
                                         </td>
                                         <td className="p-2">
                                             {/* This would require additional API calls to get course name */}
-                                            Course #
-                                            {enrollments.find((e) => e.id === invoice.enrollment)
-                                                ?.batch || 'Unknown'}
+                                            Course #{enrollments.find((e) => e.id === invoice.enrollment)?.batch || 'Unknown'}
                                         </td>
                                         <td className="p-2 text-right">৳{invoice.amount}</td>
                                         <td className="p-2 text-right">
@@ -283,9 +250,7 @@ export default function DashboardPage() {
                     {pendingInvoices.length > 5 && (
                         <div className="mt-4 text-center">
                             <Button variant="link" asChild>
-                                <Link href="/dashboard/payments">
-                                    View All {pendingInvoices.length} Pending Payments
-                                </Link>
+                                <Link href="/dashboard/payments">View All {pendingInvoices.length} Pending Payments</Link>
                             </Button>
                         </div>
                     )}

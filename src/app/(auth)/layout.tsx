@@ -1,17 +1,13 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import Logo from '@/components/shared/logo';
-import LightDarkSwitch from '@/components/shared/light-dark-switch';
-import Navbar from '@/components/shared/navbar';
+import React from 'react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="bg-muted/50 min-h-screen flex items-center justify-center">
+        <main className="flex-1 flex items-center justify-center min-h-screen py-8">
             <div className="container">
-                <div className="mx-auto max-w-[450px] p-6 bg-background rounded-lg shadow-lg">
+                <div className="mx-auto max-w-[450px] p-6 bg-background/70 dark:bg-card/70 backdrop-blur-sm rounded-lg shadow-[0_0px_50px_-5px_rgb(0_0_0_/0.15)]">
                     {children}
                 </div>
             </div>
-        </div>
+        </main>
     );
 }

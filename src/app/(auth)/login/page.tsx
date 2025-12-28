@@ -47,11 +47,10 @@ export default function Login() {
 
             showSuccess('Login successful', 'Welcome back!');
 
-            // Redirect to dashboard - make sure to use the correct path
+            // Redirect to dashboard
             if (userData.is_admin) {
                 router.push('/admin/dashboard');
             } else {
-                // Use the standard route without parentheses
                 router.push('/dashboard');
             }
         } catch (error) {

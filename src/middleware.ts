@@ -29,12 +29,17 @@ export function middleware(request: NextRequest) {
         // Get auth token from cookies
         const accessToken = request.cookies.get('access_token')?.value;
 
+        console.log('Middleware Debug: access_token:', accessToken);
+
         // If no token or token is expired, redirect to login
         if (!accessToken || tokenExpired(accessToken)) {
+            console.log('Middleware Debug: Token missing or expired');
             const loginUrl = new URL('/login', request.url);
             loginUrl.searchParams.set('returnUrl', request.nextUrl.pathname);
             return NextResponse.redirect(loginUrl);
         }
+
+        console.log('Middleware Debug: Token valid, proceeding to dashboard');
     }
 
     return NextResponse.next();

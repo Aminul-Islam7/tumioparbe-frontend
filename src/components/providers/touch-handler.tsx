@@ -44,8 +44,11 @@ export function TouchHandler({ children }: TouchHandlerProps) {
             // Function to reset any stuck hover states when scrolling
             const clearHoverOnScroll = () => {
                 document.body.classList.add('touch-scrolling');
-                clearTimeout(window.scrollTimeout);
-                window.scrollTimeout = setTimeout(() => {
+                // use any cast to store timeout on window to avoid missing declaration
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const w = window as any;
+                clearTimeout(w.scrollTimeout);
+                w.scrollTimeout = setTimeout(() => {
                     document.body.classList.remove('touch-scrolling');
                 }, 100);
             };

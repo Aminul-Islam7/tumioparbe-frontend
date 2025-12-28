@@ -79,10 +79,11 @@ const reducer = (state: State, action: Action): State => {
                     toastTimeouts.delete(toastId);
                 }
             } else {
-                for (const [id, timeout] of toastTimeouts.entries()) {
+                // Clear all timeouts
+                toastTimeouts.forEach((timeout, id) => {
                     clearTimeout(timeout);
                     toastTimeouts.delete(id);
-                }
+                });
             }
 
             return {
@@ -140,7 +141,7 @@ function toast({ ...props }: Toast) {
             ...props,
             id,
             open: true,
-            onOpenChange: (open) => {
+                onOpenChange: (open: boolean) => {
                 if (!open) dismiss();
             },
         },

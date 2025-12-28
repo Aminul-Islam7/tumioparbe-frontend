@@ -291,10 +291,10 @@ export default function EnrollmentPage() {
                                         {visibleBatches.map((batch) => (
                                             <label
                                                 key={batch.id}
-                                                className={`
-                          flex flex-col p-4 border rounded-lg cursor-pointer
-                          ${values.batchId === batch.id ? 'border-tp_red bg-red-50 dark:bg-red-900/10' : 'hover:bg-muted/50'}
-                        `}
+                                                                                        className={`
+                                                    flex flex-col p-4 border rounded-lg cursor-pointer
+                                                    ${Number(values.batchId) === batch.id ? 'border-tp_red bg-red-50 dark:bg-red-900/10' : 'hover:bg-muted/50'}
+                                                `}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <span className="font-medium">
@@ -304,10 +304,8 @@ export default function EnrollmentPage() {
                                                         type="radio"
                                                         name="batchId"
                                                         value={batch.id}
-                                                        checked={values.batchId === batch.id}
-                                                        onChange={() =>
-                                                            setFieldValue('batchId', batch.id)
-                                                        }
+                                                        checked={Number(values.batchId) === batch.id}
+                                                        onChange={() => setFieldValue('batchId', batch.id)}
                                                         className="h-4 w-4 text-tp_red border-gray-300 focus:ring-tp_red"
                                                     />
                                                 </div>
@@ -370,7 +368,10 @@ export default function EnrollmentPage() {
                                             variant="outline"
                                             disabled={!values.couponCode}
                                             onClick={() =>
-                                                validateCoupon(values.couponCode, values.batchId)
+                                                validateCoupon(
+                                                    values.couponCode,
+                                                    values.batchId ? Number(values.batchId) : undefined
+                                                )
                                             }
                                         >
                                             Apply
@@ -392,9 +393,7 @@ export default function EnrollmentPage() {
                                             <span>Admission Fee</span>
                                             <span>
                                                 ৳
-                                                {calculateFees(
-                                                    values.batchId
-                                                ).admissionFee.toLocaleString()}
+                                                {calculateFees(Number(values.batchId) || undefined).admissionFee.toLocaleString()}
                                             </span>
                                         </div>
 
@@ -402,9 +401,7 @@ export default function EnrollmentPage() {
                                             <span>First Month Tuition</span>
                                             <span>
                                                 ৳
-                                                {calculateFees(
-                                                    values.batchId
-                                                ).tuitionFee.toLocaleString()}
+                                                {calculateFees(Number(values.batchId) || undefined).tuitionFee.toLocaleString()}
                                             </span>
                                         </div>
 
@@ -419,9 +416,7 @@ export default function EnrollmentPage() {
                                             <span>Total Payable</span>
                                             <span>
                                                 ৳
-                                                {calculateFees(
-                                                    values.batchId
-                                                ).total.toLocaleString()}
+                                                {calculateFees(Number(values.batchId) || undefined).total.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>

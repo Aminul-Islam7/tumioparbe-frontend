@@ -1,6 +1,21 @@
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 import { getAuthTokens, setAuthTokens, clearAuthTokens } from '@/lib/auth';
-import { AuthTokens, ApiError } from '@/types';
+import {
+    AuthTokens,
+    User,
+    Student,
+    Course,
+    Batch,
+    Enrollment,
+    Invoice,
+    Payment,
+    PaginatedResponse,
+    RegistrationRequest,
+    RegistrationResponse,
+    EnrollmentInitiateRequest,
+    EnrollmentPaymentRequest,
+    DashboardStats,
+} from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -10,6 +25,7 @@ const api: AxiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Enable sending cookies in cross-origin requests
 });
 
 // Add request interceptor to add auth token
@@ -46,7 +62,8 @@ api.interceptors.response.use(
                     `${BASE_URL}/accounts/token/refresh/`,
                     {
                         refresh: tokens.refresh,
-                    }
+                    },
+                    { withCredentials: true }
                 );
 
                 const newAccess = response.data.access;
@@ -57,11 +74,10 @@ api.interceptors.response.use(
                     refresh: tokens.refresh,
                 });
 
-                // Retry the original request
+                // Retry the original request with new token
                 if (originalRequest.headers) {
                     originalRequest.headers.Authorization = `Bearer ${newAccess}`;
                 }
-
                 return axios(originalRequest);
             } catch (refreshError) {
                 clearAuthTokens();
@@ -84,67 +100,81 @@ export const authApi = {
     verifyOtp: (phone: string, otp: string) =>
         api.post<{ success: boolean }>('/accounts/verify-otp/', { phone, otp }),
 
-    register: (data: any) => api.post('/accounts/register/', data),
+    register: (data: RegistrationRequest) =>
+        api.post<RegistrationResponse>('/accounts/register/', data),
+
+    refreshToken: (refreshToken: string) =>
+        api.post<{ access: string }>('/accounts/token/refresh/', { refresh: refreshToken }),
 };
 
 // User & Student API calls
 export const userApi = {
-    getProfile: () => api.get('/accounts/profile/'),
+    getProfile: () => api.get<User>('/accounts/profile/'),
 
-    updateProfile: (data: any) => api.put('/accounts/profile/', data),
+    updateProfile: (data: Partial<User>) => api.put<User>('/accounts/profile/', data),
 
-    getStudents: () => api.get('/accounts/students/'),
+    getStudents: () => api.get<PaginatedResponse<Student>>('/accounts/students/'),
 
-    addStudent: (data: any) => api.post('/accounts/students/', data),
+    addStudent: (data: Omit<Student, 'id' | 'parent'>) =>
+        api.post<Student>('/accounts/students/', data),
 
-    getStudent: (id: number) => api.get(`/accounts/students/${id}/`),
+    getStudent: (id: number) => api.get<Student>(`/accounts/students/${id}/`),
 
-    updateStudent: (id: number, data: any) => api.put(`/accounts/students/${id}/`, data),
+    updateStudent: (id: number, data: Partial<Omit<Student, 'id' | 'parent'>>) =>
+        api.put<Student>(`/accounts/students/${id}/`, data),
 };
 
 // Course API calls
 export const courseApi = {
-    getCourses: (params?: any) => api.get('/courses/courses/', { params }),
+    getCourses: (params?: { is_active?: boolean }) =>
+        api.get<PaginatedResponse<Course>>('/courses/courses/', { params }),
 
-    getCourse: (id: number) => api.get(`/courses/courses/${id}/`),
+    getCourse: (id: number) => api.get<Course>(`/courses/courses/${id}/`),
 
-    getBatches: (params?: any) => api.get('/courses/batches/', { params }),
+    getBatches: (params?: { is_visible?: boolean; course?: number }) =>
+        api.get<PaginatedResponse<Batch>>('/courses/batches/', { params }),
 
-    getBatch: (id: number) => api.get(`/courses/batches/${id}/`),
+    getBatch: (id: number) => api.get<Batch>(`/courses/batches/${id}/`),
 };
 
 // Enrollment API calls
 export const enrollmentApi = {
-    initiateEnrollment: (data: any) => api.post('/enrollments/enrollments/initiate/', data),
+    initiateEnrollment: (data: EnrollmentInitiateRequest) =>
+        api.post<Enrollment>('/enrollments/enrollments/initiate/', data),
 
-    initiatePayment: (data: any) => api.post('/enrollments/enrollments/initiate_payment/', data),
+    initiatePayment: (data: EnrollmentPaymentRequest) =>
+        api.post<Payment>('/enrollments/enrollments/initiate_payment/', data),
 
-    verifyAndCompletePayment: (data: any) =>
-        api.post('/enrollments/enrollments/verify_and_complete_payment/', data),
+    verifyAndCompletePayment: (data: { payment_id: string }) =>
+        api.post<Payment>('/enrollments/enrollments/verify_and_complete_payment/', data),
 
-    getEnrollments: (params?: any) => api.get('/enrollments/enrollments/', { params }),
+    getEnrollments: (params?: { student?: number; is_active?: boolean }) =>
+        api.get<PaginatedResponse<Enrollment>>('/enrollments/enrollments/', { params }),
 
-    getEnrollment: (id: number) => api.get(`/enrollments/enrollments/${id}/`),
+    getEnrollment: (id: number) => api.get<Enrollment>(`/enrollments/enrollments/${id}/`),
 
-    validateCoupon: (code: string, params?: any) =>
-        api.get('/enrollments/coupons/validate/', {
+    validateCoupon: (code: string, params?: { batch_id?: number }) =>
+        api.get<{ valid: boolean; discount: number }>('/enrollments/coupons/validate/', {
             params: { code, ...params },
         }),
 };
 
 // Payment API calls
 export const paymentApi = {
-    getPendingInvoices: () => api.get('/payments/payments/pending_invoices/'),
+    getPendingInvoices: () =>
+        api.get<PaginatedResponse<Invoice>>('/payments/payments/pending_invoices/'),
 
-    payInvoice: (invoice_id: number) => api.post('/payments/payments/pay_invoice/', { invoice_id }),
+    payInvoice: (invoice_id: number) =>
+        api.post<Payment>('/payments/payments/pay_invoice/', { invoice_id }),
 
     bulkPayInvoices: (invoice_ids: number[]) =>
-        api.post('/payments/payments/bulk_pay_invoices/', { invoice_ids }),
+        api.post<Payment[]>('/payments/payments/bulk_pay_invoices/', { invoice_ids }),
 
     executeBkashPayment: (payment_id: string) =>
-        api.post('/payments/payments/execute_bkash_payment/', { payment_id }),
+        api.post<Payment>('/payments/payments/execute_bkash_payment/', { payment_id }),
 
-    getPaymentHistory: () => api.get('/payments/payments/payment_history/'),
+    getPaymentHistory: () =>
+        api.get<PaginatedResponse<Payment>>('/payments/payments/payment_history/'),
 };
 
 export default api;
