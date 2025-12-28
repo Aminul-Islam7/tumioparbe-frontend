@@ -21,6 +21,7 @@ import {
     CheckCircle2,
     Copy,
     ExternalLink,
+    Users,
 } from 'lucide-react';
 
 export default function CoursesPage() {
@@ -170,11 +171,11 @@ export default function CoursesPage() {
         [courses, getEnrollmentForCourse]
     );
 
-    // Copy class link to clipboard
-    const copyClassLink = async (link: string) => {
+    // Copy link to clipboard
+    const copyLink = async (link: string, label: string = 'Link') => {
         try {
             await navigator.clipboard.writeText(link);
-            showSuccess('Copied!', 'Class link copied to clipboard');
+            showSuccess('Copied!', `${label} copied to clipboard`);
         } catch (err) {
             showError('Error', 'Failed to copy link');
         }
@@ -402,7 +403,35 @@ export default function CoursesPage() {
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            onClick={() => copyClassLink(batch.class_link!)}
+                                                            onClick={() => copyLink(batch.class_link!, 'Class link')}
+                                                            className="flex-shrink-0"
+                                                        >
+                                                            <Copy className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Group Link */}
+                                            {batch.group_link && (
+                                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
+                                                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                                                        Group Link
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <a
+                                                            href={batch.group_link}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex-1 text-sm text-tp_red hover:underline truncate flex items-center gap-1"
+                                                        >
+                                                            <Users className="h-3.5 w-3.5 flex-shrink-0" />
+                                                            <span className="truncate">{batch.group_link}</span>
+                                                        </a>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => copyLink(batch.group_link!, 'Group link')}
                                                             className="flex-shrink-0"
                                                         >
                                                             <Copy className="h-3.5 w-3.5" />
