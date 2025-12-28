@@ -492,7 +492,7 @@ export default function CoursesPage() {
                                             <div className="flex justify-between text-sm">
                                                 <span>Monthly Fee</span>
                                                 <span className="font-medium">
-                                                    ৳{course.tuition_fee}
+                                                    ৳{course.tuition_fee || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between text-sm">
@@ -508,7 +508,7 @@ export default function CoursesPage() {
 
                                         <div className="space-y-2">
                                             <h4 className="text-sm font-medium">Batches:</h4>
-                                            <div className="space-y-1.5">
+                                            <div className="space-y-1.5 max-h-[150px] overflow-y-auto pr-1">
                                                 {course.batches
                                                     .filter((batch) => batch.is_visible)
                                                     .map((batch) => (
