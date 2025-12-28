@@ -60,12 +60,7 @@ export default function ProfilePage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold">Profile Settings</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage your personal information
-                </p>
-            </div>
+            {/* Header removed as it is now in layout */}
 
             <div className="bg-background rounded-lg border p-6">
                 <h2 className="text-xl font-semibold mb-6">Parent Information</h2>

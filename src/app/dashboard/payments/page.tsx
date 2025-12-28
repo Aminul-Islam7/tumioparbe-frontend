@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -42,6 +42,9 @@ export default function PaymentsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [activeTab, setActiveTab] = useState('pending');
+
+    // Track if initial fetch has been done
+    const hasFetched = useRef(false);
 
     // Enriched invoice data with student and course names
     const [enrichedInvoices, setEnrichedInvoices] = useState<
@@ -196,7 +199,8 @@ export default function PaymentsPage() {
                 showError('Error', 'Failed to process payment data.');
             }
         },
-        [showError]
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
     );
 
     // Memoize the fetch data function to prevent recreating it on each render
@@ -237,14 +241,17 @@ export default function PaymentsPage() {
         } finally {
             setLoading(false);
         }
-    }, [processEnrichedData, showError]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Fetch all data once on component mount
     useEffect(() => {
-        fetchData();
-        // fetchData is now a dependency but it's memoized with useCallback
-        // so it won't change between renders unless its dependencies change
-    }, [fetchData]);
+        if (!hasFetched.current) {
+            hasFetched.current = true;
+            fetchData();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Handle single invoice payment
     const handlePayInvoice = async (invoiceId: number) => {
@@ -408,12 +415,7 @@ export default function PaymentsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Payments</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage your monthly payments and view payment history
-                </p>
-            </div>
+            {/* Header removed as it is now in layout */}
 
             {/* Payment Summary */}
             <div className="bg-background rounded-lg border p-6">

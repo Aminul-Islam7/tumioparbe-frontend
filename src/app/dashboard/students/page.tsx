@@ -123,12 +123,7 @@ export default function StudentsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">My Children</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage your children's information and enrollments
-                </p>
-            </div>
+            {/* Header removed as it is now in layout */}
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">

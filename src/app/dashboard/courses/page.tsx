@@ -256,28 +256,7 @@ export default function CoursesPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold">Courses</h1>
-                    <p className="text-muted-foreground mt-2">
-                        View and manage your course enrollments
-                    </p>
-                </div>
-                <Button
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    variant="outline"
-                    size="sm"
-                >
-                    {isRefreshing ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <RefreshCcw className="mr-2 h-4 w-4" />
-                    )}
-                    Refresh
-                </Button>
-            </div>
+
 
             {/* Student Selector - Big Radio Buttons */}
             <div className="bg-background rounded-lg border p-4">
