@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, BookOpen, CreditCard, LogOut, Home, Users, UserCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +13,12 @@ import LightDarkSwitch from '@/components/shared/light-dark-switch';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuth(true);
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = () => {
+        logout();
+        router.push('/');
+    };
 
     const sidebarLinks = [
         { href: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
@@ -93,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     ))}
 
                     <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
                     >
                         <LogOut className="w-5 h-5" />
