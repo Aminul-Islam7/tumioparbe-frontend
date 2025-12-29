@@ -257,6 +257,120 @@ Update profile information (partial updates supported).
 
 ---
 
+### Password Management
+
+#### `POST /api/accounts/change-password/`
+
+Change password for authenticated users. Requires current password verification.
+
+**Authentication:** Required
+
+**Request:**
+
+```json
+{
+  "current_password": "old_password",
+  "new_password": "new_password",
+  "confirm_password": "new_password"
+}
+```
+
+**Response (Success):**
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully."
+}
+```
+
+**Error Responses:**
+
+- `400`: Current password incorrect, passwords don't match, or password too short (min 6 chars)
+
+---
+
+### Password Recovery (Forgot Password)
+
+#### 1. `POST /api/accounts/request-password-reset-otp/`
+
+Request an OTP for password reset. Similar to registration OTP but checks that an account exists.
+
+**Authentication:** Not required
+
+**Request:**
+
+```json
+{
+  "phone": "01XXXXXXXXX"
+}
+```
+
+**Response (Success):**
+
+```json
+{
+  "success": true,
+  "phone": "01XXXXXXXXX",
+  "expires_in": 300,
+  "message": "OTP sent successfully to your phone."
+}
+```
+
+**Response (Debug Mode - includes OTP):**
+
+```json
+{
+  "success": true,
+  "phone": "01XXXXXXXXX",
+  "otp": "123456",
+  "expires_in": 300,
+  "message": "OTP generated successfully. In production, this would only be sent via SMS."
+}
+```
+
+**Error Responses:**
+
+- `400`: Invalid phone format
+- `404`: No account found with this phone number
+- `429`: Rate limited (wait 60 seconds between requests)
+
+---
+
+#### 2. `POST /api/accounts/reset-password/`
+
+Reset password after OTP verification.
+
+**Authentication:** Not required
+
+**Request:**
+
+```json
+{
+  "phone": "01XXXXXXXXX",
+  "otp": "123456",
+  "new_password": "new_password",
+  "confirm_password": "new_password"
+}
+```
+
+**Response (Success):**
+
+```json
+{
+  "success": true,
+  "message": "Password reset successfully. You can now login with your new password."
+}
+```
+
+**Error Responses:**
+
+- `400`: Invalid or expired OTP, passwords don't match, password too short
+- `404`: User not found
+- `429`: Too many failed OTP attempts (max 5)
+
+---
+
 ### Student Management
 
 #### `GET /api/accounts/students/`

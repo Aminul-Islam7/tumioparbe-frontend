@@ -105,6 +105,28 @@ export const authApi = {
 
     refreshToken: (refreshToken: string) =>
         api.post<{ access: string }>('/accounts/token/refresh/', { refresh: refreshToken }),
+
+    // Password management
+    changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) =>
+        api.post<{ success: boolean; message: string }>('/accounts/change-password/', {
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword,
+        }),
+
+    requestPasswordResetOtp: (phone: string) =>
+        api.post<{ success: boolean; expires_in: number; message: string }>(
+            '/accounts/request-password-reset-otp/',
+            { phone }
+        ),
+
+    resetPassword: (phone: string, otp: string, newPassword: string, confirmPassword: string) =>
+        api.post<{ success: boolean; message: string }>('/accounts/reset-password/', {
+            phone,
+            otp,
+            new_password: newPassword,
+            confirm_password: confirmPassword,
+        }),
 };
 
 // User & Student API calls

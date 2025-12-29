@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { userApi } from '@/lib/api';
+import { userApi, authApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,12 @@ import {
     Mail,
     Facebook,
     Loader2,
+    Lock,
+    Eye,
+    EyeOff,
 } from 'lucide-react';
 
-// Form validation schema
+// Form validation schema for profile
 const ParentProfileSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
     phone: Yup.string()
@@ -32,10 +35,25 @@ const ParentProfileSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email address'),
 });
 
+// Form validation schema for password change
+const ChangePasswordSchema = Yup.object().shape({
+    currentPassword: Yup.string().required('Current password is required'),
+    newPassword: Yup.string()
+        .min(6, 'Password must be at least 6 characters')
+        .required('New password is required'),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref('newPassword')], 'Passwords must match')
+        .required('Please confirm your new password'),
+});
+
 export default function ProfilePage() {
     const { user, updateUser } = useAuth(true);
     const { showSuccess, showError } = useToast();
     const [savingParent, setSavingParent] = useState(false);
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Handle parent profile update
     const handleUpdateProfile = async (values: any) => {
@@ -54,16 +72,44 @@ export default function ProfilePage() {
         }
     };
 
+    // Handle password change
+    const handleChangePassword = async (
+        values: { currentPassword: string; newPassword: string; confirmPassword: string },
+        { resetForm }: { resetForm: () => void }
+    ) => {
+        try {
+            setChangingPassword(true);
+            const response = await authApi.changePassword(
+                values.currentPassword,
+                values.newPassword,
+                values.confirmPassword
+            );
+            if (response.data.success) {
+                showSuccess('Success', 'Your password has been changed successfully.');
+                resetForm();
+            }
+        } catch (error: any) {
+            console.error('Failed to change password:', error);
+            const errorMessage =
+                error.response?.data?.errors?.current_password?.[0] ||
+                error.response?.data?.errors?.new_password?.[0] ||
+                error.response?.data?.message ||
+                'Failed to change password. Please try again.';
+            showError('Error', errorMessage);
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
     if (!user) {
         return <div className="p-8 text-center">Loading profile data...</div>;
     }
 
     return (
         <div className="space-y-8">
-            {/* Header removed as it is now in layout */}
-
+            {/* Profile Information Section */}
             <div className="bg-background rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-6">Parent Information</h2>
+                <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
 
                 <Formik
                     initialValues={{
@@ -105,7 +151,7 @@ export default function ProfilePage() {
                                     <Field
                                         name="phone"
                                         type="text"
-                                        disabled={true} // Phone number can't be changed
+                                        disabled={true}
                                         className="flex h-10 w-full rounded-md border bg-muted px-3 py-2 text-sm cursor-not-allowed"
                                     />
                                     <ErrorMessage
@@ -189,6 +235,138 @@ export default function ProfilePage() {
                     )}
                 </Formik>
             </div>
+
+            {/* Change Password Section */}
+            <div className="bg-background rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <Lock className="h-5 w-5" /> Change Password
+                </h2>
+
+                <Formik
+                    initialValues={{
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: '',
+                    }}
+                    validationSchema={ChangePasswordSchema}
+                    onSubmit={handleChangePassword}
+                >
+                    {({ isValid, dirty }) => (
+                        <Form className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                {/* Current Password */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        Current Password
+                                    </label>
+                                    <div className="relative">
+                                        <Field
+                                            name="currentPassword"
+                                            type={showCurrentPassword ? 'text' : 'password'}
+                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showCurrentPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <ErrorMessage
+                                        name="currentPassword"
+                                        component="div"
+                                        className="text-red-500 text-xs"
+                                    />
+                                </div>
+
+                                {/* New Password */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        New Password
+                                    </label>
+                                    <div className="relative">
+                                        <Field
+                                            name="newPassword"
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showNewPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <ErrorMessage
+                                        name="newPassword"
+                                        component="div"
+                                        className="text-red-500 text-xs"
+                                    />
+                                </div>
+
+                                {/* Confirm New Password */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">
+                                        Confirm New Password
+                                    </label>
+                                    <div className="relative">
+                                        <Field
+                                            name="confirmPassword"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <ErrorMessage
+                                        name="confirmPassword"
+                                        component="div"
+                                        className="text-red-500 text-xs"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Submit button */}
+                            <div className="flex justify-end pt-4">
+                                <Button
+                                    type="submit"
+                                    className="bg-tp_red hover:bg-red-600"
+                                    disabled={changingPassword || !dirty || !isValid}
+                                >
+                                    {changingPassword ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Changing...
+                                        </>
+                                    ) : (
+                                        <>Change Password</>
+                                    )}
+                                </Button>
+                            </div>
+                        </Form>
+                    )}
+                </Formik>
+            </div>
         </div>
     );
 }
+
