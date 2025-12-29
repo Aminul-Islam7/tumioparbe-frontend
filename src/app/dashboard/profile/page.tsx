@@ -60,8 +60,8 @@ export default function ProfilePage() {
         try {
             setSavingParent(true);
             const response = await userApi.updateProfile(values);
-            if (response.data) {
-                updateUser(response.data);
+            if (response.data.success && response.data.data) {
+                updateUser(response.data.data);
                 showSuccess('Success', 'Your profile has been updated.');
             }
         } catch (error) {

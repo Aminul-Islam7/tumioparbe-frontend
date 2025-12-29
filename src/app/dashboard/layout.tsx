@@ -116,11 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <h2 className="font-semibold text-2xl">{currentInfo.title}</h2>
                         </div>
                         <div className="flex items-center gap-3">
-                            {user && (
-                                <div className="text-sm hidden sm:block">
-                                    Logged in as <span className="font-medium">{user.name}</span>
-                                </div>
-                            )}
+                            {user && <div className="text-sm hidden sm:block font-medium">{user.name}</div>}
                             <LightDarkSwitch />
                         </div>
                     </div>

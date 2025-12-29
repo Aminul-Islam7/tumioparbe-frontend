@@ -133,7 +133,7 @@ export const authApi = {
 export const userApi = {
     getProfile: () => api.get<User>('/accounts/profile/'),
 
-    updateProfile: (data: Partial<User>) => api.put<User>('/accounts/profile/', data),
+    updateProfile: (data: Partial<User>) => api.put<{ success: boolean; data: User }>('/accounts/profile/', data),
 
     getStudents: () => api.get<PaginatedResponse<Student>>('/accounts/students/'),
 
