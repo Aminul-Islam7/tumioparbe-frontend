@@ -130,7 +130,7 @@ export default function DashboardPage() {
                                 </span>
                             </div>
                             <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                Please pay your invoices to continue learning
+                                Please pay your invoices to continue your child's enrollment
                             </p>
                         </div>
                     ) : (
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                                     All Payments Clear!
                                 </span>
                             </div>
-                            <p className="text-sm text-green-700 dark:text-green-300">
+                            <p className="text-sm text-muted-foreground">
                                 You have no pending payments
                             </p>
                         </div>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     
-                    {students.length > 0 && (
+                    {students.length > 0 ? (
                         <div className="mb-6 p-4 rounded-lg bg-muted/30">
                             <div className="space-y-2">
                                 {students.slice(0, 5).map((student) => (
@@ -190,12 +190,18 @@ export default function DashboardPage() {
                                 )}
                             </div>
                         </div>
+                    ) : (
+                        <div className="mb-6 p-4 rounded-lg bg-muted/30">
+                            <p className="text-sm text-muted-foreground text-center">
+                                No students added yet
+                            </p>
+                        </div>
                     )}
 
                     <Link href="/dashboard/students" className="block mt-auto">
                         <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                             <UserPlus className="mr-2 h-4 w-4" />
-                            Manage Children
+                            {students.length > 0 ? 'Manage Children' : 'Add a Child'}
                         </Button>
                     </Link>
                 </div>

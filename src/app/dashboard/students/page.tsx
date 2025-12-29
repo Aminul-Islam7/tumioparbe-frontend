@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { userApi } from '@/lib/api';
@@ -19,6 +20,7 @@ import {
     School,
     GraduationCap,
     Users,
+    BookOpen,
 } from 'lucide-react';
 
 // Form validation schema
@@ -214,7 +216,7 @@ export default function StudentsPage() {
                                     </div>
                                 </div>
 
-                                <div className="mt-auto p-4 bg-muted/30 border-t">
+                                <div className="mt-auto p-4 space-y-2">
                                     <Button
                                         onClick={() => {
                                             setSelectedStudentId(student.id);
@@ -226,6 +228,15 @@ export default function StudentsPage() {
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Information
                                     </Button>
+                                    <Link href="/dashboard/courses" className="block">
+                                        <Button
+                                            variant="default"
+                                            className="w-full bg-tp_red hover:bg-red-600 text-white"
+                                        >
+                                            <BookOpen className="h-4 w-4 mr-2" />
+                                            Enroll to a Course
+                                        </Button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}
