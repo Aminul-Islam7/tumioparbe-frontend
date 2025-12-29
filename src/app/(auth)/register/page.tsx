@@ -7,9 +7,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/lib/api';
-import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/store/authStore';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 // Step 1: Phone Schema
 const PhoneSchema = Yup.object().shape({
@@ -62,12 +61,13 @@ interface ApiErrorResponse extends Error {
 
 export default function Register() {
     const router = useRouter();
-    const toast = useToast();
     const { login } = useAuthStore();
     const [currentStep, setCurrentStep] = useState(1);
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
     const [countdown, setCountdown] = useState(60);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -92,16 +92,17 @@ export default function Register() {
     const handlePhoneSubmit = async (values: { phone: string }) => {
         try {
             setLoading(true);
+            setErrorMessage('');
+            setSuccessMessage('');
             await authApi.requestOtp(values.phone);
             setPhone(values.phone);
-            setCurrentStep(2);
-            toast.showSuccess('OTP Sent', 'Please check your phone for verification code');
+            setSuccessMessage('OTP sent! Please check your phone for verification code.');
+            setTimeout(() => setCurrentStep(2), 500);
         } catch (error) {
             const apiError = error as ApiErrorResponse;
             console.error('OTP request error:', error);
-            toast.showError(
-                'Failed to send OTP',
-                apiError.response?.data?.message || apiError.message || 'Please try again'
+            setErrorMessage(
+                apiError.response?.data?.message || apiError.message || 'Failed to send OTP. Please try again.'
             );
         } finally {
             setLoading(false);
@@ -112,17 +113,18 @@ export default function Register() {
     const handleOtpVerify = async (values: { otp: string }) => {
         try {
             setLoading(true);
+            setErrorMessage('');
+            setSuccessMessage('');
             await authApi.verifyOtp(phone, values.otp);
-            setCurrentStep(3);
-            toast.showSuccess('Phone Verified', 'Please complete your registration');
+            setSuccessMessage('Phone verified! Please complete your registration.');
+            setTimeout(() => setCurrentStep(3), 500);
         } catch (error) {
             const apiError = error as ApiErrorResponse;
             console.error('OTP verification error:', error);
-            toast.showError(
-                'Invalid Code',
+            setErrorMessage(
                 apiError.response?.data?.message ||
                     apiError.message ||
-                    'Please check the code and try again'
+                    'Invalid code. Please check and try again.'
             );
         } finally {
             setLoading(false);
@@ -133,6 +135,8 @@ export default function Register() {
     const handleRegistration = async (values: RegistrationValues) => {
         try {
             setLoading(true);
+            setErrorMessage('');
+            setSuccessMessage('');
             // Combine phone with registration data
             const registrationData = {
                 ...values,
@@ -148,17 +152,16 @@ export default function Register() {
                     response.data.user
                 );
 
-                toast.showSuccess('Registration Successful', 'Welcome to Tumio Parbe!');
-                router.push('/dashboard');
+                setSuccessMessage('Registration successful! Welcome to Tumio Parbe!');
+                setTimeout(() => router.push('/dashboard'), 500);
             }
         } catch (error) {
             const apiError = error as ApiErrorResponse;
             console.error('Registration error:', error);
-            toast.showError(
-                'Registration Failed',
+            setErrorMessage(
                 apiError.response?.data?.message ||
                     apiError.message ||
-                    'Please check your information and try again'
+                    'Registration failed. Please check your information and try again.'
             );
         } finally {
             setLoading(false);
@@ -198,6 +201,22 @@ export default function Register() {
                                         className="text-red-500 text-sm"
                                     />
                                 </div>
+
+                                {/* Error Message */}
+                                {errorMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                    </div>
+                                )}
+
+                                {/* Success Message */}
+                                {successMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                                        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                    </div>
+                                )}
 
                                 <Button
                                     type="submit"
@@ -261,6 +280,22 @@ export default function Register() {
                                     </div>
                                 </div>
 
+                                {/* Error Message */}
+                                {errorMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                    </div>
+                                )}
+
+                                {/* Success Message */}
+                                {successMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                                        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col space-y-2">
                                     <Button
                                         type="submit"
@@ -277,18 +312,16 @@ export default function Register() {
                                         onClick={async () => {
                                             try {
                                                 setCountdown(60);
+                                                setErrorMessage('');
+                                                setSuccessMessage('');
                                                 await authApi.requestOtp(phone);
-                                                toast.showSuccess(
-                                                    'OTP Resent',
-                                                    'Please check your phone for a new verification code'
-                                                );
+                                                setSuccessMessage('OTP resent! Please check your phone for a new verification code.');
                                             } catch (error) {
                                                 const apiError = error as ApiErrorResponse;
-                                                toast.showError(
-                                                    'Failed to resend OTP',
+                                                setErrorMessage(
                                                     apiError.response?.data?.message ||
                                                         apiError.message ||
-                                                        'Please try again'
+                                                        'Failed to resend OTP. Please try again.'
                                                 );
                                             }
                                         }}
@@ -461,6 +494,22 @@ export default function Register() {
                                         className="text-red-500 text-sm"
                                     />
                                 </div>
+
+                                {/* Error Message */}
+                                {errorMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                    </div>
+                                )}
+
+                                {/* Success Message */}
+                                {successMessage && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                                        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                    </div>
+                                )}
 
                                 <Button
                                     type="submit"

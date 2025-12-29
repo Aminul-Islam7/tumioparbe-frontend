@@ -8,9 +8,9 @@ import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
 import { authApi, userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { useToast } from '@/hooks/useToast';
 import { User } from '@/types';
 import { setAuthTokens } from '@/lib/auth';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const LoginSchema = Yup.object().shape({
     phone: Yup.string()
@@ -24,18 +24,20 @@ const LoginSchema = Yup.object().shape({
 export default function Login() {
     const router = useRouter();
     const { login } = useAuthStore();
-    const { showSuccess, showError } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleSubmit = async (values: { phone: string; password: string }) => {
         try {
             setIsSubmitting(true);
+            setErrorMessage('');
+            setSuccessMessage('');
 
             // First get the auth tokens
             const tokenResponse = await authApi.login(values.phone, values.password);
 
             // Explicitly set auth tokens in localStorage before making the next request
-            // This ensures the interceptor will have access to the token
             setAuthTokens(tokenResponse.data);
 
             // Then fetch the user profile with the new token
@@ -45,17 +47,22 @@ export default function Login() {
             // Store auth tokens and user data in the auth store
             login(tokenResponse.data, userData);
 
-            showSuccess('Login successful', 'Welcome back!');
+            setSuccessMessage('Login successful! Redirecting...');
 
             // Redirect to dashboard
-            if (userData.is_admin) {
-                router.push('/admin/dashboard');
-            } else {
-                router.push('/dashboard');
-            }
-        } catch (error) {
+            setTimeout(() => {
+                if (userData.is_admin) {
+                    router.push('/admin/dashboard');
+                } else {
+                    router.push('/dashboard');
+                }
+            }, 500);
+        } catch (error: any) {
             console.error('Login error:', error);
-            showError('Login failed', 'Please check your phone number and password.');
+            const message = error.response?.data?.detail || 
+                           error.response?.data?.message || 
+                           'Invalid phone number or password. Please try again.';
+            setErrorMessage(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -134,6 +141,22 @@ export default function Login() {
                                 className="text-red-500 text-sm"
                             />
                         </div>
+
+                        {/* Error Message */}
+                        {errorMessage && (
+                            <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                            </div>
+                        )}
+
+                        {/* Success Message */}
+                        {successMessage && (
+                            <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                            </div>
+                        )}
 
                         <Button
                             type="submit"
