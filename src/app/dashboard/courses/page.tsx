@@ -195,13 +195,6 @@ export default function CoursesPage() {
     if (error) {
         return (
             <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold">Courses</h1>
-                    <p className="text-muted-foreground mt-2">
-                        View and manage your course enrollments
-                    </p>
-                </div>
-
                 <div className="bg-background rounded-lg border p-8 text-center">
                     <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
                     <h2 className="text-xl font-semibold mb-2">Error Loading Data</h2>
@@ -228,13 +221,6 @@ export default function CoursesPage() {
     if (students.length === 0) {
         return (
             <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold">Courses</h1>
-                    <p className="text-muted-foreground mt-2">
-                        View and manage your course enrollments
-                    </p>
-                </div>
-
                 <div className="bg-background rounded-lg border p-12 text-center">
                     <div className="h-20 w-20 bg-tp_red/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <UserPlus className="h-10 w-10 text-tp_red" />
@@ -242,7 +228,6 @@ export default function CoursesPage() {
                     <h2 className="text-2xl font-semibold mb-3">No Children Added Yet</h2>
                     <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                         You need to add at least one child before you can enroll them in courses.
-                        Go to the My Children page to add your first child.
                     </p>
                     <Link href="/dashboard/students">
                         <Button className="bg-tp_red hover:bg-red-600 text-white">

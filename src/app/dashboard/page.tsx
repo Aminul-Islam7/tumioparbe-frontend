@@ -134,7 +134,7 @@ export default function DashboardPage() {
                             </p>
                         </div>
                     ) : (
-                        <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800">
+                        <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/10">
                             <div className="flex items-center gap-2 mb-1">
                                 <CheckCircle className="h-5 w-5 text-green-600" />
                                 <span className="font-semibold text-green-900 dark:text-green-100">

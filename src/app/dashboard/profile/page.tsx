@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useRouter } from 'next/navigation';
 import { userApi, authApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -17,6 +18,7 @@ import {
     Lock,
     Eye,
     EyeOff,
+    LogOut,
 } from 'lucide-react';
 
 // Form validation schema for profile
@@ -47,13 +49,19 @@ const ChangePasswordSchema = Yup.object().shape({
 });
 
 export default function ProfilePage() {
-    const { user, updateUser } = useAuth(true);
+    const router = useRouter();
+    const { user, updateUser, logout } = useAuth(true);
     const { showSuccess, showError } = useToast();
     const [savingParent, setSavingParent] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const handleLogout = () => {
+        logout();
+        router.push('/');
+    };
 
     // Handle parent profile update
     const handleUpdateProfile = async (values: any) => {
@@ -365,6 +373,24 @@ export default function ProfilePage() {
                         </Form>
                     )}
                 </Formik>
+            </div>
+
+            {/* Logout Section */}
+            <div className="bg-background rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <LogOut className="h-5 w-5" /> Logout
+                </h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Sign out of your account. You'll need to log in again to access your dashboard.
+                </p>
+                <Button
+                    onClick={handleLogout}
+                    variant="destructive"
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout from Account
+                </Button>
             </div>
         </div>
     );
