@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, User, BookOpen, CreditCard, LogOut, Home, Users } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CreditCard, LogOut, Home, Users, UserCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -17,14 +17,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const sidebarLinks = [
         { href: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
         { href: '/dashboard', label: 'Overview', icon: <LayoutDashboard className="w-5 h-5" /> },
-        { href: '/dashboard/profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
-        { href: '/dashboard/students', label: 'My Children', icon: <Users className="w-5 h-5" /> },
-        { href: '/dashboard/courses', label: 'Courses', icon: <BookOpen className="w-5 h-5" /> },
         {
             href: '/dashboard/payments',
             label: 'Payments',
             icon: <CreditCard className="w-5 h-5" />,
         },
+        { href: '/dashboard/students', label: 'My Children', icon: <Users className="w-5 h-5" /> },
+        { href: '/dashboard/courses', label: 'Courses', icon: <BookOpen className="w-5 h-5" /> },
+        { href: '/dashboard/profile', label: 'Account Settings', icon: <UserCircle className="w-5 h-5" /> },
     ];
 
     const pageInfo = {

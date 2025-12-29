@@ -164,14 +164,20 @@ export const paymentApi = {
     getPendingInvoices: () =>
         api.get<PaginatedResponse<Invoice>>('/payments/payments/pending_invoices/'),
 
-    payInvoice: (invoice_id: number) =>
-        api.post<Payment>('/payments/payments/pay_invoice/', { invoice_id }),
+    payInvoice: (invoice_id: number, callback_url: string, customer_phone: string) =>
+        api.post<{ payment_id: number; bkash_payment_id: string; bkash_url: string }>(
+            '/payments/payments/pay_invoice/',
+            { invoice_id, callback_url, customer_phone }
+        ),
 
-    bulkPayInvoices: (invoice_ids: number[]) =>
-        api.post<Payment[]>('/payments/payments/bulk_pay_invoices/', { invoice_ids }),
+    bulkPayInvoices: (invoice_ids: number[], callback_url: string, customer_phone: string) =>
+        api.post<{ payment_id: number; bkash_payment_id: string; bkash_url: string; total_amount: string; invoice_count: number }>(
+            '/payments/payments/bulk_pay_invoices/',
+            { invoice_ids, callback_url, customer_phone }
+        ),
 
-    executeBkashPayment: (payment_id: string) =>
-        api.post<Payment>('/payments/payments/execute_bkash_payment/', { payment_id }),
+    executeBkashPayment: (paymentID: string) =>
+        api.post<Payment>('/payments/payments/execute_bkash_payment/', { paymentID }),
 
     getPaymentHistory: () =>
         api.get<PaginatedResponse<Payment>>('/payments/payments/payment_history/'),

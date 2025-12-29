@@ -176,16 +176,35 @@ export default function PaymentsPage() {
         return pendingInvoices.reduce((sum, inv) => sum + parseFloat(String(inv.amount)), 0);
     }, [pendingInvoices]);
 
+    // Get callback URL for bKash
+    const getCallbackUrl = () => {
+        if (typeof window !== 'undefined') {
+            return `${window.location.origin}/dashboard/payments`;
+        }
+        return '/dashboard/payments';
+    };
+
     // Handle single invoice payment
     const handlePayInvoice = async (invoiceId: number) => {
+        if (!user?.phone) {
+            showError('Error', 'User phone number not available.');
+            return;
+        }
+
         try {
             setProcessingPayment(true);
-            const response = await paymentApi.payInvoice(invoiceId);
+            const response = await paymentApi.payInvoice(
+                invoiceId,
+                getCallbackUrl(),
+                user.phone
+            );
 
-            if (response.data) {
-                showSuccess('Payment Initiated', 'You will be redirected to the payment gateway.');
-                // If the API returns a bkash_url, redirect to it
-                // For now, just refresh the data
+            if (response.data?.bkash_url) {
+                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
+                // Redirect to bKash payment page
+                window.location.href = response.data.bkash_url;
+            } else {
+                showSuccess('Payment Initiated', 'Payment process started.');
                 await fetchData();
             }
         } catch (error) {
@@ -203,11 +222,23 @@ export default function PaymentsPage() {
             return;
         }
 
+        if (!user?.phone) {
+            showError('Error', 'User phone number not available.');
+            return;
+        }
+
         try {
             setProcessingPayment(true);
-            const response = await paymentApi.bulkPayInvoices(selectedInvoices);
+            const response = await paymentApi.bulkPayInvoices(
+                selectedInvoices,
+                getCallbackUrl(),
+                user.phone
+            );
 
-            if (response.data) {
+            if (response.data?.bkash_url) {
+                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
+                window.location.href = response.data.bkash_url;
+            } else {
                 showSuccess(
                     'Payment Initiated',
                     `Payment for ${selectedInvoices.length} invoice(s) has been initiated.`
@@ -230,12 +261,24 @@ export default function PaymentsPage() {
             return;
         }
 
+        if (!user?.phone) {
+            showError('Error', 'User phone number not available.');
+            return;
+        }
+
         const allIds = pendingInvoices.map((inv) => inv.id);
         try {
             setProcessingPayment(true);
-            const response = await paymentApi.bulkPayInvoices(allIds);
+            const response = await paymentApi.bulkPayInvoices(
+                allIds,
+                getCallbackUrl(),
+                user.phone
+            );
 
-            if (response.data) {
+            if (response.data?.bkash_url) {
+                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
+                window.location.href = response.data.bkash_url;
+            } else {
                 showSuccess(
                     'Payment Initiated',
                     `Payment for all ${allIds.length} invoice(s) has been initiated.`
