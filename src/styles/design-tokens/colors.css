@@ -1,0 +1,262 @@
+/* =================================================================
+   TUMIOPARBE DESIGN SYSTEM - COLOR TOKENS
+   A colorful, kid-friendly design system
+   ================================================================= */
+
+:root {
+  /* =========================
+     BRAND COLORS (from color-variables.css)
+     ========================= */
+
+  /* Brand Red - DEMOTED: Logo, accents, errors only */
+  --brand-red-50: 0 100% 99%;
+  --brand-red-100: 0 80% 95%;
+  --brand-red-200: 0 84% 87%;
+  --brand-red-300: 0 78% 73%;
+  --brand-red-400: 0 78% 60%;
+  --brand-red-500: 0 78% 49%;
+  --brand-red-600: 0 78% 38%;
+  --brand-red-700: 0 89% 28%;
+  --brand-red-800: 0 94% 19%;
+  --brand-red-900: 0 98% 10%;
+  --brand-red-950: 0 100% 4%;
+
+  /* Bubblegum Pink - PRIMARY: CTAs, active states, selections */
+  --brand-bubblegum-50: 330 100% 98%;
+  --brand-bubblegum-100: 330 90% 94%;
+  --brand-bubblegum-200: 330 85% 87%;
+  --brand-bubblegum-300: 330 80% 78%;
+  --brand-bubblegum-400: 330 78% 68%;
+  --brand-bubblegum-500: 330 78% 58%;
+  --brand-bubblegum-600: 330 70% 48%;
+  --brand-bubblegum-700: 330 75% 38%;
+  --brand-bubblegum-800: 330 80% 28%;
+  --brand-bubblegum-900: 330 85% 18%;
+  --brand-bubblegum-950: 330 90% 10%;
+
+  /* =========================
+     UI COLORS
+     ========================= */
+
+  /* Sky Blue - SECONDARY: Links, info, calm actions */
+  --ui-sky-50: 198 100% 98%;
+  --ui-sky-100: 198 90% 94%;
+  --ui-sky-200: 198 85% 85%;
+  --ui-sky-300: 198 80% 72%;
+  --ui-sky-400: 198 78% 60%;
+  --ui-sky-500: 198 78% 49%;
+  --ui-sky-600: 198 78% 40%;
+  --ui-sky-700: 198 85% 32%;
+  --ui-sky-800: 198 90% 22%;
+  --ui-sky-900: 198 95% 14%;
+  --ui-sky-950: 198 100% 8%;
+
+  /* Sunny Yellow - ACCENT: Stars, highlights, celebratory */
+  --ui-sunny-50: 46 100% 98%;
+  --ui-sunny-100: 46 95% 92%;
+  --ui-sunny-200: 46 90% 82%;
+  --ui-sunny-300: 46 85% 70%;
+  --ui-sunny-400: 46 80% 58%;
+  --ui-sunny-500: 46 78% 50%;
+  --ui-sunny-600: 46 80% 42%;
+  --ui-sunny-700: 46 85% 34%;
+  --ui-sunny-800: 46 90% 24%;
+  --ui-sunny-900: 46 95% 16%;
+  --ui-sunny-950: 46 100% 8%;
+
+  /* Tangerine Orange - ACCENT: Energy, warmth, playful */
+  --ui-tangerine-50: 20 100% 98%;
+  --ui-tangerine-100: 20 95% 93%;
+  --ui-tangerine-200: 20 90% 84%;
+  --ui-tangerine-300: 20 85% 72%;
+  --ui-tangerine-400: 20 80% 60%;
+  --ui-tangerine-500: 20 78% 50%;
+  --ui-tangerine-600: 20 80% 42%;
+  --ui-tangerine-700: 20 85% 34%;
+  --ui-tangerine-800: 20 90% 24%;
+  --ui-tangerine-900: 20 95% 16%;
+  --ui-tangerine-950: 20 100% 8%;
+
+  /* Lavender Purple - ACCENT: Creativity, imagination */
+  --ui-lavender-50: 267 100% 98%;
+  --ui-lavender-100: 267 90% 94%;
+  --ui-lavender-200: 267 85% 86%;
+  --ui-lavender-300: 267 78% 74%;
+  --ui-lavender-400: 267 75% 62%;
+  --ui-lavender-500: 267 70% 52%;
+  --ui-lavender-600: 267 72% 44%;
+  --ui-lavender-700: 267 78% 36%;
+  --ui-lavender-800: 267 85% 26%;
+  --ui-lavender-900: 267 90% 18%;
+  --ui-lavender-950: 267 95% 10%;
+
+  /* Lime Green - ACCENT: Growth, nature, freshness */
+  --ui-lime-50: 87 100% 98%;
+  --ui-lime-100: 87 90% 92%;
+  --ui-lime-200: 87 85% 82%;
+  --ui-lime-300: 87 78% 68%;
+  --ui-lime-400: 87 75% 55%;
+  --ui-lime-500: 87 70% 45%;
+  --ui-lime-600: 87 72% 38%;
+  --ui-lime-700: 87 78% 30%;
+  --ui-lime-800: 87 85% 22%;
+  --ui-lime-900: 87 90% 14%;
+  --ui-lime-950: 87 95% 8%;
+
+  /* Marine Blue - ACCENT: Depth, trust, stability */
+  --ui-marine-50: 230 100% 98%;
+  --ui-marine-100: 230 90% 94%;
+  --ui-marine-200: 230 85% 86%;
+  --ui-marine-300: 230 78% 72%;
+  --ui-marine-400: 230 75% 60%;
+  --ui-marine-500: 230 70% 50%;
+  --ui-marine-600: 230 72% 42%;
+  --ui-marine-700: 230 78% 34%;
+  --ui-marine-800: 230 85% 24%;
+  --ui-marine-900: 230 90% 16%;
+  --ui-marine-950: 230 95% 10%;
+
+  /* Emerald Green - SUCCESS: Completion, correct, go */
+  --ui-emerald-50: 145 100% 98%;
+  --ui-emerald-100: 145 90% 92%;
+  --ui-emerald-200: 145 85% 82%;
+  --ui-emerald-300: 145 78% 68%;
+  --ui-emerald-400: 145 72% 52%;
+  --ui-emerald-500: 145 68% 42%;
+  --ui-emerald-600: 145 72% 36%;
+  --ui-emerald-700: 145 78% 28%;
+  --ui-emerald-800: 145 85% 20%;
+  --ui-emerald-900: 145 90% 14%;
+  --ui-emerald-950: 145 95% 8%;
+
+  /* Amber - WARNING: Distinct from sunny yellow */
+  --ui-amber-50: 38 100% 98%;
+  --ui-amber-100: 38 95% 90%;
+  --ui-amber-200: 38 90% 78%;
+  --ui-amber-300: 38 88% 65%;
+  --ui-amber-400: 38 92% 52%;
+  --ui-amber-500: 38 95% 44%;
+  --ui-amber-600: 32 95% 40%;
+  --ui-amber-700: 26 90% 34%;
+  --ui-amber-800: 22 85% 26%;
+  --ui-amber-900: 20 80% 18%;
+  --ui-amber-950: 18 85% 10%;
+
+  /* =========================
+     NEUTRALS
+     ========================= */
+  --neutral-0: 0 0% 100%;
+  --neutral-50: 220 20% 98%;
+  --neutral-100: 220 18% 96%;
+  --neutral-150: 220 16% 92%;
+  --neutral-200: 220 14% 86%;
+  --neutral-300: 220 12% 72%;
+  --neutral-400: 220 10% 54%;
+  --neutral-500: 220 10% 42%;
+  --neutral-600: 220 12% 32%;
+  --neutral-700: 220 14% 24%;
+  --neutral-800: 220 18% 16%;
+  --neutral-850: 220 20% 12%;
+  --neutral-900: 220 22% 8%;
+  --neutral-950: 220 25% 5%;
+  --neutral-1000: 0 0% 0%;
+
+  /* =========================
+     SEMANTIC COLOR MAPPINGS - LIGHT MODE
+     ========================= */
+
+  /* Primary - Bubblegum Pink */
+  --color-primary: hsl(var(--brand-bubblegum-500));
+  --color-primary-light: hsl(var(--brand-bubblegum-400));
+  --color-primary-lighter: hsl(var(--brand-bubblegum-300));
+  --color-primary-lightest: hsl(var(--brand-bubblegum-100));
+  --color-primary-dark: hsl(var(--brand-bubblegum-600));
+  --color-primary-darker: hsl(var(--brand-bubblegum-700));
+  --color-primary-foreground: hsl(0 0% 100%);
+
+  /* Secondary - Sky Blue */
+  --color-secondary: hsl(var(--ui-sky-500));
+  --color-secondary-light: hsl(var(--ui-sky-400));
+  --color-secondary-lighter: hsl(var(--ui-sky-300));
+  --color-secondary-lightest: hsl(var(--ui-sky-100));
+  --color-secondary-dark: hsl(var(--ui-sky-600));
+  --color-secondary-darker: hsl(var(--ui-sky-700));
+  --color-secondary-foreground: hsl(0 0% 100%);
+
+  /* Accent Colors */
+  --color-accent-sunny: hsl(var(--ui-sunny-500));
+  --color-accent-tangerine: hsl(var(--ui-tangerine-500));
+  --color-accent-lavender: hsl(var(--ui-lavender-500));
+  --color-accent-lime: hsl(var(--ui-lime-500));
+  --color-accent-marine: hsl(var(--ui-marine-500));
+  --color-accent-brand: hsl(var(--brand-red-500));
+
+  /* Feedback Colors */
+  --color-success: hsl(var(--ui-emerald-500));
+  --color-success-light: hsl(var(--ui-emerald-100));
+  --color-success-dark: hsl(var(--ui-emerald-700));
+  --color-success-foreground: hsl(0 0% 100%);
+
+  --color-warning: hsl(var(--ui-amber-500));
+  --color-warning-light: hsl(var(--ui-amber-100));
+  --color-warning-dark: hsl(var(--ui-amber-700));
+  --color-warning-foreground: hsl(var(--neutral-900));
+
+  --color-error: hsl(var(--brand-red-500));
+  --color-error-light: hsl(var(--brand-red-100));
+  --color-error-dark: hsl(var(--brand-red-700));
+  --color-error-foreground: hsl(0 0% 100%);
+
+  --color-info: hsl(var(--ui-sky-500));
+  --color-info-light: hsl(var(--ui-sky-100));
+  --color-info-dark: hsl(var(--ui-sky-700));
+  --color-info-foreground: hsl(0 0% 100%);
+}
+
+/* =========================
+   DARK MODE COLORS
+   ========================= */
+.dark {
+  /* Primary - Bubblegum Pink (lighter in dark mode) */
+  --color-primary: hsl(var(--brand-bubblegum-400));
+  --color-primary-light: hsl(var(--brand-bubblegum-300));
+  --color-primary-lighter: hsl(var(--brand-bubblegum-200));
+  --color-primary-lightest: hsl(var(--brand-bubblegum-900));
+  --color-primary-dark: hsl(var(--brand-bubblegum-500));
+  --color-primary-darker: hsl(var(--brand-bubblegum-600));
+  --color-primary-foreground: hsl(var(--neutral-900));
+
+  /* Secondary - Sky Blue */
+  --color-secondary: hsl(var(--ui-sky-400));
+  --color-secondary-light: hsl(var(--ui-sky-300));
+  --color-secondary-lighter: hsl(var(--ui-sky-200));
+  --color-secondary-lightest: hsl(var(--ui-sky-900));
+  --color-secondary-dark: hsl(var(--ui-sky-500));
+  --color-secondary-darker: hsl(var(--ui-sky-600));
+  --color-secondary-foreground: hsl(var(--neutral-900));
+
+  /* Accent Colors */
+  --color-accent-sunny: hsl(var(--ui-sunny-400));
+  --color-accent-tangerine: hsl(var(--ui-tangerine-400));
+  --color-accent-lavender: hsl(var(--ui-lavender-400));
+  --color-accent-lime: hsl(var(--ui-lime-400));
+  --color-accent-marine: hsl(var(--ui-marine-400));
+  --color-accent-brand: hsl(var(--brand-red-400));
+
+  /* Feedback Colors */
+  --color-success: hsl(var(--ui-emerald-400));
+  --color-success-light: hsl(var(--ui-emerald-900));
+  --color-success-dark: hsl(var(--ui-emerald-300));
+
+  --color-warning: hsl(var(--ui-amber-400));
+  --color-warning-light: hsl(var(--ui-amber-900));
+  --color-warning-dark: hsl(var(--ui-amber-300));
+
+  --color-error: hsl(var(--brand-red-400));
+  --color-error-light: hsl(var(--brand-red-900));
+  --color-error-dark: hsl(var(--brand-red-300));
+
+  --color-info: hsl(var(--ui-sky-400));
+  --color-info-light: hsl(var(--ui-sky-900));
+  --color-info-dark: hsl(var(--ui-sky-300));
+}

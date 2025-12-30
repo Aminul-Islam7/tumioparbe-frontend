@@ -1,0 +1,213 @@
+/* =================================================================
+   TUMIOPARBE DESIGN SYSTEM - BORDERS, SHADOWS & RADIUS
+   Kids-friendly with heavily rounded corners
+   ================================================================= */
+
+:root {
+  /* =========================
+     BORDER RADIUS - HEAVILY ROUNDED FOR KIDS
+     ========================= */
+  --radius-none: 0;
+  --radius-xs: 0.25rem;      /* 4px - minimal rounding */
+  --radius-sm: 0.5rem;       /* 8px - subtle rounding */
+  --radius-md: 0.75rem;      /* 12px - medium rounding */
+  --radius-lg: 1rem;         /* 16px - noticeable rounding */
+  --radius-xl: 1.25rem;      /* 20px - heavy rounding */
+  --radius-2xl: 1.5rem;      /* 24px - very rounded */
+  --radius-3xl: 2rem;        /* 32px - super rounded */
+  --radius-4xl: 2.5rem;      /* 40px - extra rounded */
+  --radius-full: 9999px;     /* Pill/circle shape */
+
+  /* Component-specific radius */
+  --radius-button: var(--radius-xl);
+  --radius-button-sm: var(--radius-lg);
+  --radius-button-lg: var(--radius-2xl);
+  --radius-button-icon: var(--radius-full);
+
+  --radius-card: var(--radius-2xl);
+  --radius-card-sm: var(--radius-xl);
+  --radius-card-lg: var(--radius-3xl);
+
+  --radius-input: var(--radius-lg);
+  --radius-input-sm: var(--radius-md);
+  --radius-input-lg: var(--radius-xl);
+
+  --radius-badge: var(--radius-full);
+  --radius-tag: var(--radius-lg);
+  --radius-chip: var(--radius-full);
+
+  --radius-avatar: var(--radius-full);
+  --radius-avatar-square: var(--radius-xl);
+
+  --radius-modal: var(--radius-3xl);
+  --radius-dropdown: var(--radius-xl);
+  --radius-popover: var(--radius-xl);
+  --radius-tooltip: var(--radius-lg);
+  --radius-toast: var(--radius-xl);
+  --radius-alert: var(--radius-xl);
+
+  --radius-progress: var(--radius-full);
+  --radius-skeleton: var(--radius-lg);
+  --radius-image: var(--radius-xl);
+  --radius-video: var(--radius-2xl);
+
+  /* =========================
+     BORDER WIDTHS
+     ========================= */
+  --border-0: 0;
+  --border-1: 1px;
+  --border-2: 2px;
+  --border-3: 3px;
+  --border-4: 4px;
+  --border-6: 6px;
+  --border-8: 8px;
+
+  /* =========================
+     BORDER COLORS
+     ========================= */
+  --border-default: hsl(var(--neutral-200));
+  --border-subtle: hsl(var(--neutral-150));
+  --border-muted: hsl(var(--neutral-100));
+  --border-strong: hsl(var(--neutral-300));
+  --border-stronger: hsl(var(--neutral-400));
+
+  /* Interactive borders */
+  --border-focus: var(--color-primary);
+  --border-focus-ring: hsl(var(--brand-bubblegum-300) / 0.5);
+  --border-hover: hsl(var(--neutral-300));
+  --border-active: var(--color-primary);
+
+  /* Feedback borders */
+  --border-success: hsl(var(--ui-emerald-500));
+  --border-warning: hsl(var(--ui-amber-500));
+  --border-error: hsl(var(--brand-red-500));
+  --border-info: hsl(var(--ui-sky-500));
+
+  /* Component borders */
+  --border-input: hsl(var(--neutral-300));
+  --border-input-hover: hsl(var(--neutral-400));
+  --border-input-focus: var(--color-primary);
+  --border-input-error: hsl(var(--brand-red-500));
+  --border-input-success: hsl(var(--ui-emerald-500));
+  --border-input-disabled: hsl(var(--neutral-200));
+
+  --border-card: hsl(var(--neutral-200) / 0.5);
+  --border-card-hover: hsl(var(--neutral-300));
+  --border-divider: hsl(var(--neutral-200));
+  --border-separator: hsl(var(--neutral-150));
+
+  /* =========================
+     SHADOWS - SOFT & PLAYFUL
+     ========================= */
+  --shadow-color: 220 20% 20%;
+
+  /* Size-based shadows */
+  --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.05);
+  --shadow-sm: 0 2px 4px hsl(var(--shadow-color) / 0.06),
+               0 1px 2px hsl(var(--shadow-color) / 0.04);
+  --shadow-md: 0 4px 8px hsl(var(--shadow-color) / 0.08),
+               0 2px 4px hsl(var(--shadow-color) / 0.04);
+  --shadow-lg: 0 8px 16px hsl(var(--shadow-color) / 0.1),
+               0 4px 8px hsl(var(--shadow-color) / 0.05);
+  --shadow-xl: 0 16px 32px hsl(var(--shadow-color) / 0.12),
+               0 8px 16px hsl(var(--shadow-color) / 0.06);
+  --shadow-2xl: 0 24px 48px hsl(var(--shadow-color) / 0.15),
+                0 12px 24px hsl(var(--shadow-color) / 0.08);
+  --shadow-3xl: 0 32px 64px hsl(var(--shadow-color) / 0.2),
+                0 16px 32px hsl(var(--shadow-color) / 0.1);
+
+  /* Inner shadows */
+  --shadow-inner: inset 0 2px 4px hsl(var(--shadow-color) / 0.06);
+  --shadow-inner-sm: inset 0 1px 2px hsl(var(--shadow-color) / 0.04);
+  --shadow-inner-lg: inset 0 4px 8px hsl(var(--shadow-color) / 0.08);
+
+  /* Glow effects - colorful for kids */
+  --shadow-glow-primary: 0 0 20px hsl(var(--brand-bubblegum-400) / 0.4),
+                         0 0 40px hsl(var(--brand-bubblegum-400) / 0.2);
+  --shadow-glow-secondary: 0 0 20px hsl(var(--ui-sky-400) / 0.4),
+                           0 0 40px hsl(var(--ui-sky-400) / 0.2);
+  --shadow-glow-success: 0 0 20px hsl(var(--ui-emerald-400) / 0.4);
+  --shadow-glow-warning: 0 0 20px hsl(var(--ui-amber-400) / 0.4);
+  --shadow-glow-error: 0 0 20px hsl(var(--brand-red-400) / 0.4);
+
+  /* Colored shadows for playful cards */
+  --shadow-sunny: 0 8px 24px hsl(var(--ui-sunny-400) / 0.25);
+  --shadow-tangerine: 0 8px 24px hsl(var(--ui-tangerine-400) / 0.25);
+  --shadow-lavender: 0 8px 24px hsl(var(--ui-lavender-400) / 0.25);
+  --shadow-lime: 0 8px 24px hsl(var(--ui-lime-400) / 0.25);
+  --shadow-marine: 0 8px 24px hsl(var(--ui-marine-400) / 0.25);
+  --shadow-bubblegum: 0 8px 24px hsl(var(--brand-bubblegum-400) / 0.25);
+  --shadow-sky: 0 8px 24px hsl(var(--ui-sky-400) / 0.25);
+
+  /* Component shadows */
+  --shadow-card: var(--shadow-md);
+  --shadow-card-hover: var(--shadow-lg);
+  --shadow-card-active: var(--shadow-sm);
+
+  --shadow-button: var(--shadow-sm);
+  --shadow-button-hover: var(--shadow-md);
+  --shadow-button-active: var(--shadow-inner-sm);
+
+  --shadow-dropdown: var(--shadow-xl);
+  --shadow-modal: var(--shadow-2xl);
+  --shadow-popover: var(--shadow-lg);
+  --shadow-tooltip: var(--shadow-md);
+  --shadow-toast: var(--shadow-lg);
+
+  --shadow-input-focus: 0 0 0 3px var(--border-focus-ring);
+
+  /* =========================
+     OUTLINE
+     ========================= */
+  --outline-width: 2px;
+  --outline-offset: 2px;
+  --outline-color: var(--color-primary);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 2px var(--bg-page), 0 0 0 4px var(--color-primary);
+  --focus-ring-error: 0 0 0 2px var(--bg-page), 0 0 0 4px var(--color-error);
+  --focus-ring-success: 0 0 0 2px var(--bg-page), 0 0 0 4px var(--color-success);
+}
+
+/* =========================
+   DARK MODE OVERRIDES
+   ========================= */
+.dark {
+  --shadow-color: 220 40% 5%;
+
+  /* Border colors */
+  --border-default: hsl(var(--neutral-700));
+  --border-subtle: hsl(var(--neutral-750));
+  --border-muted: hsl(var(--neutral-800));
+  --border-strong: hsl(var(--neutral-600));
+  --border-stronger: hsl(var(--neutral-500));
+
+  --border-hover: hsl(var(--neutral-600));
+  --border-focus-ring: hsl(var(--brand-bubblegum-600) / 0.4);
+
+  --border-input: hsl(var(--neutral-600));
+  --border-input-hover: hsl(var(--neutral-500));
+  --border-input-disabled: hsl(var(--neutral-700));
+
+  --border-card: hsl(var(--neutral-700) / 0.5);
+  --border-card-hover: hsl(var(--neutral-600));
+  --border-divider: hsl(var(--neutral-700));
+  --border-separator: hsl(var(--neutral-750));
+
+  /* Shadows - more subtle in dark mode */
+  --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.2);
+  --shadow-sm: 0 2px 4px hsl(var(--shadow-color) / 0.3);
+  --shadow-md: 0 4px 8px hsl(var(--shadow-color) / 0.4);
+  --shadow-lg: 0 8px 16px hsl(var(--shadow-color) / 0.5);
+  --shadow-xl: 0 16px 32px hsl(var(--shadow-color) / 0.6);
+  --shadow-2xl: 0 24px 48px hsl(var(--shadow-color) / 0.7);
+
+  /* Glows remain vibrant in dark mode */
+  --shadow-glow-primary: 0 0 24px hsl(var(--brand-bubblegum-400) / 0.5),
+                         0 0 48px hsl(var(--brand-bubblegum-400) / 0.25);
+  --shadow-glow-secondary: 0 0 24px hsl(var(--ui-sky-400) / 0.5),
+                           0 0 48px hsl(var(--ui-sky-400) / 0.25);
+
+  /* Focus ring adjusted for dark bg */
+  --focus-ring: 0 0 0 2px var(--bg-page), 0 0 0 4px var(--color-primary);
+}

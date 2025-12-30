@@ -1,0 +1,415 @@
+/* =================================================================
+   TUMIOPARBE DESIGN SYSTEM - COMPONENT TOKENS
+   Buttons, Inputs, Cards, Badges, and more
+   ================================================================= */
+
+:root {
+  /* =========================
+     BUTTONS
+     ========================= */
+
+  /* Button heights */
+  --btn-height-xs: 1.75rem;    /* 28px */
+  --btn-height-sm: 2rem;       /* 32px */
+  --btn-height-md: 2.5rem;     /* 40px */
+  --btn-height-lg: 3rem;       /* 48px */
+  --btn-height-xl: 3.5rem;     /* 56px */
+
+  /* Button padding (horizontal) */
+  --btn-padding-xs: var(--space-2);
+  --btn-padding-sm: var(--space-3);
+  --btn-padding-md: var(--space-4);
+  --btn-padding-lg: var(--space-6);
+  --btn-padding-xl: var(--space-8);
+
+  /* Button font sizes */
+  --btn-text-xs: var(--text-xs);
+  --btn-text-sm: var(--text-sm);
+  --btn-text-md: var(--text-base);
+  --btn-text-lg: var(--text-lg);
+  --btn-text-xl: var(--text-xl);
+
+  /* Button icon sizes */
+  --btn-icon-xs: 0.875rem;
+  --btn-icon-sm: 1rem;
+  --btn-icon-md: 1.25rem;
+  --btn-icon-lg: 1.5rem;
+  --btn-icon-xl: 1.75rem;
+
+  /* Primary button */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-bg-hover: var(--color-primary-dark);
+  --btn-primary-bg-active: var(--color-primary-darker);
+  --btn-primary-text: var(--color-primary-foreground);
+  --btn-primary-border: transparent;
+  --btn-primary-shadow: var(--shadow-button);
+  --btn-primary-shadow-hover: var(--shadow-button-hover);
+
+  /* Secondary button */
+  --btn-secondary-bg: var(--color-secondary);
+  --btn-secondary-bg-hover: var(--color-secondary-dark);
+  --btn-secondary-bg-active: var(--color-secondary-darker);
+  --btn-secondary-text: var(--color-secondary-foreground);
+  --btn-secondary-border: transparent;
+
+  /* Outline button */
+  --btn-outline-bg: transparent;
+  --btn-outline-bg-hover: var(--bg-primary-subtle);
+  --btn-outline-bg-active: var(--bg-primary-muted);
+  --btn-outline-text: var(--color-primary);
+  --btn-outline-text-hover: var(--color-primary-dark);
+  --btn-outline-border: var(--color-primary);
+
+  /* Ghost button */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: var(--bg-interactive);
+  --btn-ghost-bg-active: var(--bg-interactive-active);
+  --btn-ghost-text: var(--text-body);
+  --btn-ghost-text-hover: var(--text-heading);
+
+  /* Soft button (subtle colored bg) */
+  --btn-soft-primary-bg: var(--bg-primary-subtle);
+  --btn-soft-primary-bg-hover: hsl(var(--brand-bubblegum-200));
+  --btn-soft-primary-text: hsl(var(--brand-bubblegum-700));
+
+  --btn-soft-secondary-bg: var(--bg-secondary-subtle);
+  --btn-soft-secondary-bg-hover: hsl(var(--ui-sky-200));
+  --btn-soft-secondary-text: hsl(var(--ui-sky-700));
+
+  /* Destructive button */
+  --btn-destructive-bg: var(--color-error);
+  --btn-destructive-bg-hover: var(--color-error-dark);
+  --btn-destructive-text: var(--color-error-foreground);
+
+  /* Success button */
+  --btn-success-bg: var(--color-success);
+  --btn-success-bg-hover: var(--color-success-dark);
+  --btn-success-text: var(--color-success-foreground);
+
+  /* Disabled button */
+  --btn-disabled-bg: var(--bg-disabled);
+  --btn-disabled-text: var(--text-disabled);
+  --btn-disabled-border: var(--border-subtle);
+
+  /* =========================
+     INPUTS & FORM CONTROLS
+     ========================= */
+
+  /* Input heights */
+  --input-height-xs: 1.75rem;
+  --input-height-sm: 2rem;
+  --input-height-md: 2.5rem;
+  --input-height-lg: 3rem;
+  --input-height-xl: 3.5rem;
+
+  /* Input padding */
+  --input-padding-x-sm: var(--space-2);
+  --input-padding-x-md: var(--space-3);
+  --input-padding-x-lg: var(--space-4);
+  --input-padding-y-sm: var(--space-1);
+  --input-padding-y-md: var(--space-2);
+  --input-padding-y-lg: var(--space-3);
+
+  /* Input colors */
+  --input-bg: var(--bg-surface);
+  --input-bg-hover: var(--bg-card-hover);
+  --input-bg-focus: var(--bg-surface);
+  --input-bg-disabled: var(--bg-disabled);
+  --input-bg-error: var(--bg-error-muted);
+
+  --input-text: var(--text-body);
+  --input-text-placeholder: var(--text-placeholder);
+  --input-text-disabled: var(--text-disabled);
+
+  --input-border: var(--border-input);
+  --input-border-hover: var(--border-input-hover);
+  --input-border-focus: var(--border-input-focus);
+  --input-border-error: var(--border-input-error);
+  --input-border-success: var(--border-input-success);
+  --input-border-disabled: var(--border-input-disabled);
+
+  --input-focus-ring: var(--shadow-input-focus);
+
+  /* Textarea specific */
+  --textarea-min-height: 5rem;
+  --textarea-resize: vertical;
+
+  /* Select specific */
+  --select-indicator-size: 1.25rem;
+  --select-indicator-color: var(--text-body-muted);
+
+  /* Checkbox & Radio */
+  --checkbox-size-sm: 1rem;
+  --checkbox-size-md: 1.25rem;
+  --checkbox-size-lg: 1.5rem;
+  --checkbox-bg: var(--bg-surface);
+  --checkbox-bg-checked: var(--color-primary);
+  --checkbox-border: var(--border-input);
+  --checkbox-border-checked: var(--color-primary);
+  --checkbox-check-color: var(--color-primary-foreground);
+
+  /* Switch/Toggle */
+  --switch-width-sm: 2rem;
+  --switch-width-md: 2.5rem;
+  --switch-width-lg: 3rem;
+  --switch-height-sm: 1rem;
+  --switch-height-md: 1.25rem;
+  --switch-height-lg: 1.5rem;
+  --switch-bg: var(--bg-interactive);
+  --switch-bg-checked: var(--color-primary);
+  --switch-knob-color: var(--bg-surface);
+
+  /* =========================
+     CARDS
+     ========================= */
+
+  /* Card padding */
+  --card-padding-xs: var(--space-2);
+  --card-padding-sm: var(--space-3);
+  --card-padding-md: var(--space-4);
+  --card-padding-lg: var(--space-6);
+  --card-padding-xl: var(--space-8);
+
+  /* Card gap (internal spacing) */
+  --card-gap-sm: var(--space-2);
+  --card-gap-md: var(--space-4);
+  --card-gap-lg: var(--space-6);
+
+  /* Card colors */
+  --card-bg: var(--bg-card);
+  --card-bg-hover: var(--bg-card-hover);
+  --card-bg-active: var(--bg-card-active);
+  --card-border: var(--border-card);
+  --card-border-hover: var(--border-card-hover);
+  --card-shadow: var(--shadow-card);
+  --card-shadow-hover: var(--shadow-card-hover);
+
+  /* Dashboard colorful cards */
+  --card-courses-bg: hsl(var(--ui-sky-100));
+  --card-courses-border: hsl(var(--ui-sky-300));
+  --card-courses-accent: hsl(var(--ui-sky-500));
+  --card-courses-shadow: var(--shadow-sky);
+
+  --card-assignments-bg: hsl(var(--ui-lavender-100));
+  --card-assignments-border: hsl(var(--ui-lavender-300));
+  --card-assignments-accent: hsl(var(--ui-lavender-500));
+  --card-assignments-shadow: var(--shadow-lavender);
+
+  --card-progress-bg: hsl(var(--ui-lime-100));
+  --card-progress-border: hsl(var(--ui-lime-300));
+  --card-progress-accent: hsl(var(--ui-lime-500));
+  --card-progress-shadow: var(--shadow-lime);
+
+  --card-schedule-bg: hsl(var(--ui-sunny-100));
+  --card-schedule-border: hsl(var(--ui-sunny-300));
+  --card-schedule-accent: hsl(var(--ui-sunny-500));
+  --card-schedule-shadow: var(--shadow-sunny);
+
+  --card-achievements-bg: hsl(var(--ui-tangerine-100));
+  --card-achievements-border: hsl(var(--ui-tangerine-300));
+  --card-achievements-accent: hsl(var(--ui-tangerine-500));
+  --card-achievements-shadow: var(--shadow-tangerine);
+
+  --card-profile-bg: hsl(var(--brand-bubblegum-100));
+  --card-profile-border: hsl(var(--brand-bubblegum-300));
+  --card-profile-accent: hsl(var(--brand-bubblegum-500));
+  --card-profile-shadow: var(--shadow-bubblegum);
+
+  --card-stats-bg: hsl(var(--ui-marine-100));
+  --card-stats-border: hsl(var(--ui-marine-300));
+  --card-stats-accent: hsl(var(--ui-marine-500));
+  --card-stats-shadow: var(--shadow-marine);
+
+  /* =========================
+     BADGES & TAGS
+     ========================= */
+
+  /* Badge sizes */
+  --badge-height-sm: 1.25rem;
+  --badge-height-md: 1.5rem;
+  --badge-height-lg: 1.75rem;
+  --badge-padding-sm: var(--space-1-5);
+  --badge-padding-md: var(--space-2);
+  --badge-padding-lg: var(--space-3);
+  --badge-text-sm: var(--text-2xs);
+  --badge-text-md: var(--text-xs);
+  --badge-text-lg: var(--text-sm);
+
+  /* Badge colors */
+  --badge-default-bg: var(--bg-interactive);
+  --badge-default-text: var(--text-body);
+
+  --badge-primary-bg: var(--bg-primary-subtle);
+  --badge-primary-text: hsl(var(--brand-bubblegum-700));
+
+  --badge-secondary-bg: var(--bg-secondary-subtle);
+  --badge-secondary-text: hsl(var(--ui-sky-700));
+
+  --badge-success-bg: var(--bg-success-subtle);
+  --badge-success-text: var(--text-success);
+
+  --badge-warning-bg: var(--bg-warning-subtle);
+  --badge-warning-text: var(--text-warning);
+
+  --badge-error-bg: var(--bg-error-subtle);
+  --badge-error-text: var(--text-error);
+
+  --badge-info-bg: var(--bg-info-subtle);
+  --badge-info-text: var(--text-info);
+
+  /* Colorful badges for playful UI */
+  --badge-sunny-bg: hsl(var(--ui-sunny-200));
+  --badge-sunny-text: hsl(var(--ui-sunny-800));
+  --badge-tangerine-bg: hsl(var(--ui-tangerine-200));
+  --badge-tangerine-text: hsl(var(--ui-tangerine-800));
+  --badge-lavender-bg: hsl(var(--ui-lavender-200));
+  --badge-lavender-text: hsl(var(--ui-lavender-800));
+  --badge-lime-bg: hsl(var(--ui-lime-200));
+  --badge-lime-text: hsl(var(--ui-lime-800));
+  --badge-marine-bg: hsl(var(--ui-marine-200));
+  --badge-marine-text: hsl(var(--ui-marine-800));
+
+  /* =========================
+     AVATARS
+     ========================= */
+  --avatar-size-xs: 1.5rem;
+  --avatar-size-sm: 2rem;
+  --avatar-size-md: 2.5rem;
+  --avatar-size-lg: 3rem;
+  --avatar-size-xl: 4rem;
+  --avatar-size-2xl: 5rem;
+  --avatar-size-3xl: 6rem;
+
+  --avatar-bg: var(--bg-interactive);
+  --avatar-border: var(--border-default);
+  --avatar-text: var(--text-body-muted);
+  --avatar-font-size-factor: 0.4;
+
+  /* =========================
+     ALERT / BANNER
+     ========================= */
+  --alert-padding: var(--space-4);
+  --alert-gap: var(--space-3);
+  --alert-icon-size: 1.25rem;
+
+  --alert-success-bg: var(--bg-success-subtle);
+  --alert-success-border: var(--border-success);
+  --alert-success-icon: var(--color-success);
+  --alert-success-text: var(--text-success);
+
+  --alert-warning-bg: var(--bg-warning-subtle);
+  --alert-warning-border: var(--border-warning);
+  --alert-warning-icon: var(--color-warning);
+  --alert-warning-text: var(--text-warning);
+
+  --alert-error-bg: var(--bg-error-subtle);
+  --alert-error-border: var(--border-error);
+  --alert-error-icon: var(--color-error);
+  --alert-error-text: var(--text-error);
+
+  --alert-info-bg: var(--bg-info-subtle);
+  --alert-info-border: var(--border-info);
+  --alert-info-icon: var(--color-info);
+  --alert-info-text: var(--text-info);
+
+  /* =========================
+     PROGRESS & LOADING
+     ========================= */
+  --progress-height-xs: 0.25rem;
+  --progress-height-sm: 0.375rem;
+  --progress-height-md: 0.5rem;
+  --progress-height-lg: 0.75rem;
+  --progress-height-xl: 1rem;
+
+  --progress-bg: var(--bg-interactive);
+  --progress-fill: var(--color-primary);
+  --progress-fill-success: var(--color-success);
+  --progress-fill-warning: var(--color-warning);
+  --progress-fill-error: var(--color-error);
+
+  /* Spinner */
+  --spinner-size-xs: 0.875rem;
+  --spinner-size-sm: 1rem;
+  --spinner-size-md: 1.5rem;
+  --spinner-size-lg: 2rem;
+  --spinner-size-xl: 3rem;
+  --spinner-border-width: 2px;
+  --spinner-color: var(--color-primary);
+
+  /* Skeleton */
+  --skeleton-bg: var(--bg-skeleton);
+  --skeleton-shimmer: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--neutral-0) / 0.3) 50%,
+    transparent 100%
+  );
+}
+
+/* =========================
+   DARK MODE OVERRIDES
+   ========================= */
+.dark {
+  /* Soft buttons */
+  --btn-soft-primary-bg: hsl(var(--brand-bubblegum-900) / 0.3);
+  --btn-soft-primary-bg-hover: hsl(var(--brand-bubblegum-800) / 0.4);
+  --btn-soft-primary-text: hsl(var(--brand-bubblegum-300));
+
+  --btn-soft-secondary-bg: hsl(var(--ui-sky-900) / 0.3);
+  --btn-soft-secondary-bg-hover: hsl(var(--ui-sky-800) / 0.4);
+  --btn-soft-secondary-text: hsl(var(--ui-sky-300));
+
+  /* Dashboard cards - darker versions */
+  --card-courses-bg: hsl(var(--ui-sky-900) / 0.3);
+  --card-courses-border: hsl(var(--ui-sky-700));
+  --card-courses-accent: hsl(var(--ui-sky-400));
+
+  --card-assignments-bg: hsl(var(--ui-lavender-900) / 0.3);
+  --card-assignments-border: hsl(var(--ui-lavender-700));
+  --card-assignments-accent: hsl(var(--ui-lavender-400));
+
+  --card-progress-bg: hsl(var(--ui-lime-900) / 0.3);
+  --card-progress-border: hsl(var(--ui-lime-700));
+  --card-progress-accent: hsl(var(--ui-lime-400));
+
+  --card-schedule-bg: hsl(var(--ui-sunny-900) / 0.3);
+  --card-schedule-border: hsl(var(--ui-sunny-700));
+  --card-schedule-accent: hsl(var(--ui-sunny-400));
+
+  --card-achievements-bg: hsl(var(--ui-tangerine-900) / 0.3);
+  --card-achievements-border: hsl(var(--ui-tangerine-700));
+  --card-achievements-accent: hsl(var(--ui-tangerine-400));
+
+  --card-profile-bg: hsl(var(--brand-bubblegum-900) / 0.3);
+  --card-profile-border: hsl(var(--brand-bubblegum-700));
+  --card-profile-accent: hsl(var(--brand-bubblegum-400));
+
+  --card-stats-bg: hsl(var(--ui-marine-900) / 0.3);
+  --card-stats-border: hsl(var(--ui-marine-700));
+  --card-stats-accent: hsl(var(--ui-marine-400));
+
+  /* Badges - darker versions */
+  --badge-primary-bg: hsl(var(--brand-bubblegum-900) / 0.4);
+  --badge-primary-text: hsl(var(--brand-bubblegum-300));
+  --badge-secondary-bg: hsl(var(--ui-sky-900) / 0.4);
+  --badge-secondary-text: hsl(var(--ui-sky-300));
+
+  --badge-sunny-bg: hsl(var(--ui-sunny-900) / 0.4);
+  --badge-sunny-text: hsl(var(--ui-sunny-300));
+  --badge-tangerine-bg: hsl(var(--ui-tangerine-900) / 0.4);
+  --badge-tangerine-text: hsl(var(--ui-tangerine-300));
+  --badge-lavender-bg: hsl(var(--ui-lavender-900) / 0.4);
+  --badge-lavender-text: hsl(var(--ui-lavender-300));
+  --badge-lime-bg: hsl(var(--ui-lime-900) / 0.4);
+  --badge-lime-text: hsl(var(--ui-lime-300));
+  --badge-marine-bg: hsl(var(--ui-marine-900) / 0.4);
+  --badge-marine-text: hsl(var(--ui-marine-300));
+
+  /* Skeleton shimmer */
+  --skeleton-shimmer: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--neutral-600) / 0.3) 50%,
+    transparent 100%
+  );
+}

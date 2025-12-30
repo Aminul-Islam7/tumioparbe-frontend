@@ -1,0 +1,339 @@
+/* =================================================================
+   TUMIOPARBE DESIGN SYSTEM - INTERACTIVE STATES & ANIMATIONS
+   Navigation, transitions, and utility tokens
+   ================================================================= */
+
+:root {
+  /* =========================
+     TRANSITIONS & ANIMATIONS
+     ========================= */
+
+  /* Durations */
+  --duration-instant: 0ms;
+  --duration-fastest: 50ms;
+  --duration-faster: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
+  --duration-slowest: 500ms;
+
+  /* Easing functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Common transitions */
+  --transition-colors: color var(--duration-fast) var(--ease-in-out),
+                       background-color var(--duration-fast) var(--ease-in-out),
+                       border-color var(--duration-fast) var(--ease-in-out);
+  --transition-opacity: opacity var(--duration-fast) var(--ease-in-out);
+  --transition-shadow: box-shadow var(--duration-normal) var(--ease-in-out);
+  --transition-transform: transform var(--duration-normal) var(--ease-out);
+  --transition-all: all var(--duration-normal) var(--ease-in-out);
+
+  /* Button transitions */
+  --transition-button: background-color var(--duration-fast) var(--ease-in-out),
+                       border-color var(--duration-fast) var(--ease-in-out),
+                       color var(--duration-fast) var(--ease-in-out),
+                       box-shadow var(--duration-fast) var(--ease-in-out),
+                       transform var(--duration-fast) var(--ease-out);
+
+  /* Card transitions */
+  --transition-card: box-shadow var(--duration-normal) var(--ease-in-out),
+                     transform var(--duration-normal) var(--ease-out),
+                     border-color var(--duration-fast) var(--ease-in-out);
+
+  /* =========================
+     NAVIGATION
+     ========================= */
+
+  /* Sidebar */
+  --sidebar-width: 16rem;
+  --sidebar-width-collapsed: 4rem;
+  --sidebar-bg: var(--bg-surface);
+  --sidebar-border: var(--border-default);
+
+  /* Navbar */
+  --navbar-height: 4rem;
+  --navbar-height-sm: 3.5rem;
+  --navbar-bg: var(--bg-surface);
+  --navbar-border: var(--border-default);
+
+  /* Nav items */
+  --nav-item-height: 2.5rem;
+  --nav-item-padding-x: var(--space-3);
+  --nav-item-gap: var(--space-2);
+  --nav-item-bg: transparent;
+  --nav-item-bg-hover: var(--bg-interactive-hover);
+  --nav-item-bg-active: var(--bg-primary-subtle);
+  --nav-item-text: var(--text-body);
+  --nav-item-text-hover: var(--text-heading);
+  --nav-item-text-active: var(--color-primary);
+  --nav-item-icon-color: var(--text-body-muted);
+  --nav-item-icon-color-active: var(--color-primary);
+
+  /* Breadcrumbs */
+  --breadcrumb-separator-color: var(--text-body-muted);
+  --breadcrumb-text: var(--text-body-muted);
+  --breadcrumb-text-current: var(--text-heading);
+  --breadcrumb-link: var(--text-link);
+
+  /* Pagination */
+  --pagination-item-size: 2.5rem;
+  --pagination-item-bg: transparent;
+  --pagination-item-bg-hover: var(--bg-interactive-hover);
+  --pagination-item-bg-active: var(--bg-primary);
+  --pagination-item-text: var(--text-body);
+  --pagination-item-text-active: var(--color-primary-foreground);
+
+  /* Tabs */
+  --tab-height: 2.5rem;
+  --tab-padding-x: var(--space-4);
+  --tab-bg: transparent;
+  --tab-bg-hover: var(--bg-interactive-hover);
+  --tab-bg-active: var(--bg-primary-subtle);
+  --tab-text: var(--text-body-muted);
+  --tab-text-hover: var(--text-heading);
+  --tab-text-active: var(--color-primary);
+  --tab-indicator: var(--color-primary);
+  --tab-indicator-height: 3px;
+
+  /* =========================
+     TOOLTIPS & POPOVERS
+     ========================= */
+  --tooltip-bg: var(--bg-tooltip);
+  --tooltip-text: var(--text-inverse);
+  --tooltip-padding: var(--space-2) var(--space-3);
+  --tooltip-max-width: 20rem;
+  --tooltip-arrow-size: 6px;
+
+  --popover-bg: var(--bg-popover);
+  --popover-border: var(--border-default);
+  --popover-shadow: var(--shadow-popover);
+  --popover-padding: var(--space-4);
+
+  /* =========================
+     MODALS & DIALOGS
+     ========================= */
+  --modal-bg: var(--bg-modal);
+  --modal-border: var(--border-default);
+  --modal-shadow: var(--shadow-modal);
+  --modal-padding: var(--space-6);
+  --modal-header-padding: var(--space-4) var(--space-6);
+  --modal-footer-padding: var(--space-4) var(--space-6);
+  --modal-width-sm: 24rem;
+  --modal-width-md: 32rem;
+  --modal-width-lg: 40rem;
+  --modal-width-xl: 48rem;
+  --modal-width-full: calc(100vw - var(--space-8));
+
+  /* =========================
+     DROPDOWN MENUS
+     ========================= */
+  --dropdown-bg: var(--bg-dropdown);
+  --dropdown-border: var(--border-default);
+  --dropdown-shadow: var(--shadow-dropdown);
+  --dropdown-padding: var(--space-1);
+  --dropdown-item-height: 2.25rem;
+  --dropdown-item-padding: var(--space-2) var(--space-3);
+  --dropdown-item-bg-hover: var(--bg-interactive-hover);
+  --dropdown-item-text: var(--text-body);
+  --dropdown-item-text-hover: var(--text-heading);
+  --dropdown-separator: var(--border-separator);
+
+  /* =========================
+     TABLES
+     ========================= */
+  --table-header-bg: var(--bg-surface-sunken);
+  --table-header-text: var(--text-heading-muted);
+  --table-row-bg: var(--bg-surface);
+  --table-row-bg-hover: var(--bg-card-hover);
+  --table-row-bg-striped: var(--bg-page-subtle);
+  --table-row-bg-selected: var(--bg-card-selected);
+  --table-border: var(--border-divider);
+  --table-cell-padding: var(--space-3) var(--space-4);
+
+  /* =========================
+     FORMS (Additional)
+     ========================= */
+  --form-label-color: var(--text-heading-muted);
+  --form-label-size: var(--text-sm);
+  --form-label-weight: var(--font-medium);
+  --form-hint-color: var(--text-body-muted);
+  --form-hint-size: var(--text-xs);
+  --form-error-color: var(--text-error);
+  --form-error-size: var(--text-xs);
+  --form-gap: var(--space-4);
+  --form-group-gap: var(--space-1-5);
+
+  /* =========================
+     Z-INDEX SCALE
+     ========================= */
+  --z-behind: -1;
+  --z-base: 0;
+  --z-raised: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-sidebar: 400;
+  --z-navbar: 500;
+  --z-modal-backdrop: 600;
+  --z-modal: 700;
+  --z-popover: 800;
+  --z-tooltip: 900;
+  --z-toast: 1000;
+  --z-max: 9999;
+
+  /* =========================
+     SCROLLBAR
+     ========================= */
+  --scrollbar-width: 10px;
+  --scrollbar-width-thin: 6px;
+  --scrollbar-track-bg: var(--bg-page-subtle);
+  --scrollbar-thumb-bg: hsl(var(--brand-bubblegum-400) / 0.5);
+  --scrollbar-thumb-bg-hover: hsl(var(--brand-bubblegum-500) / 0.7);
+  --scrollbar-radius: var(--radius-full);
+
+  /* =========================
+     SELECTION
+     ========================= */
+  --selection-bg: var(--bg-selection);
+  --selection-text: inherit;
+
+  /* =========================
+     DIVIDERS & SEPARATORS
+     ========================= */
+  --divider-color: var(--border-divider);
+  --divider-thickness: 1px;
+  --divider-spacing: var(--space-4);
+
+  /* =========================
+     LISTS
+     ========================= */
+  --list-item-padding: var(--space-2) var(--space-3);
+  --list-item-gap: var(--space-2);
+  --list-item-bg-hover: var(--bg-interactive-hover);
+  --list-item-bg-active: var(--bg-interactive-active);
+  --list-item-bg-selected: var(--bg-card-selected);
+  --list-marker-color: var(--color-primary);
+
+  /* =========================
+     CHIPS
+     ========================= */
+  --chip-height-sm: 1.5rem;
+  --chip-height-md: 2rem;
+  --chip-height-lg: 2.5rem;
+  --chip-padding-sm: var(--space-2);
+  --chip-padding-md: var(--space-3);
+  --chip-padding-lg: var(--space-4);
+  --chip-gap: var(--space-1);
+  --chip-bg: var(--bg-interactive);
+  --chip-bg-selected: var(--bg-primary-subtle);
+  --chip-text: var(--text-body);
+  --chip-text-selected: var(--color-primary);
+  --chip-border: var(--border-default);
+  --chip-border-selected: var(--color-primary);
+  --chip-close-size: 1rem;
+
+  /* =========================
+     ACCORDION
+     ========================= */
+  --accordion-header-padding: var(--space-4);
+  --accordion-content-padding: var(--space-4);
+  --accordion-header-bg: transparent;
+  --accordion-header-bg-hover: var(--bg-interactive-hover);
+  --accordion-border: var(--border-default);
+  --accordion-icon-size: 1.25rem;
+
+  /* =========================
+     STEPPERS
+     ========================= */
+  --stepper-connector-width: 2px;
+  --stepper-connector-color: var(--border-default);
+  --stepper-connector-color-complete: var(--color-success);
+  --stepper-circle-size: 2rem;
+  --stepper-circle-bg: var(--bg-interactive);
+  --stepper-circle-bg-active: var(--color-primary);
+  --stepper-circle-bg-complete: var(--color-success);
+  --stepper-circle-text: var(--text-body-muted);
+  --stepper-circle-text-active: var(--color-primary-foreground);
+  --stepper-circle-text-complete: var(--color-success-foreground);
+
+  /* =========================
+     TIMELINE
+     ========================= */
+  --timeline-line-width: 2px;
+  --timeline-line-color: var(--border-default);
+  --timeline-dot-size: 0.75rem;
+  --timeline-dot-bg: var(--color-primary);
+  --timeline-dot-border: var(--bg-surface);
+  --timeline-content-gap: var(--space-4);
+
+  /* =========================
+     DATA VISUALIZATION COLORS
+     ========================= */
+  --chart-1: hsl(var(--brand-bubblegum-500));
+  --chart-2: hsl(var(--ui-sky-500));
+  --chart-3: hsl(var(--ui-lime-500));
+  --chart-4: hsl(var(--ui-sunny-500));
+  --chart-5: hsl(var(--ui-lavender-500));
+  --chart-6: hsl(var(--ui-tangerine-500));
+  --chart-7: hsl(var(--ui-marine-500));
+  --chart-8: hsl(var(--ui-emerald-500));
+
+  /* =========================
+     CODE BLOCKS
+     ========================= */
+  --code-bg: var(--bg-code);
+  --code-text: var(--text-code);
+  --code-border: var(--border-default);
+  --code-block-padding: var(--space-4);
+  --code-inline-padding: var(--space-0-5) var(--space-1);
+
+  /* =========================
+     BLOCKQUOTES
+     ========================= */
+  --quote-border-color: var(--color-primary);
+  --quote-border-width: 4px;
+  --quote-bg: var(--bg-page-subtle);
+  --quote-text: var(--text-body-muted);
+  --quote-padding: var(--space-4);
+
+  /* =========================
+     ICONS
+     ========================= */
+  --icon-size-xs: 0.75rem;
+  --icon-size-sm: 1rem;
+  --icon-size-md: 1.25rem;
+  --icon-size-lg: 1.5rem;
+  --icon-size-xl: 2rem;
+  --icon-size-2xl: 2.5rem;
+  --icon-size-3xl: 3rem;
+
+  --icon-color: currentColor;
+  --icon-color-muted: var(--text-body-muted);
+  --icon-color-subtle: var(--text-body-subtle);
+}
+
+/* =========================
+   DARK MODE OVERRIDES
+   ========================= */
+.dark {
+  /* Navigation */
+  --sidebar-bg: var(--bg-surface);
+  --navbar-bg: var(--bg-surface);
+
+  /* Tooltip inverted */
+  --tooltip-bg: hsl(var(--neutral-200));
+  --tooltip-text: hsl(var(--neutral-900));
+
+  /* Scrollbar */
+  --scrollbar-track-bg: var(--bg-page-muted);
+  --scrollbar-thumb-bg: hsl(var(--brand-bubblegum-500) / 0.5);
+  --scrollbar-thumb-bg-hover: hsl(var(--brand-bubblegum-400) / 0.7);
+}

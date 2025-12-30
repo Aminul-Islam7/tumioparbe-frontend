@@ -1,0 +1,202 @@
+:root {
+  /* =========================
+     BRAND COLORS
+     ========================= */
+
+  /* Brand Red (error + brand accent) */
+  --brand-red-50: 0 100% 99%;
+  --brand-red-100: 0 80% 95%;
+  --brand-red-200: 0 84% 87%;
+  --brand-red-300: 0 78% 73%;
+  --brand-red-400: 0 78% 60%;
+  --brand-red-500: 0 78% 49%;
+  --brand-red-600: 0 78% 38%;
+  --brand-red-700: 0 89% 28%;
+  --brand-red-800: 0 94% 19%;
+  --brand-red-900: 0 98% 10%;
+  --brand-red-950: 0 100% 4%;
+
+  /* Bubblegum Pink (primary) */
+  --brand-bubblegum-50: 330 100% 99%;
+  --brand-bubblegum-100: 330 80% 95%;
+  --brand-bubblegum-200: 330 84% 87%;
+  --brand-bubblegum-300: 330 78% 73%;
+  --brand-bubblegum-400: 330 78% 60%;
+  --brand-bubblegum-500: 330 78% 49%;
+  --brand-bubblegum-600: 330 78% 38%;
+  --brand-bubblegum-700: 330 89% 28%;
+  --brand-bubblegum-800: 330 94% 19%;
+  --brand-bubblegum-900: 330 98% 10%;
+  --brand-bubblegum-950: 330 100% 4%;
+
+  /* =========================
+     UI / INTERFACE COLORS
+     ========================= */
+
+  /* Sky Blue (secondary) */
+  --ui-sky-50: 198 100% 99%;
+  --ui-sky-100: 198 80% 95%;
+  --ui-sky-200: 198 84% 87%;
+  --ui-sky-300: 198 78% 73%;
+  --ui-sky-400: 198 78% 60%;
+  --ui-sky-500: 198 78% 49%;
+  --ui-sky-600: 198 78% 38%;
+  --ui-sky-700: 198 89% 28%;
+  --ui-sky-800: 198 94% 19%;
+  --ui-sky-900: 198 98% 10%;
+  --ui-sky-950: 198 100% 4%;
+
+  /* =========================
+     ACCENT / PLAYFUL COLORS
+     ========================= */
+
+  /* Sunny Yellow */
+  --ui-sunny-50: 46 100% 99%;
+  --ui-sunny-100: 46 80% 95%;
+  --ui-sunny-200: 46 84% 87%;
+  --ui-sunny-300: 46 78% 73%;
+  --ui-sunny-400: 46 78% 60%;
+  --ui-sunny-500: 46 78% 49%;
+  --ui-sunny-600: 46 78% 38%;
+  --ui-sunny-700: 46 89% 28%;
+  --ui-sunny-800: 46 94% 19%;
+  --ui-sunny-900: 46 98% 10%;
+  --ui-sunny-950: 46 100% 4%;
+
+  /* Tangerine Orange */
+  --ui-tangerine-50: 20 100% 99%;
+  --ui-tangerine-100: 20 80% 95%;
+  --ui-tangerine-200: 20 84% 87%;
+  --ui-tangerine-300: 20 78% 73%;
+  --ui-tangerine-400: 20 78% 60%;
+  --ui-tangerine-500: 20 78% 49%;
+  --ui-tangerine-600: 20 78% 38%;
+  --ui-tangerine-700: 20 89% 28%;
+  --ui-tangerine-800: 20 94% 19%;
+  --ui-tangerine-900: 20 98% 10%;
+  --ui-tangerine-950: 20 100% 4%;
+
+  /* Lavender Purple */
+  --ui-lavender-50: 267 100% 99%;
+  --ui-lavender-100: 267 80% 95%;
+  --ui-lavender-200: 267 84% 87%;
+  --ui-lavender-300: 267 78% 73%;
+  --ui-lavender-400: 267 78% 60%;
+  --ui-lavender-500: 267 78% 49%;
+  --ui-lavender-600: 267 78% 38%;
+  --ui-lavender-700: 267 89% 28%;
+  --ui-lavender-800: 267 94% 19%;
+  --ui-lavender-900: 267 98% 10%;
+  --ui-lavender-950: 267 100% 4%;
+
+  /* Lime Green */
+  --ui-lime-50: 87 100% 99%;
+  --ui-lime-100: 87 80% 95%;
+  --ui-lime-200: 87 84% 87%;
+  --ui-lime-300: 87 78% 73%;
+  --ui-lime-400: 87 78% 60%;
+  --ui-lime-500: 87 78% 49%;
+  --ui-lime-600: 87 78% 38%;
+  --ui-lime-700: 87 89% 28%;
+  --ui-lime-800: 87 94% 19%;
+  --ui-lime-900: 87 98% 10%;
+  --ui-lime-950: 87 100% 4%;
+
+  /* Marine Blue */
+  --ui-marine-50: 230 100% 99%;
+  --ui-marine-100: 230 80% 95%;
+  --ui-marine-200: 230 84% 87%;
+  --ui-marine-300: 230 78% 73%;
+  --ui-marine-400: 230 78% 60%;
+  --ui-marine-500: 230 78% 49%;
+  --ui-marine-600: 230 78% 38%;
+  --ui-marine-700: 230 89% 28%;
+  --ui-marine-800: 230 94% 19%;
+  --ui-marine-900: 230 98% 10%;
+  --ui-marine-950: 230 100% 4%;
+
+  /* Emerald Green */
+  --ui-emerald-50: 145 100% 99%;
+  --ui-emerald-100: 145 80% 95%;
+  --ui-emerald-200: 145 84% 87%;
+  --ui-emerald-300: 145 78% 73%;
+  --ui-emerald-400: 145 78% 60%;
+  --ui-emerald-500: 145 78% 49%;
+  --ui-emerald-600: 145 78% 38%;
+  --ui-emerald-700: 145 89% 28%;
+  --ui-emerald-800: 145 94% 19%;
+  --ui-emerald-900: 145 98% 10%;
+  --ui-emerald-950: 145 100% 4%;
+
+  /* =========================
+     SUPPORTING / FEEDBACK
+     ========================= */
+
+  /* Success */
+  --support-success-50: var(--ui-emerald-50);
+  --support-success-100: var(--ui-emerald-100);
+  --support-success-200: var(--ui-emerald-200);
+  --support-success-300: var(--ui-emerald-300);
+  --support-success-400: var(--ui-emerald-400);
+  --support-success-500: var(--ui-emerald-500);
+  --support-success-600: var(--ui-emerald-600);
+  --support-success-700: var(--ui-emerald-700);
+  --support-success-800: var(--ui-emerald-800);
+  --support-success-900: var(--ui-emerald-900);
+  --support-success-950: var(--ui-emerald-950);
+
+  /* Warning */
+  --support-warning-50: var(--ui-sunny-50);
+  --support-warning-100: var(--ui-sunny-100);
+  --support-warning-200: var(--ui-sunny-200);
+  --support-warning-300: var(--ui-sunny-300);
+  --support-warning-400: var(--ui-sunny-400);
+  --support-warning-500: var(--ui-sunny-500);
+  --support-warning-600: var(--ui-sunny-600);
+  --support-warning-700: var(--ui-sunny-700);
+  --support-warning-800: var(--ui-sunny-800);
+  --support-warning-900: var(--ui-sunny-900);
+  --support-warning-950: var(--ui-sunny-950);
+
+  /* Error */
+  --support-error-50: var(--brand-red-50);
+  --support-error-100: var(--brand-red-100);
+  --support-error-200: var(--brand-red-200);
+  --support-error-300: var(--brand-red-300);
+  --support-error-400: var(--brand-red-400);
+  --support-error-500: var(--brand-red-500);
+  --support-error-600: var(--brand-red-600);
+  --support-error-700: var(--brand-red-700);
+  --support-error-800: var(--brand-red-800);
+  --support-error-900: var(--brand-red-900);
+  --support-error-950: var(--brand-red-950);
+
+  /* Info */
+  --support-info-50: var(--ui-sky-50);
+  --support-info-100: var(--ui-sky-100);
+  --support-info-200: var(--ui-sky-200);
+  --support-info-300: var(--ui-sky-300);
+  --support-info-400: var(--ui-sky-400);
+  --support-info-500: var(--ui-sky-500);
+  --support-info-600: var(--ui-sky-600);
+  --support-info-700: var(--ui-sky-700);
+  --support-info-800: var(--ui-sky-800);
+  --support-info-900: var(--ui-sky-900);
+  --support-info-950: var(--ui-sky-950);
+
+  /* =========================
+     NEUTRALS
+     ========================= */
+
+  --neutral-50: 0 0% 100%;
+  --neutral-100: 0 32% 94%;
+  --neutral-200: 0 15% 82%;
+  --neutral-300: 0 11% 66%;
+  --neutral-400: 0 11% 50%;
+  --neutral-500: 0 14% 35%;
+  --neutral-600: 0 19% 25%;
+  --neutral-700: 0 29% 16%;
+  --neutral-800: 0 54% 7%;
+  --neutral-900: 0 82% 3%;
+  --neutral-950: 0 100% 0%;
+}
