@@ -58,7 +58,7 @@ api.interceptors.response.use(
                     return Promise.reject(error);
                 }
 
-                const response = await axios.post<{ access: string }>(
+                const response = await axios.post<{ access: string; refresh?: string }>(
                     `${BASE_URL}/accounts/token/refresh/`,
                     {
                         refresh: tokens.refresh,
@@ -67,11 +67,13 @@ api.interceptors.response.use(
                 );
 
                 const newAccess = response.data.access;
+                // Use new refresh token if provided (when ROTATE_REFRESH_TOKENS is True)
+                const newRefresh = response.data.refresh || tokens.refresh;
 
                 // Update stored tokens
                 setAuthTokens({
                     access: newAccess,
-                    refresh: tokens.refresh,
+                    refresh: newRefresh,
                 });
 
                 // Retry the original request with new token

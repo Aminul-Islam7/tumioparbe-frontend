@@ -14,7 +14,7 @@ interface NavbarProps {
     className?: string;
 }
 
-type NavColor = 'bubblegum' | 'skyblue' | 'sunny' | 'tangerine' | 'purple';
+type NavColor = 'primary' | 'secondary' | 'sunny' | 'tangerine' | 'lavender';
 
 export default function Navbar({ className }: NavbarProps) {
     const pathname = usePathname();
@@ -190,39 +190,44 @@ export default function Navbar({ className }: NavbarProps) {
     }, [isMenuOpen]);
 
     const navLinks = [
-        { href: '/', label: 'Home', color: 'bubblegum' },
-        { href: '/courses', label: 'Courses', color: 'skyblue' },
+        { href: '/', label: 'Home', color: 'primary' },
+        { href: '/courses', label: 'Courses', color: 'secondary' },
         { href: '/Awards', label: 'Awards', color: 'sunny' },
-        { href: '/about', label: 'About', color: 'purple' },
+        { href: '/about', label: 'About', color: 'lavender' },
         { href: '/contact', label: 'Contact', color: 'tangerine' },
     ] satisfies Array<{ href: string; label: string; color: NavColor }>;
 
     const getColorClasses = (color: NavColor, isActive: boolean) => {
         const colorMap = {
-            bubblegum: {
-                active: 'bg-bubblegum/10 text-bubblegum hover:text-bubblegum/80',
-                inactive: 'text-foreground/70 hover:bg-bubblegum/10 hover:text-bubblegum',
+            primary: {
+                active: 'bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light',
+                inactive:
+                    'text-body-muted hover:bg-primary-100 dark:hover:bg-primary-900/20 hover:text-primary',
             },
-            skyblue: {
-                active: 'bg-skyblue/10 text-skyblue hover:text-skyblue/80',
-                inactive: 'text-foreground/70 hover:text-skyblue',
+            secondary: {
+                active: 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary dark:text-secondary-light',
+                inactive:
+                    'text-body-muted hover:bg-secondary-100 dark:hover:bg-secondary-900/20 hover:text-secondary',
             },
             sunny: {
-                active: 'bg-sunny/10 text-sunny hover:text-sunny/80',
-                inactive: 'text-foreground/70 hover:text-sunny',
+                active: 'bg-sunny-100 dark:bg-sunny-900/30 text-sunny-600 dark:text-sunny-400',
+                inactive:
+                    'text-body-muted hover:bg-sunny-100 dark:hover:bg-sunny-900/20 hover:text-sunny-600',
             },
             tangerine: {
-                active: 'bg-tangerine/10 text-tangerine hover:text-tangerine/80',
-                inactive: 'text-foreground/70  hover:text-tangerine',
+                active: 'bg-tangerine-100 dark:bg-tangerine-900/30 text-tangerine-600 dark:text-tangerine-400',
+                inactive:
+                    'text-body-muted hover:bg-tangerine-100 dark:hover:bg-tangerine-900/20 hover:text-tangerine-600',
             },
-            purple: {
-                active: 'bg-purple/10 text-purple hover:text-purple/80',
-                inactive: 'text-foreground/70 hover:text-purple',
+            lavender: {
+                active: 'bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400',
+                inactive:
+                    'text-body-muted hover:bg-lavender-100 dark:hover:bg-lavender-900/20 hover:text-lavender-600',
             },
         };
 
         return cn(
-            'px-4 py-2 text-base font-medium rounded-md transition-all duration-200',
+            'px-4 py-2 text-base font-medium rounded-xl transition-all duration-fast',
             isActive ? colorMap[color].active : colorMap[color].inactive
         );
     };
@@ -236,10 +241,10 @@ export default function Navbar({ className }: NavbarProps) {
     return (
         <header
             className={cn(
-                'sticky top-0 z-40 w-full border-b transition-all duration-200',
+                'sticky top-0 z-navbar w-full border-b transition-all duration-normal',
                 hasScrolled
-                    ? 'bg-background/98 backdrop-blur supports-[backdrop-filter]:bg-background/98'
-                    : 'bg-background',
+                    ? 'bg-page/95 backdrop-blur-lg supports-[backdrop-filter]:bg-page/80 shadow-sm'
+                    : 'bg-page',
                 className
             )}
         >
@@ -252,7 +257,7 @@ export default function Navbar({ className }: NavbarProps) {
 
                     {/* Desktop Navigation - Centered */}
                     <div className="hidden md:flex flex-1 items-center justify-center">
-                        <nav className="flex items-center space-x-6">
+                        <nav className="flex items-center space-x-2">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}
@@ -266,29 +271,21 @@ export default function Navbar({ className }: NavbarProps) {
                     </div>
 
                     {/* Right side items */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="hidden md:flex items-center space-x-3">
                         <LightDarkSwitch />
                         {isAuthenticated ? (
                             <Link href="/dashboard">
-                                <Button variant="default" size="sm" className="">
-                                    Dashboard
-                                </Button>
+                                <Button size="sm">Dashboard</Button>
                             </Link>
                         ) : (
                             <div className="flex items-center space-x-2">
                                 <Link href="/login">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-tp_red hover:text-tp_red hover:bg-tp_red/10 dark:text-bubblegum dark:hover:bg-bubblegum/10"
-                                    >
+                                    <Button variant="ghost" size="sm">
                                         Log In
                                     </Button>
                                 </Link>
                                 <Link href="/register">
-                                    <Button variant="default" size="sm" className="">
-                                        Register
-                                    </Button>
+                                    <Button size="sm">Register</Button>
                                 </Link>
                             </div>
                         )}
@@ -313,22 +310,22 @@ export default function Navbar({ className }: NavbarProps) {
             {/* Mobile Navigation Menu with Overlay */}
             {isMenuOpen && (
                 <>
-                    {/* Overlay with opacity effect - using a div instead of motion.div */}
+                    {/* Overlay with opacity effect */}
                     <div
                         ref={overlayRef}
-                        className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                        className="fixed inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm z-modal-backdrop md:hidden"
                         style={{
                             opacity: 1,
                             transition: 'opacity 0.3s ease',
                         }}
                     />
 
-                    {/* Content scaling container - using a simple div */}
+                    {/* Content scaling container */}
                     <div
-                        className="fixed inset-0 z-30 pointer-events-none overflow-hidden md:hidden"
+                        className="fixed inset-0 z-raised pointer-events-none overflow-hidden md:hidden"
                         style={{
                             transform: 'scale(0.95)',
-                            borderRadius: '1rem',
+                            borderRadius: '1.5rem',
                             top: '0.5rem',
                             left: '0.5rem',
                             right: '0.5rem',
@@ -340,56 +337,47 @@ export default function Navbar({ className }: NavbarProps) {
                     {/* Mobile navigation menu */}
                     <div
                         ref={menuRef}
-                        className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-background border-t rounded-t-xl shadow-lg"
+                        className="fixed inset-x-0 bottom-0 z-modal md:hidden bg-card border-t rounded-t-3xl shadow-2xl"
                         style={{
-                            transform: 'translateY(100%)', // Initial state for animation
+                            transform: 'translateY(100%)',
                             willChange: 'transform',
                         }}
                     >
                         {/* Handle bar indicator */}
-                        <div className="w-full flex justify-center py-3">
-                            <div className="w-12 h-1 bg-gray-300 rounded-full" />
+                        <div className="w-full flex justify-center py-4">
+                            <div className="w-12 h-1.5 bg-neutral-300 dark:bg-neutral-600 rounded-full" />
                         </div>
 
                         {/* Navigation links */}
-                        <div className="max-h-[70vh] overflow-y-auto px-4 pb-8 space-y-3 flex flex-col items-center">
+                        <div className="max-h-[70vh] overflow-y-auto px-6 pb-8 space-y-2 flex flex-col items-center">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
                                     className={cn(
                                         getColorClasses(link.color, isLinkActive(link.href)),
-                                        'flex justify-center w-full text-center'
+                                        'flex justify-center w-full text-center py-3'
                                     )}
                                 >
                                     {link.label}
                                 </Link>
                             ))}
-                            <div className="pt-3 w-full space-y-3">
+                            <div className="pt-4 w-full space-y-3">
                                 {isAuthenticated ? (
                                     <Link href="/dashboard" className="block">
-                                        <Button
-                                            variant="default"
-                                            className="w-full hover:text-white transition-all duration-200"
-                                        >
+                                        <Button className="w-full" size="lg">
                                             Dashboard
                                         </Button>
                                     </Link>
                                 ) : (
                                     <>
                                         <Link href="/login" className="block">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full hover:text-skyblue transition-all duration-200"
-                                            >
+                                            <Button variant="outline" className="w-full" size="lg">
                                                 Log In
                                             </Button>
                                         </Link>
                                         <Link href="/register" className="block">
-                                            <Button
-                                                variant="default"
-                                                className="w-full hover:text-white transition-all duration-200"
-                                            >
+                                            <Button className="w-full" size="lg">
                                                 Register
                                             </Button>
                                         </Link>

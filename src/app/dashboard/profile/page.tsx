@@ -110,7 +110,15 @@ export default function ProfilePage() {
     };
 
     if (!user) {
-        return <div className="p-8 text-center">Loading profile data...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading profile data...</p>
+            </div>
+        );
     }
 
     return (
@@ -118,8 +126,8 @@ export default function ProfilePage() {
             {/* Profile Information and Change Password - Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Profile Information Section */}
-                <div className="bg-background rounded-lg border p-6">
-                    <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+                <div className="bg-card-profile-bg border-2 border-card-profile-border rounded-card p-6 shadow-card">
+                    <h2 className="text-xl font-bold text-heading mb-6">Profile Information</h2>
 
                     <Formik
                         initialValues={{
@@ -136,25 +144,25 @@ export default function ProfilePage() {
                             <Form className="space-y-4">
                                 {/* Name Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="name" className="text-sm font-medium flex items-center gap-2">
-                                        <User className="h-4 w-4 text-muted-foreground" />
+                                    <label htmlFor="name" className="text-sm font-medium text-heading flex items-center gap-2">
+                                        <User className="h-4 w-4 text-primary" />
                                         Name
                                     </label>
                                     <Field
                                         id="name"
                                         name="name"
                                         type="text"
-                                        className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                                            errors.name && touched.name ? 'border-red-500' : 'border-input'
+                                        className={`flex h-12 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
+                                            errors.name && touched.name ? 'border-error' : 'border-neutral-200 dark:border-neutral-700'
                                         }`}
                                     />
-                                    <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                                    <ErrorMessage name="name" component="div" className="text-error text-sm" />
                                 </div>
 
                                 {/* Phone Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
-                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <label htmlFor="phone" className="text-sm font-medium text-heading flex items-center gap-2">
+                                        <Phone className="h-4 w-4 text-secondary" />
                                         Phone Number
                                     </label>
                                     <Field
@@ -162,15 +170,15 @@ export default function ProfilePage() {
                                         name="phone"
                                         type="text"
                                         disabled
-                                        className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm cursor-not-allowed"
+                                        className="flex h-12 w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 px-4 py-2 text-sm cursor-not-allowed"
                                     />
-                                    <p className="text-xs text-muted-foreground">Phone number cannot be changed</p>
+                                    <p className="text-xs text-body-muted">Phone number cannot be changed</p>
                                 </div>
 
                                 {/* Address Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="address" className="text-sm font-medium flex items-center gap-2">
-                                        <Home className="h-4 w-4 text-muted-foreground" />
+                                    <label htmlFor="address" className="text-sm font-medium text-heading flex items-center gap-2">
+                                        <Home className="h-4 w-4 text-lavender-500" />
                                         Address
                                     </label>
                                     <Field
@@ -178,61 +186,62 @@ export default function ProfilePage() {
                                         name="address"
                                         as="textarea"
                                         rows={3}
-                                        className={`flex w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                                            errors.address && touched.address ? 'border-red-500' : 'border-input'
+                                        className={`flex w-full rounded-xl border bg-card px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
+                                            errors.address && touched.address ? 'border-error' : 'border-neutral-200 dark:border-neutral-700'
                                         }`}
                                     />
-                                    <ErrorMessage name="address" component="div" className="text-red-500 text-sm" />
+                                    <ErrorMessage name="address" component="div" className="text-error text-sm" />
                                 </div>
 
                                 {/* Facebook Profile Field */}
                                 <div className="space-y-2">
                                     <label
                                         htmlFor="facebook_profile"
-                                        className="text-sm font-medium flex items-center gap-2"
+                                        className="text-sm font-medium text-heading flex items-center gap-2"
                                     >
-                                        <Facebook className="h-4 w-4 text-muted-foreground" />
+                                        <Facebook className="h-4 w-4 text-secondary" />
                                         Facebook Profile
                                     </label>
                                     <Field
                                         id="facebook_profile"
                                         name="facebook_profile"
                                         type="text"
-                                        className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                                        className={`flex h-12 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
                                             errors.facebook_profile && touched.facebook_profile
-                                                ? 'border-red-500'
-                                                : 'border-input'
+                                                ? 'border-error'
+                                                : 'border-neutral-200 dark:border-neutral-700'
                                         }`}
                                     />
                                     <ErrorMessage
                                         name="facebook_profile"
                                         component="div"
-                                        className="text-red-500 text-sm"
+                                        className="text-error text-sm"
                                     />
                                 </div>
 
                                 {/* Email Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-                                        <Mail className="h-4 w-4 text-muted-foreground" />
+                                    <label htmlFor="email" className="text-sm font-medium text-heading flex items-center gap-2">
+                                        <Mail className="h-4 w-4 text-tangerine-500" />
                                         Email (Optional)
                                     </label>
                                     <Field
                                         id="email"
                                         name="email"
                                         type="email"
-                                        className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                                            errors.email && touched.email ? 'border-red-500' : 'border-input'
+                                        className={`flex h-12 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
+                                            errors.email && touched.email ? 'border-error' : 'border-neutral-200 dark:border-neutral-700'
                                         }`}
                                     />
-                                    <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                                    <ErrorMessage name="email" component="div" className="text-error text-sm" />
                                 </div>
 
                                 {/* Submit Button */}
                                 <div className="pt-4">
                                     <Button
                                         type="submit"
-                                        className="w-full bg-tp_red hover:bg-red-600"
+                                        className="w-full"
+                                        size="lg"
                                         disabled={savingParent || !dirty || !isValid}
                                     >
                                         {savingParent ? (
@@ -251,8 +260,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Change Password Section */}
-                <div className="bg-background rounded-lg border p-6">
-                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <div className="bg-card-assignments-bg border-2 border-card-assignments-border rounded-card p-6 shadow-card">
+                    <h2 className="text-xl font-bold text-heading mb-6 flex items-center gap-2">
+                        <Lock className="h-5 w-5 text-lavender-500" />
                         Change Password
                     </h2>
 
@@ -381,7 +391,9 @@ export default function ProfilePage() {
                                 <div className="pt-4">
                                     <Button
                                         type="submit"
-                                        className="w-full bg-tp_red hover:bg-red-600"
+                                        variant="lavender"
+                                        className="w-full"
+                                        size="lg"
                                         disabled={changingPassword || !dirty || !isValid}
                                     >
                                         {changingPassword ? (
@@ -400,13 +412,13 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Logout Section - Simplified */}
-            <div className="flex justify-center">
+            {/* Logout Section */}
+            <div className="flex justify-center pt-4">
                 <Button
                     onClick={handleLogout}
                     variant="destructive"
                     size="lg"
-                    className="bg-red-600 hover:bg-red-700 text-white px-12 py-6 text-lg"
+                    className="px-12 py-6 text-lg rounded-2xl"
                 >
                     <LogOut className="mr-2 h-5 w-5" />
                     Logout from Account

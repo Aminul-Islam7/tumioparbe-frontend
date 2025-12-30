@@ -297,8 +297,11 @@ export default function PaymentsPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-tp_red mb-4" />
-                <p className="text-muted-foreground">Loading payment data...</p>
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-tangerine-100 dark:bg-tangerine-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-tangerine-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading payment data...</p>
             </div>
         );
     }
@@ -306,11 +309,11 @@ export default function PaymentsPage() {
     return (
         <div className="space-y-6">
             {/* Payment Summary */}
-            <div className="bg-background rounded-lg border p-6">
+            <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-6 shadow-card">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
-                        <h2 className="text-xl font-semibold">Payment Summary</h2>
-                        <p className="text-muted-foreground text-sm mt-1">
+                        <h2 className="text-xl font-bold text-heading">Payment Summary</h2>
+                        <p className="text-body-muted text-sm mt-1">
                             {pendingInvoices.length === 0
                                 ? 'All payments are up to date!'
                                 : `You have ${pendingInvoices.length} pending payment${pendingInvoices.length !== 1 ? 's' : ''}`}
@@ -318,23 +321,26 @@ export default function PaymentsPage() {
                     </div>
 
                     {pendingInvoices.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="bg-muted/50 px-4 py-2 rounded-lg">
-                                <div className="text-xs text-muted-foreground">Total Due</div>
-                                <div className="text-xl font-bold">৳{totalPending.toLocaleString()}</div>
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="bg-tangerine-50 dark:bg-tangerine-800/30 px-5 py-3 rounded-2xl border border-tangerine-200 dark:border-tangerine-800">
+                                <div className="text-xs text-center text-tangerine-600 dark:text-tangerine-400 font-medium">Total Due</div>
+                                <div className="text-2xl font-bold text-tangerine-700 dark:text-tangerine-300">৳{totalPending.toLocaleString()}</div>
                             </div>
 
                             <Button
                                 onClick={handlePayAll}
                                 disabled={processingPayment}
-                                className="bg-tp_red hover:bg-red-600"
+                                variant="tangerine"
+                                size="lg"
+                                className="flex-col h-auto py-3 px-6 gap-0.5"
                             >
-                                {processingPayment ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <CreditCard className="mr-2 h-4 w-4" />
-                                )}
-                                Pay All (৳{totalPending.toLocaleString()})
+                                <div className="flex items-center gap-2">
+                                    {processingPayment && (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    )}
+                                    <span className="font-semibold">Pay All</span>
+                                </div>
+                                <span className="text-sm font-medium">৳{totalPending.toLocaleString()}</span>
                             </Button>
                         </div>
                     )}
@@ -342,15 +348,15 @@ export default function PaymentsPage() {
 
                 {/* Bulk selection controls */}
                 {pendingInvoices.length > 1 && selectedInvoices.length > 0 && (
-                    <div className="mt-4 pt-4 border-t flex items-center justify-between">
-                        <div className="text-sm">
-                            <span className="font-medium">{selectedInvoices.length}</span> invoice(s)
+                    <div className="mt-5 pt-5 border-t border-tangerine-200 dark:border-tangerine-800 flex items-center justify-between">
+                        <div className="text-sm text-heading">
+                            <span className="font-bold text-primary">{selectedInvoices.length}</span> invoice(s)
                             selected (৳{selectedTotal.toLocaleString()})
                         </div>
                         <Button
                             onClick={handleBulkPayment}
                             disabled={processingPayment}
-                            className="bg-tp_red hover:bg-red-600"
+                            variant="tangerine"
                         >
                             {processingPayment ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -365,22 +371,24 @@ export default function PaymentsPage() {
 
             {/* All Payments List */}
             {allItems.length === 0 ? (
-                <div className="bg-background rounded-lg border p-8 text-center">
-                    <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                    <h2 className="text-xl font-medium mb-2">No Payment Records</h2>
-                    <p className="text-muted-foreground">
+                <div className="bg-card rounded-card border-2 border-dashed border-neutral-300 dark:border-neutral-600 p-8 text-center">
+                    <div className="h-16 w-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="h-8 w-8 text-body-muted" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">No Payment Records</h2>
+                    <p className="text-body-muted">
                         You don&apos;t have any payment records yet.
                     </p>
                 </div>
             ) : (
-                <div className="bg-background rounded-lg border overflow-hidden">
+                <div className="bg-card rounded-card border shadow-card overflow-hidden">
                     {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-2 p-4 bg-muted font-medium text-sm">
+                    <div className="grid grid-cols-12 gap-2 p-4 bg-secondary-50 dark:bg-secondary-900/20 font-medium text-sm text-heading border-b border-secondary-100 dark:border-secondary-800">
                         {pendingInvoices.length > 0 && (
                             <div className="col-span-1 flex items-center">
                                 <button
                                     onClick={selectAllPending}
-                                    className="p-1 hover:bg-background/50 rounded"
+                                    className="p-1 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors"
                                     title={
                                         selectedInvoices.length === pendingInvoices.length
                                             ? 'Deselect all'
@@ -389,7 +397,7 @@ export default function PaymentsPage() {
                                 >
                                     {selectedInvoices.length === pendingInvoices.length &&
                                     pendingInvoices.length > 0 ? (
-                                        <CheckSquare className="h-5 w-5 text-tp_red" />
+                                        <CheckSquare className="h-5 w-5 text-primary" />
                                     ) : (
                                         <Square className="h-5 w-5" />
                                     )}
@@ -410,10 +418,10 @@ export default function PaymentsPage() {
                         {allItems.map((item) => (
                             <div
                                 key={`${item.type}-${item.id}`}
-                                className={`grid grid-cols-12 gap-2 p-4 items-center text-sm ${
+                                className={`grid grid-cols-12 gap-2 p-4 items-center text-sm transition-colors ${
                                     !item.isPaid
-                                        ? 'bg-yellow-50/50 dark:bg-yellow-900/10'
-                                        : 'hover:bg-muted/30'
+                                        ? 'bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-100/50 dark:hover:bg-amber-900/20'
+                                        : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                                 }`}
                             >
                                 {/* Checkbox for pending invoices */}
@@ -422,16 +430,16 @@ export default function PaymentsPage() {
                                         {!item.isPaid ? (
                                             <button
                                                 onClick={() => toggleInvoiceSelection(item.id)}
-                                                className="p-1 hover:bg-background/50 rounded"
+                                                className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                                             >
                                                 {selectedInvoices.includes(item.id) ? (
-                                                    <CheckSquare className="h-5 w-5 text-tp_red" />
+                                                    <CheckSquare className="h-5 w-5 text-primary" />
                                                 ) : (
                                                     <Square className="h-5 w-5" />
                                                 )}
                                             </button>
                                         ) : (
-                                            <CheckCircle className="h-5 w-5 text-green-500" />
+                                            <CheckCircle className="h-5 w-5 text-emerald-500" />
                                         )}
                                     </div>
                                 )}
@@ -470,7 +478,7 @@ export default function PaymentsPage() {
                                             size="sm"
                                             onClick={() => handlePayInvoice(item.id)}
                                             disabled={processingPayment}
-                                            className="bg-tp_red hover:bg-red-600"
+                                            variant="tangerine"
                                         >
                                             {processingPayment ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -482,7 +490,7 @@ export default function PaymentsPage() {
                                             )}
                                         </Button>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                                             <CheckCircle className="h-3.5 w-3.5" />
                                             Paid
                                         </span>

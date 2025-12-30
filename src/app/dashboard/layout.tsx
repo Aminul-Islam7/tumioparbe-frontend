@@ -3,7 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, BookOpen, CreditCard, LogOut, Home, Users, UserCircle } from 'lucide-react';
+import {
+    LayoutDashboard,
+    BookOpen,
+    CreditCard,
+    Home,
+    Users,
+    UserCircle,
+    ChevronRight,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -21,48 +29,89 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
 
     const sidebarLinks = [
-        { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-        { href: '/dashboard/courses', label: 'Courses', icon: <BookOpen className="w-5 h-5" /> },
-        { href: '/dashboard/students', label: 'My Children', icon: <Users className="w-5 h-5" /> },
-        { href: '/dashboard/payments', label: 'Payments', icon: <CreditCard className="w-5 h-5" /> },
+        {
+            href: '/dashboard',
+            label: 'Dashboard',
+            icon: <LayoutDashboard className="w-5 h-5" />,
+            color: 'primary',
+        },
+        {
+            href: '/dashboard/courses',
+            label: 'Courses',
+            icon: <BookOpen className="w-5 h-5" />,
+            color: 'secondary',
+        },
+        {
+            href: '/dashboard/students',
+            label: 'My Children',
+            icon: <Users className="w-5 h-5" />,
+            color: 'lavender',
+        },
+        {
+            href: '/dashboard/payments',
+            label: 'Payments',
+            icon: <CreditCard className="w-5 h-5" />,
+            color: 'tangerine',
+        },
     ];
 
     const pageInfo = {
         '/dashboard': {
             title: 'Overview',
-            description: 'Welcome to your dashboard',
         },
         '/dashboard/profile': {
             title: 'Profile',
-            description: 'Manage your personal information',
         },
         '/dashboard/students': {
             title: 'My Children',
-            description: "Manage your children's information and enrollments",
         },
         '/dashboard/courses': {
             title: 'Courses',
-            description: 'View and manage your course enrollments',
         },
         '/dashboard/payments': {
             title: 'Payments',
-            description: 'View your payment history and invoices',
         },
     };
 
     const currentPath = pathname as keyof typeof pageInfo;
     const currentInfo = pageInfo[currentPath] || {
         title: 'Dashboard',
-        description: '',
+    };
+
+    const getNavColorClasses = (color: string, isActive: boolean) => {
+        const colorMap: Record<string, { active: string; inactive: string }> = {
+            primary: {
+                active: 'bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light border-l-4 border-primary',
+                inactive:
+                    'text-body-muted hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary border-l-4 border-transparent',
+            },
+            secondary: {
+                active: 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary dark:text-secondary-light border-l-4 border-secondary',
+                inactive:
+                    'text-body-muted hover:bg-secondary-50 dark:hover:bg-secondary-900/20 hover:text-secondary border-l-4 border-transparent',
+            },
+            lavender: {
+                active: 'bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400 border-l-4 border-lavender-500',
+                inactive:
+                    'text-body-muted hover:bg-lavender-50 dark:hover:bg-lavender-900/20 hover:text-lavender-600 border-l-4 border-transparent',
+            },
+            tangerine: {
+                active: 'bg-tangerine-100 dark:bg-tangerine-900/30 text-tangerine-600 dark:text-tangerine-400 border-l-4 border-tangerine-500',
+                inactive:
+                    'text-body-muted hover:bg-tangerine-50 dark:hover:bg-tangerine-900/20 hover:text-tangerine-600 border-l-4 border-transparent',
+            },
+        };
+
+        return isActive ? colorMap[color].active : colorMap[color].inactive;
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex min-h-screen bg-page-subtle dark:bg-page">
             {/* Sidebar */}
-            <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-                <div className="p-4">
-                    <Link href="/" className="flex items-center gap-3 cursor-pointer">
-                        <div className="relative w-10 h-10">
+            <aside className="w-sidebar bg-card border-r border-default flex flex-col shadow-sm">
+                <div className="p-5 border-b border-default">
+                    <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative w-10 h-10 group-hover:scale-105 transition-transform">
                             <Image
                                 src="/logo.png"
                                 alt="Tumio Parbe"
@@ -71,7 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 priority
                             />
                         </div>
-                        <span className="font-bold text-lg text-white">তুমিও পারবে</span>
+                        <span className="font-bold text-lg text-heading">তুমিও পারবে</span>
                     </Link>
                 </div>
 
@@ -81,45 +130,53 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             key={link.href}
                             href={link.href}
                             className={cn(
-                                'flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
-                                pathname === link.href
-                                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                'flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-fast font-medium',
+                                getNavColorClasses(link.color, pathname === link.href)
                             )}
                         >
                             {link.icon}
                             <span>{link.label}</span>
+                            {pathname === link.href && (
+                                <ChevronRight className="w-4 h-4 ml-auto" />
+                            )}
                         </Link>
                     ))}
                 </nav>
 
                 {/* Home button at bottom */}
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-t border-default">
                     <Link
                         href="/"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-body-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-fast"
                     >
                         <Home className="w-5 h-5" />
-                        <span>Home</span>
+                        <span>Back to Home</span>
                     </Link>
                 </div>
             </aside>
 
             {/* Main content */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 shrink-0">
+                <header className="bg-card border-b border-default px-6 py-4 shrink-0 shadow-xs">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h2 className="font-semibold text-2xl">{currentInfo.title}</h2>
+                            <h2 className="font-bold text-2xl text-heading">
+                                {currentInfo.title}
+                            </h2>
+                            {/* Description removed as per requirement */}
                         </div>
                         <div className="flex items-center gap-3">
                             {user && (
                                 <Link
                                     href="/dashboard/profile"
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-fast group"
                                 >
-                                    <UserCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                                    <span className="text-sm font-medium hidden sm:block">{user.name}</span>
+                                    <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center group-hover:bg-primary-200 dark:group-hover:bg-primary-800/40 transition-colors">
+                                        <UserCircle className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <span className="text-sm font-medium hidden sm:block text-heading">
+                                        {user.name}
+                                    </span>
                                 </Link>
                             )}
                             <LightDarkSwitch />
@@ -127,9 +184,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6">{children}</main>
+                <main className="flex-1 overflow-y-auto p-6 bg-page-subtle dark:bg-page">
+                    {children}
+                </main>
             </div>
         </div>
     );
 }
-

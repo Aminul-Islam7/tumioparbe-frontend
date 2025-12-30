@@ -120,7 +120,15 @@ export default function StudentsPage() {
     };
 
     if (!user) {
-        return <div className="p-8 text-center">Loading...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-lavender-100 dark:bg-lavender-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-lavender-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading...</p>
+            </div>
+        );
     }
 
     return (
@@ -129,17 +137,23 @@ export default function StudentsPage() {
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">
-                    <Loader2 className="h-10 w-10 animate-spin text-tp_red mb-4" />
-                    <p className="text-muted-foreground">Loading students...</p>
+                    <div className="relative">
+                        <div className="w-16 h-16 rounded-full bg-lavender-100 dark:bg-lavender-900/30 animate-pulse" />
+                        <Loader2 className="h-8 w-8 animate-spin text-lavender-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-body-muted mt-4">Loading students...</p>
                 </div>
             ) : apiError ? (
-                <div className="bg-background rounded-lg border p-8 text-center">
-                    <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-                    <h2 className="text-xl font-semibold mb-2">Error Loading Students</h2>
-                    <p className="text-muted-foreground mb-4">{apiError}</p>
+                <div className="bg-card rounded-card border-2 border-amber-200 dark:border-amber-800 p-8 text-center shadow-card">
+                    <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">Error Loading Students</h2>
+                    <p className="text-body-muted mb-6">{apiError}</p>
                     <Button
                         onClick={() => window.location.reload()}
-                        className="bg-tp_red hover:bg-red-600 text-white"
+                        variant="warning"
+                        size="lg"
                     >
                         Try Again
                     </Button>
@@ -152,62 +166,60 @@ export default function StudentsPage() {
                         {students.map((student) => (
                             <div
                                 key={student.id}
-                                className="bg-background rounded-lg border overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+                                className="bg-card-assignments-bg border-2 border-card-assignments-border rounded-card overflow-hidden flex flex-col hover:shadow-lavender transition-all duration-normal group"
                             >
                                 <div className="p-6 flex-1">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-12 w-12 bg-bubblegum/10 rounded-full flex items-center justify-center">
-                                                <User className="h-6 w-6 text-bubblegum" />
+                                            <div className="h-14 w-14 bg-lavender-50 dark:bg-lavender-800/40 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <User className="h-7 w-7 text-lavender-500" />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-semibold">
+                                                <h3 className="text-lg font-bold text-heading">
                                                     {student.name}
                                                 </h3>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="text-xs text-body-muted">
                                                     Student
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-muted-foreground">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3 text-sm p-2.5 rounded-xl bg-white/60 dark:bg-lavender-800/40">
+                                            <Calendar className="h-4 w-4 text-lavender-500" />
+                                            <span className="text-body">
                                                 Born:{' '}
                                                 {new Date(student.date_of_birth).toLocaleDateString()}
                                             </span>
                                         </div>
 
                                         {student.school && (
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <School className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-muted-foreground">
-                                                    School:{' '}
+                                            <div className="flex items-center gap-3 text-sm p-2.5 rounded-xl bg-white/60 dark:bg-lavender-800/40">
+                                                <School className="h-4 w-4 text-lavender-500" />
+                                                <span className="text-body">
                                                     {student.school}
                                                 </span>
                                             </div>
                                         )}
 
                                         {student.current_class && (
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                                                <span className="text-muted-foreground">
-                                                    Class:{' '}
-                                                    {student.current_class}
+                                            <div className="flex items-center gap-3 text-sm p-2.5 rounded-xl bg-white/60 dark:bg-lavender-800/40">
+                                                <GraduationCap className="h-4 w-4 text-lavender-500" />
+                                                <span className="text-body">
+                                                    Class: {student.current_class}
                                                 </span>
                                             </div>
                                         )}
 
-                                        <div className="flex items-start gap-2 text-sm pt-2 border-t">
-                                            <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                        <div className="flex items-start gap-3 text-sm p-2.5 rounded-xl bg-white/60 dark:bg-lavender-800/40">
+                                            <Users className="h-4 w-4 text-lavender-500 mt-0.5" />
                                             <div className="flex-1">
-                                                <p className="text-muted-foreground">
+                                                <p className="text-body">
                                                     <span className="font-medium">Father:</span>{' '}
                                                     {student.father_name}
                                                 </p>
-                                                <p className="text-muted-foreground">
+                                                <p className="text-body">
                                                     <span className="font-medium">Mother:</span>{' '}
                                                     {student.mother_name}
                                                 </p>
@@ -216,22 +228,24 @@ export default function StudentsPage() {
                                     </div>
                                 </div>
 
-                                <div className="mt-auto p-4 space-y-2">
+                                <div className="mt-auto p-5 space-y-3 bg-neutral-50 dark:bg-neutral-900/50 border-t border-neutral-100 dark:border-neutral-800">
                                     <Button
                                         onClick={() => {
                                             setSelectedStudentId(student.id);
                                             setIsAddingStudent(true);
                                         }}
                                         variant="outline"
-                                        className="w-full"
+                                        className="w-full border-lavender-300 dark:border-lavender-700 text-lavender-600 dark:text-lavender-400 hover:bg-lavender-50 dark:hover:bg-lavender-900/20"
+                                        size="lg"
                                     >
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Information
                                     </Button>
                                     <Link href="/dashboard/courses" className="block">
                                         <Button
-                                            variant="default"
-                                            className="w-full bg-tp_red hover:bg-red-600 text-white"
+                                            className="w-full"
+                                            size="lg"
+                                            variant="lavender"
                                         >
                                             <BookOpen className="h-4 w-4 mr-2" />
                                             Enroll to a Course
@@ -247,14 +261,14 @@ export default function StudentsPage() {
                                 setSelectedStudentId(null);
                                 setIsAddingStudent(true);
                             }}
-                            className="bg-background rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col hover:border-tp_red hover:bg-tp_red/5 transition-all cursor-pointer min-h-[300px]"
+                            className="bg-card rounded-card border-2 border-dashed border-lavender-200 dark:border-lavender-800 overflow-hidden flex flex-col hover:border-lavender hover:bg-lavender-50 dark:hover:bg-lavender-900/20 transition-all duration-normal cursor-pointer min-h-[300px] group"
                         >
                             <div className="p-6 flex-1 flex flex-col items-center justify-center text-center">
-                                <div className="h-16 w-16 bg-tp_red/10 rounded-full flex items-center justify-center mb-4">
-                                    <UserPlus className="h-8 w-8 text-tp_red" />
+                                <div className="h-20 w-20 bg-lavender-100 dark:bg-lavender-900/50 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                                    <UserPlus className="h-10 w-10 text-lavender-500" />
                                 </div>
-                                <h3 className="text-lg font-semibold mb-2">Add New Student</h3>
-                                <p className="text-sm text-muted-foreground">
+                                <h3 className="text-lg font-bold text-heading mb-2">Add New Student</h3>
+                                <p className="text-sm text-body-muted">
                                     Click here to add a new child
                                 </p>
                             </div>
@@ -263,15 +277,15 @@ export default function StudentsPage() {
 
                     {/* Add/Edit Student Modal/Form */}
                     {isAddingStudent && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-background rounded-lg border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                                <div className="sticky top-0 bg-background border-b p-6 flex justify-between items-center">
-                                    <h2 className="text-xl font-semibold">
+                        <div className="fixed inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm flex items-center justify-center z-modal p-4">
+                            <div className="bg-card rounded-3xl border shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                                <div className="sticky top-0 bg-card border-b rounded-t-3xl p-6 flex justify-between items-center">
+                                    <h2 className="text-xl font-bold text-heading">
                                         {selectedStudentId ? 'Edit Student' : 'Add New Student'}
                                     </h2>
                                     <Button
                                         variant="ghost"
-                                        size="sm"
+                                        size="icon"
                                         onClick={() => {
                                             setIsAddingStudent(false);
                                             setSelectedStudentId(null);
@@ -304,18 +318,18 @@ export default function StudentsPage() {
                                                 <div className="grid gap-4 sm:grid-cols-2">
                                                     {/* Student Name */}
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-medium">
+                                                        <label className="text-sm font-medium text-heading">
                                                             Student Name *
                                                         </label>
                                                         <Field
                                                             name="name"
                                                             type="text"
-                                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                                            className="flex h-11 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-500 focus-visible:ring-offset-2"
                                                         />
                                                         <ErrorMessage
                                                             name="name"
                                                             component="div"
-                                                            className="text-red-500 text-xs"
+                                                            className="text-error text-xs"
                                                         />
                                                     </div>
 
@@ -327,7 +341,7 @@ export default function StudentsPage() {
                                                         <Field
                                                             name="date_of_birth"
                                                             type="date"
-                                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-500 focus-visible:ring-offset-2"
                                                         />
                                                         <ErrorMessage
                                                             name="date_of_birth"
@@ -344,12 +358,12 @@ export default function StudentsPage() {
                                                         <Field
                                                             name="father_name"
                                                             type="text"
-                                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                                            className="flex h-11 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-500 focus-visible:ring-offset-2"
                                                         />
                                                         <ErrorMessage
                                                             name="father_name"
                                                             component="div"
-                                                            className="text-red-500 text-xs"
+                                                            className="text-error text-xs"
                                                         />
                                                     </div>
 
@@ -395,7 +409,7 @@ export default function StudentsPage() {
                                                         <Field
                                                             name="current_class"
                                                             type="text"
-                                                            className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tp_red focus-visible:ring-offset-2"
+                                                            className="flex h-11 w-full rounded-xl border bg-card px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-500 focus-visible:ring-offset-2"
                                                         />
                                                         <ErrorMessage
                                                             name="current_class"
@@ -405,10 +419,12 @@ export default function StudentsPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex justify-end gap-3 pt-4">
+                                                <div className="flex justify-end gap-3 pt-6">
                                                     <Button
                                                         type="button"
                                                         variant="outline"
+                                                        size="lg"
+                                                        className="border-lavender-300 dark:border-lavender-700 text-lavender-600 dark:text-lavender-400 hover:bg-lavender-50 dark:hover:bg-lavender-900/20"
                                                         onClick={() => {
                                                             setIsAddingStudent(false);
                                                             setSelectedStudentId(null);
@@ -418,7 +434,8 @@ export default function StudentsPage() {
                                                     </Button>
                                                     <Button
                                                         type="submit"
-                                                        className="bg-tp_red hover:bg-red-600"
+                                                        size="lg"
+                                                        variant="lavender"
                                                         disabled={savingStudent || !isValid}
                                                     >
                                                         {savingStudent ? (

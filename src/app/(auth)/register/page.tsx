@@ -189,38 +189,39 @@ export default function Register() {
                                         name="phone"
                                         type="text"
                                         placeholder="01XXXXXXXXX"
-                                        className={`flex h-10 w-full rounded-md border dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                        className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
                                             errors.phone && touched.phone
-                                                ? 'border-red-500'
-                                                : 'border-input'
+                                                ? 'border-error'
+                                                : 'border-neutral-200 dark:border-neutral-700'
                                         }`}
                                     />
                                     <ErrorMessage
                                         name="phone"
                                         component="div"
-                                        className="text-red-500 text-sm"
+                                        className="text-error text-sm"
                                     />
                                 </div>
 
                                 {/* Error Message */}
                                 {errorMessage && (
-                                    <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                    <div className="flex items-start gap-3 p-4 rounded-xl bg-error-light border border-error/20">
+                                        <AlertCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-error-dark">{errorMessage}</p>
                                     </div>
                                 )}
 
                                 {/* Success Message */}
                                 {successMessage && (
-                                    <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                                        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                    <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                                        <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-emerald-800 dark:text-emerald-200">{successMessage}</p>
                                     </div>
                                 )}
 
                                 <Button
                                     type="submit"
-                                    className="w-full text-md hover:opacity-90 transition-opacity"
+                                    className="w-full"
+                                    size="lg"
                                     disabled={loading}
                                 >
                                     {loading ? 'Sending...' : 'Next'}
@@ -243,12 +244,12 @@ export default function Register() {
                                     <div className="text-center mb-2">
                                         <p className="text-muted-foreground">
                                             Enter the verification code sent to
-                                            <p className="font-medium text-bubblegum">
+                                            <p className="font-medium text-primary">
                                                 {phone}
                                                 <Button
                                                     type="button"
                                                     variant="link"
-                                                    className="text-sm text-text-secondary px-2"
+                                                    className="text-sm text-body-muted px-2"
                                                     onClick={() => setCurrentStep(1)}
                                                 >
                                                     (Change)
@@ -266,10 +267,10 @@ export default function Register() {
                                             name="otp"
                                             type="text"
                                             placeholder="Enter OTP"
-                                            className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                            className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
                                                 errors.otp && touched.otp
-                                                    ? 'border-red-500'
-                                                    : 'border-input'
+                                                    ? 'border-error'
+                                                    : 'border-neutral-200 dark:border-neutral-700'
                                             }`}
                                         />
                                         <ErrorMessage
@@ -299,7 +300,8 @@ export default function Register() {
                                 <div className="flex flex-col space-y-2">
                                     <Button
                                         type="submit"
-                                        className="w-full text-md hover:opacity-90 transition-opacity"
+                                        className="w-full"
+                                        size="lg"
                                         disabled={loading}
                                     >
                                         {loading ? 'Verifying...' : 'Verify OTP'}
@@ -353,7 +355,7 @@ export default function Register() {
                                 <div className="text-center mb-2">
                                     <p className="text-sm text-muted-foreground">
                                         Phone number:{' '}
-                                        <span className="font-medium text-bubblegum">{phone}</span>
+                                        <span className="font-medium text-primary">{phone}</span>
                                     </p>
                                 </div>
 
@@ -538,10 +540,10 @@ export default function Register() {
             <div className="flex justify-between items-center mb-6 mt-6">
                 <div className="flex flex-col items-center">
                     <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold transition-all ${
                             currentStep >= 1
-                                ? 'bg-tp_red text-white'
-                                : 'bg-muted text-muted-foreground'
+                                ? 'bg-primary text-white shadow-bubblegum'
+                                : 'bg-neutral-100 dark:bg-neutral-800 text-body-muted'
                         }`}
                     >
                         {currentStep > 1 ? <CheckCircle className="h-5 w-5" /> : <span>1</span>}
@@ -549,19 +551,19 @@ export default function Register() {
                     <span className="text-xs mt-1 text-text-secondary">Phone</span>
                 </div>
 
-                <div className="h-0.5 flex-1 bg-border mx-2 mb-5">
+                <div className="h-1 flex-1 bg-neutral-200 dark:bg-neutral-700 mx-2 mb-5 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-tp_red transition-all duration-300"
+                        className="h-full bg-primary transition-all duration-normal rounded-full"
                         style={{ width: currentStep > 1 ? '100%' : '0%' }}
                     />
                 </div>
 
                 <div className="flex flex-col items-center">
                     <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold transition-all ${
                             currentStep >= 2
-                                ? 'bg-tp_red text-white'
-                                : 'bg-muted text-muted-foreground'
+                                ? 'bg-primary text-white shadow-bubblegum'
+                                : 'bg-neutral-100 dark:bg-neutral-800 text-body-muted'
                         }`}
                     >
                         {currentStep > 2 ? <CheckCircle className="h-5 w-5" /> : <span>2</span>}
@@ -569,19 +571,19 @@ export default function Register() {
                     <span className="text-xs mt-1 text-text-secondary">Verify</span>
                 </div>
 
-                <div className="h-0.5 flex-1 bg-border mx-2 mb-5">
+                <div className="h-1 flex-1 bg-neutral-200 dark:bg-neutral-700 mx-2 mb-5 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-tp_red transition-all duration-300"
+                        className="h-full bg-primary transition-all duration-normal rounded-full"
                         style={{ width: currentStep > 2 ? '100%' : '0%' }}
                     />
                 </div>
 
                 <div className="flex flex-col items-center ">
                     <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold transition-all ${
                             currentStep >= 3
-                                ? 'bg-tp_red text-white'
-                                : 'bg-muted text-muted-foreground'
+                                ? 'bg-primary text-white shadow-bubblegum'
+                                : 'bg-neutral-100 dark:bg-neutral-800 text-body-muted'
                         }`}
                     >
                         {currentStep > 3 ? <CheckCircle className="h-5 w-5" /> : <span>3</span>}
@@ -594,9 +596,9 @@ export default function Register() {
             <div className="mt-4">{renderStepContent()}</div>
 
             {/* Login link */}
-            <div className="text-center pt-4 mt-6 border-t">
-                <span className="text-muted-foreground">Already have an account?</span>{' '}
-                <Link href="/login" className="text-bubblegum hover:text-tp_red font-medium">
+            <div className="text-center pt-4 mt-6 border-t border-neutral-100 dark:border-neutral-800">
+                <span className="text-body-muted">Already have an account?</span>{' '}
+                <Link href="/login" className="text-primary hover:text-primary-dark font-semibold transition-colors">
                     Log in
                 </Link>
             </div>

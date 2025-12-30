@@ -185,8 +185,11 @@ export default function CoursesPage() {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-tp_red mb-4" />
-                <p className="text-muted-foreground">Loading courses...</p>
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-secondary-100 dark:bg-secondary-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading courses...</p>
             </div>
         );
     }
@@ -195,15 +198,18 @@ export default function CoursesPage() {
     if (error) {
         return (
             <div className="space-y-6">
-                <div className="bg-background rounded-lg border p-8 text-center">
-                    <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-                    <h2 className="text-xl font-semibold mb-2">Error Loading Data</h2>
-                    <p className="text-muted-foreground mb-4">{error}</p>
+                <div className="bg-card rounded-card border-2 border-amber-200 dark:border-amber-800 p-8 text-center shadow-card">
+                    <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">Error Loading Data</h2>
+                    <p className="text-body-muted mb-6">{error}</p>
 
                     <Button
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="bg-tp_red hover:bg-red-600 text-white"
+                        variant="warning"
+                        size="lg"
                     >
                         {isRefreshing ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -221,16 +227,16 @@ export default function CoursesPage() {
     if (students.length === 0) {
         return (
             <div className="space-y-6">
-                <div className="bg-background rounded-lg border p-12 text-center">
-                    <div className="h-20 w-20 bg-tp_red/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <UserPlus className="h-10 w-10 text-tp_red" />
+                <div className="bg-card-courses-bg border-2 border-card-courses-border rounded-card p-12 text-center shadow-card">
+                    <div className="h-20 w-20 bg-secondary-200 dark:bg-secondary-800/50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <UserPlus className="h-10 w-10 text-secondary" />
                     </div>
-                    <h2 className="text-2xl font-semibold mb-3">No Children Added Yet</h2>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    <h2 className="text-2xl font-bold text-heading mb-3">No Children Added Yet</h2>
+                    <p className="text-body-muted mb-6 max-w-md mx-auto">
                         You need to add at least one child before you can enroll them in courses.
                     </p>
                     <Link href="/dashboard/students">
-                        <Button className="bg-tp_red hover:bg-red-600 text-white">
+                        <Button variant="secondary" size="lg">
                             <UserPlus className="mr-2 h-4 w-4" />
                             Add a Child
                         </Button>
@@ -244,9 +250,9 @@ export default function CoursesPage() {
         <div className="space-y-6">
 
 
-            {/* Student Selector - Big Radio Buttons */}
-            <div className="bg-background rounded-lg border p-4">
-                <p className="text-sm font-medium text-muted-foreground mb-4">Select a child:</p>
+            {/* Student Selector - Pill Buttons */}
+            <div className="bg-card rounded-card border shadow-card p-5">
+                <p className="text-sm font-medium text-body-muted mb-4">Select a child:</p>
                 <div className="flex flex-wrap gap-3">
                     {students.map((student) => {
                         const isSelected = selectedStudentId === student.id;
@@ -255,23 +261,23 @@ export default function CoursesPage() {
                                 key={student.id}
                                 onClick={() => setSelectedStudentId(student.id)}
                                 className={`
-                                    flex items-center gap-3 px-5 py-3 rounded-full border-2 transition-all duration-200
+                                    flex items-center gap-3 px-5 py-3 rounded-full border-2 transition-all duration-fast
                                     ${
                                         isSelected
-                                            ? 'border-tp_red bg-tp_red/10 text-tp_red shadow-md'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-tp_red/50 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                            ? 'border-secondary bg-secondary-100 dark:bg-secondary-900/30 text-secondary shadow-sky'
+                                            : 'border-neutral-200 dark:border-neutral-700 hover:border-secondary/50 hover:bg-secondary-50 dark:hover:bg-secondary-900/10'
                                     }
                                 `}
                             >
                                 <div
                                     className={`
-                                    h-8 w-8 rounded-full flex items-center justify-center
-                                    ${isSelected ? 'bg-tp_red text-white' : 'bg-gray-100 dark:bg-gray-700'}
+                                    h-8 w-8 rounded-full flex items-center justify-center transition-colors
+                                    ${isSelected ? 'bg-secondary text-white' : 'bg-neutral-100 dark:bg-neutral-700'}
                                 `}
                                 >
                                     <User className="h-4 w-4" />
                                 </div>
-                                <span className={`font-medium ${isSelected ? 'text-tp_red' : ''}`}>
+                                <span className={`font-medium ${isSelected ? 'text-secondary' : 'text-heading'}`}>
                                     {student.name}
                                 </span>
                             </button>
@@ -282,10 +288,12 @@ export default function CoursesPage() {
 
             {/* Courses Grid */}
             {courses.length === 0 ? (
-                <div className="bg-background rounded-lg border p-8 text-center">
-                    <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h2 className="text-xl font-semibold mb-2">No Courses Available</h2>
-                    <p className="text-muted-foreground">
+                <div className="bg-card rounded-card border-2 border-dashed border-neutral-300 dark:border-neutral-600 p-8 text-center">
+                    <div className="h-16 w-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                        <BookOpen className="h-8 w-8 text-body-muted" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">No Courses Available</h2>
+                    <p className="text-body-muted">
                         There are no courses available at the moment. Please check back later.
                     </p>
                 </div>
@@ -300,18 +308,18 @@ export default function CoursesPage() {
                             <div
                                 key={course.id}
                                 className={`
-                                    rounded-lg border overflow-hidden flex flex-col transition-all
+                                    rounded-card border-2 overflow-hidden flex flex-col transition-all duration-normal group
                                     ${
                                         isEnrolled
-                                            ? 'bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
-                                            : 'bg-background'
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 hover:shadow-lime'
+                                            : 'bg-card-courses-bg border-card-courses-border hover:shadow-sky'
                                     }
                                 `}
                             >
                                 {/* Enrolled Badge */}
                                 {isEnrolled && (
-                                    <div className="bg-green-500 text-white text-xs font-medium px-3 py-1.5 flex items-center gap-2">
-                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                    <div className="bg-gradient-to-r from-emerald-500 to-lime-500 text-white text-xs font-semibold px-4 py-2 flex items-center gap-2">
+                                        <CheckCircle2 className="h-4 w-4" />
                                         <span>{selectedStudent?.name} is enrolled</span>
                                     </div>
                                 )}
@@ -325,17 +333,17 @@ export default function CoursesPage() {
                                     <div className="space-y-2 mb-4">
                                         {/* Show admission fee only if NOT enrolled */}
                                         {!isEnrolled && (
-                                            <div className="flex justify-between items-center text-sm bg-muted/30 p-2 rounded">
+                                            <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                                 <span>Admission Fee</span>
                                                 <span className="font-medium">৳{course.admission_fee}</span>
                                             </div>
                                         )}
-                                        <div className="flex justify-between items-center text-sm bg-muted/30 p-2 rounded">
+                                        <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                             <span>Monthly Fee</span>
                                             <span className="font-medium">৳{monthlyFee}</span>
                                         </div>
                                         {!isEnrolled && (
-                                            <div className="flex justify-between items-center text-sm bg-muted/30 p-2 rounded">
+                                            <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                                 <span>Available Batches</span>
                                                 <span className="font-medium">
                                                     {course.batches.filter((b) => b.is_visible).length}
@@ -380,7 +388,7 @@ export default function CoursesPage() {
                                                             href={batch.class_link}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex-1 text-sm text-tp_red hover:underline truncate flex items-center gap-1"
+                                                            className="flex-1 text-sm text-secondary hover:underline truncate flex items-center gap-1"
                                                         >
                                                             <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
                                                             <span className="truncate">{batch.class_link}</span>
@@ -389,7 +397,7 @@ export default function CoursesPage() {
                                                             size="sm"
                                                             variant="outline"
                                                             onClick={() => copyLink(batch.class_link!, 'Class link')}
-                                                            className="flex-shrink-0"
+                                                            className="flex-shrink-0 border-secondary text-secondary hover:bg-secondary-50 dark:hover:bg-secondary-900/20"
                                                         >
                                                             <Copy className="h-3.5 w-3.5" />
                                                         </Button>
@@ -408,7 +416,7 @@ export default function CoursesPage() {
                                                             href={batch.group_link}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex-1 text-sm text-tp_red hover:underline truncate flex items-center gap-1"
+                                                            className="flex-1 text-sm text-secondary hover:underline truncate flex items-center gap-1"
                                                         >
                                                             <Users className="h-3.5 w-3.5 flex-shrink-0" />
                                                             <span className="truncate">{batch.group_link}</span>
@@ -417,7 +425,7 @@ export default function CoursesPage() {
                                                             size="sm"
                                                             variant="outline"
                                                             onClick={() => copyLink(batch.group_link!, 'Group link')}
-                                                            className="flex-shrink-0"
+                                                            className="flex-shrink-0 border-secondary text-secondary hover:bg-secondary-100 dark:hover:bg-secondary-900/60"
                                                         >
                                                             <Copy className="h-3.5 w-3.5" />
                                                         </Button>
@@ -431,13 +439,13 @@ export default function CoursesPage() {
                                     {!isEnrolled && (
                                         <div className="space-y-2">
                                             <h4 className="text-sm font-medium">Batches:</h4>
-                                            <div className="bg-muted/30 rounded-md p-2 space-y-1.5 max-h-[130px] overflow-y-auto">
+                                            <div className="bg-white/60 dark:bg-secondary-900/40 rounded-lg p-2.5 space-y-1.5 max-h-[130px] overflow-y-auto">
                                                 {course.batches
                                                     .filter((batch) => batch.is_visible)
                                                     .map((batch) => (
                                                         <div
                                                             key={batch.id}
-                                                            className="flex items-center text-xs p-1 rounded hover:bg-background/50"
+                                                            className="flex items-center text-xs p-1.5 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-800/50 transition-colors"
                                                         >
                                                             <Clock className="h-3 w-3 mr-1.5" />
                                                             <span>{batch.name}: </span>
@@ -460,7 +468,7 @@ export default function CoursesPage() {
                                                     `/dashboard/payments?student=${selectedStudentId}`
                                                 )
                                             }
-                                            className="w-full"
+                                            className="w-full border-secondary text-secondary hover:bg-secondary-100 dark:hover:bg-secondary-900/60"
                                             variant="outline"
                                         >
                                             Payment History
@@ -472,7 +480,8 @@ export default function CoursesPage() {
                                                     `/dashboard/enroll?course=${course.id}&student=${selectedStudentId}`
                                                 )
                                             }
-                                            className="w-full bg-tp_red hover:bg-red-600 text-white"
+                                            className="w-full"
+                                            variant="secondary"
                                         >
                                             Enroll {selectedStudent?.name}
                                             <ArrowRight className="ml-2 h-4 w-4" />

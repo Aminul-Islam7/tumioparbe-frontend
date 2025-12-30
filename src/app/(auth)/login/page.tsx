@@ -10,7 +10,7 @@ import { authApi, userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { User } from '@/types';
 import { setAuthTokens } from '@/lib/auth';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 
 const LoginSchema = Yup.object().shape({
     phone: Yup.string()
@@ -70,10 +70,13 @@ export default function Login() {
 
     return (
         <div className="space-y-6">
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold">Welcome Back</h1>
-                <p className="text-muted-foreground">
-                    {/* Enter your phone number and password to access your account */}
+            <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary-100 dark:bg-primary-900/30 mx-auto mb-2">
+                    <Sparkles className="h-7 w-7 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold text-heading">Welcome Back</h1>
+                <p className="text-body-muted">
+                    Sign in to continue your journey
                 </p>
             </div>
 
@@ -83,11 +86,11 @@ export default function Login() {
                 onSubmit={handleSubmit}
             >
                 {({ errors, touched }) => (
-                    <Form className="space-y-4">
+                    <Form className="space-y-5">
                         <div className="space-y-2">
                             <label
                                 htmlFor="phone"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-sm font-medium text-heading"
                             >
                                 Phone Number
                             </label>
@@ -96,16 +99,16 @@ export default function Login() {
                                 name="phone"
                                 type="text"
                                 placeholder="01XXXXXXXXX"
-                                className={`flex h-10 w-full rounded-md border dark:bg-background/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
                                     errors.phone && touched.phone
-                                        ? 'border-red-500'
-                                        : 'border-input'
+                                        ? 'border-error'
+                                        : 'border-neutral-200 dark:border-neutral-700'
                                 }`}
                             />
                             <ErrorMessage
                                 name="phone"
                                 component="div"
-                                className="text-red-500 text-sm"
+                                className="text-error text-sm"
                             />
                         </div>
 
@@ -113,13 +116,13 @@ export default function Login() {
                             <div className="flex items-center justify-between">
                                 <label
                                     htmlFor="password"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    className="text-sm font-medium text-heading"
                                 >
                                     Password
                                 </label>
                                 <Link
                                     href="/forgot-password"
-                                    className="text-sm font-medium text-bubblegum hover:text-tp_red transition-colors"
+                                    className="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
                                 >
                                     Forgot password?
                                 </Link>
@@ -129,38 +132,39 @@ export default function Login() {
                                 name="password"
                                 type="password"
                                 placeholder="••••••••"
-                                className={`flex h-10 w-full rounded-md border dark:bg-background/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
                                     errors.password && touched.password
-                                        ? 'border-red-500'
-                                        : 'border-input'
+                                        ? 'border-error'
+                                        : 'border-neutral-200 dark:border-neutral-700'
                                 }`}
                             />
                             <ErrorMessage
                                 name="password"
                                 component="div"
-                                className="text-red-500 text-sm"
+                                className="text-error text-sm"
                             />
                         </div>
 
                         {/* Error Message */}
                         {errorMessage && (
-                            <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-error-light border border-error/20">
+                                <AlertCircle className="h-5 w-5 text-error flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-error-dark">{errorMessage}</p>
                             </div>
                         )}
 
                         {/* Success Message */}
                         {successMessage && (
-                            <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-emerald-800 dark:text-emerald-200">{successMessage}</p>
                             </div>
                         )}
 
                         <Button
                             type="submit"
-                            className="w-full bg-tp_red text-white font-bold"
+                            className="w-full"
+                            size="lg"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Logging in...' : 'Log In'}
@@ -169,9 +173,9 @@ export default function Login() {
                 )}
             </Formik>
 
-            <div className="text-center">
-                <span className="text-muted-foreground">Don&apos;t have an account?</span>{' '}
-                <Link href="/register" className="text-bubblegum hover:text-tp_red font-medium">
+            <div className="text-center pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                <span className="text-body-muted">Don&apos;t have an account?</span>{' '}
+                <Link href="/register" className="text-primary hover:text-primary-dark font-semibold transition-colors">
                     Register
                 </Link>
             </div>

@@ -15,11 +15,11 @@ import {
     BookOpen,
     AlertCircle,
     CheckCircle,
-    ArrowRight,
     Loader2,
     UserPlus,
     GraduationCap,
     UserCircle,
+    Sparkles,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -96,143 +96,167 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-tp_red mb-4" />
-                <p className="text-muted-foreground">Loading dashboard...</p>
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading your dashboard...</p>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            {/* Welcome Text */}
-            <h1 className="text-2xl font-bold">Welcome back, {user?.name}!</h1>
+            {/* Welcome Section */}
+            <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-lavender flex items-center justify-center shadow-bubblegum">
+                    <Sparkles className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-heading">
+                        Welcome back, {user?.name}!
+                    </h1>
+                    <p className="text-body-muted">Here&apos;s what&apos;s happening today</p>
+                </div>
+            </div>
 
-            {/* Enhanced Stats Grid - Large Cards with Actions */}
+            {/* Dashboard Cards Grid */}
             <div className="grid gap-6 md:grid-cols-2">
-                {/* Total Due Card - First */}
-                <div className="bg-background rounded-xl border-2 p-8 hover:shadow-xl transition-all hover:border-orange-200 dark:hover:border-orange-800 flex flex-col">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-16 w-16 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                            <CreditCard className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                {/* Total Due Card - Tangerine themed */}
+                <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-6 hover:shadow-tangerine transition-all duration-normal group">
+                    <div className="flex items-center gap-4 mb-5">
+                        <div className="h-14 w-14 rounded-2xl bg-tangerine-200 dark:bg-tangerine-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <CreditCard className="h-7 w-7 text-tangerine-600 dark:text-tangerine-400" />
                         </div>
                         <div>
-                            <h3 className="text-4xl font-bold mb-1">৳{totalDue.toLocaleString()}</h3>
-                            <p className="text-sm text-muted-foreground">Total Due</p>
+                            <h3 className="text-3xl font-bold text-heading">
+                                ৳{totalDue.toLocaleString()}
+                            </h3>
+                            <p className="text-sm text-body-muted">Total Due</p>
                         </div>
                     </div>
 
                     {pendingInvoices.length > 0 ? (
-                        <div className="mb-6 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800">
+                        <div className="mb-5 p-4 rounded-xl bg-amber-50 dark:bg-amber-800/30 border border-amber-300 dark:border-amber-700">
                             <div className="flex items-center gap-2 mb-1">
-                                <AlertCircle className="h-5 w-5 text-yellow-600" />
-                                <span className="font-semibold text-yellow-900 dark:text-yellow-100">
-                                    {pendingInvoices.length} Pending Payment{pendingInvoices.length !== 1 ? 's' : ''}
+                                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                <span className="font-semibold text-amber-800 dark:text-amber-200">
+                                    {pendingInvoices.length} Pending Payment
+                                    {pendingInvoices.length !== 1 ? 's' : ''}
                                 </span>
                             </div>
-                            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            <p className="text-sm text-amber-700 dark:text-amber-300">
                                 Please pay your invoices to continue your child's enrollment
                             </p>
                         </div>
                     ) : (
-                        <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/10">
+                        <div className="mb-5 p-4 rounded-xl bg-emerald-100/40 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700">
                             <div className="flex items-center gap-2 mb-1">
-                                <CheckCircle className="h-5 w-5 text-green-600" />
-                                <span className="font-semibold text-green-900 dark:text-green-100">
+                                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                <span className="font-semibold text-emerald-800 dark:text-emerald-200">
                                     All Payments Clear!
                                 </span>
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-emerald-700 dark:text-emerald-300">
                                 You have no pending payments
                             </p>
                         </div>
                     )}
 
-                    <Link href="/dashboard/payments" className="block mt-auto">
-                        <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                    <Link href="/dashboard/payments" className="block">
+                        <Button variant="tangerine" className="w-full" size="lg">
                             <CreditCard className="mr-2 h-4 w-4" />
                             {pendingInvoices.length > 0 ? 'Pay Now' : 'View Payments'}
                         </Button>
                     </Link>
                 </div>
 
-                {/* My Children Card - Second */}
-                <div className="bg-background rounded-xl border-2 p-8 hover:shadow-xl transition-all hover:border-blue-200 dark:hover:border-blue-800 flex flex-col">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                            <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                {/* My Children Card - Lavender themed (matches sidebar) */}
+                <div className="bg-card-assignments-bg border-2 border-card-assignments-border rounded-card p-6 hover:shadow-lavender transition-all duration-normal group">
+                    <div className="flex items-center gap-4 mb-5">
+                        <div className="h-14 w-14 rounded-2xl bg-lavender-200 dark:bg-lavender-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Users className="h-7 w-7 text-lavender-600 dark:text-lavender-400" />
                         </div>
                         <div>
-                            <h3 className="text-4xl font-bold mb-1">{students.length}</h3>
-                            <p className="text-sm text-muted-foreground">
+                            <h3 className="text-3xl font-bold text-heading">{students.length}</h3>
+                            <p className="text-sm text-body-muted">
                                 {students.length === 1 ? 'Child' : 'Children'}
                             </p>
                         </div>
                     </div>
-                    
+
                     {students.length > 0 ? (
-                        <div className="mb-6 p-4 rounded-lg bg-muted/30">
+                        <div className="mb-5 p-4 rounded-xl bg-lavender-50 dark:bg-lavender-800/40">
                             <div className="space-y-2">
-                                {students.slice(0, 5).map((student) => (
-                                    <div
-                                        key={student.id}
-                                        className="flex items-center gap-3"
-                                    >
-                                        <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-                                            <User className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                {students.slice(0, 4).map((student) => (
+                                    <div key={student.id} className="flex items-center gap-3">
+                                        <div className="h-7 w-7 rounded-full bg-lavender-200 dark:bg-lavender-700/50 flex items-center justify-center flex-shrink-0">
+                                            <User className="h-4 w-4 text-lavender-600 dark:text-lavender-400" />
                                         </div>
-                                        <p className="font-medium text-sm truncate">{student.name}</p>
+                                        <p className="font-medium text-sm text-heading truncate">
+                                            {student.name}
+                                        </p>
                                     </div>
                                 ))}
-                                {students.length > 5 && (
-                                    <p className="text-sm text-muted-foreground text-center pt-2">
-                                        +{students.length - 5} more
+                                {students.length > 4 && (
+                                    <p className="text-sm text-lavender-600 dark:text-lavender-400 text-center pt-1">
+                                        +{students.length - 4} more
                                     </p>
                                 )}
                             </div>
                         </div>
                     ) : (
-                        <div className="mb-6 p-4 rounded-lg bg-muted/30">
-                            <p className="text-sm text-muted-foreground text-center">
-                                No students added yet
+                        <div className="mb-5 p-4 rounded-xl bg-lavender-50 dark:bg-lavender-800/40">
+                            <p className="text-sm text-body-muted text-center">
+                                No children added yet
                             </p>
                         </div>
                     )}
 
-                    <Link href="/dashboard/students" className="block mt-auto">
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    <Link href="/dashboard/students" className="block">
+                        <Button variant="lavender" className="w-full" size="lg">
                             <UserPlus className="mr-2 h-4 w-4" />
                             {students.length > 0 ? 'Manage Children' : 'Add a Child'}
                         </Button>
                     </Link>
                 </div>
 
-                {/* Enrolled Courses Card - Third */}
-                <div className="bg-background rounded-xl border-2 p-8 hover:shadow-xl transition-all hover:border-purple-200 dark:hover:border-purple-800 flex flex-col">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-16 w-16 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                            <BookOpen className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                {/* Enrolled Courses Card - Sky Blue themed (matches sidebar) */}
+                <div className="bg-card-courses-bg border-2 border-card-courses-border rounded-card p-6 hover:shadow-sky transition-all duration-normal group">
+                    <div className="flex items-center gap-4 mb-5">
+                        <div className="h-14 w-14 rounded-2xl bg-secondary-200 dark:bg-secondary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <BookOpen className="h-7 w-7 text-secondary-600 dark:text-secondary-400" />
                         </div>
                         <div>
-                            <h3 className="text-4xl font-bold mb-1">
-                                {activeEnrollments.length > 0 
-                                    ? Array.from(new Set(activeEnrollments.map(e => {
-                                        const course = courses.find(c => c.batches.some(b => b.id === e.batch));
-                                        return course?.id;
-                                    }).filter(id => id !== undefined))).length
-                                    : 0
-                                }
+                            <h3 className="text-3xl font-bold text-heading">
+                                {activeEnrollments.length > 0
+                                    ? Array.from(
+                                          new Set(
+                                              activeEnrollments
+                                                  .map((e) => {
+                                                      const course = courses.find((c) =>
+                                                          c.batches.some((b) => b.id === e.batch)
+                                                      );
+                                                      return course?.id;
+                                                  })
+                                                  .filter((id) => id !== undefined)
+                                          )
+                                      ).length
+                                    : 0}
                             </h3>
-                            <p className="text-sm text-muted-foreground">Enrolled Courses</p>
+                            <p className="text-sm text-body-muted">Enrolled Courses</p>
                         </div>
                     </div>
 
                     {activeEnrollments.length > 0 ? (
-                        <div className="mb-6 space-y-3 max-h-[200px] overflow-y-auto">
+                        <div className="mb-5 space-y-2 max-h-[180px] overflow-y-auto scrollbar-thin">
                             {(() => {
                                 // Group enrollments by course
                                 const courseGroups = new Map<number, typeof activeEnrollments>();
-                                activeEnrollments.forEach(enrollment => {
-                                    const course = courses.find(c => c.batches.some(b => b.id === enrollment.batch));
+                                activeEnrollments.forEach((enrollment) => {
+                                    const course = courses.find((c) =>
+                                        c.batches.some((b) => b.id === enrollment.batch)
+                                    );
                                     if (course) {
                                         if (!courseGroups.has(course.id)) {
                                             courseGroups.set(course.id, []);
@@ -241,83 +265,90 @@ export default function DashboardPage() {
                                     }
                                 });
 
-                                return Array.from(courseGroups.entries()).map(([courseId, enrollments]) => {
-                                    const course = courses.find(c => c.id === courseId);
-                                    if (!course) return null;
+                                return Array.from(courseGroups.entries())
+                                    .slice(0, 3)
+                                    .map(([courseId, courseEnrollments]) => {
+                                        const course = courses.find((c) => c.id === courseId);
+                                        if (!course) return null;
 
-                                    return (
-                                        <div key={courseId} className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <GraduationCap className="h-4 w-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
-                                                <p className="font-semibold text-sm text-purple-900 dark:text-purple-100">
-                                                    {course.name}
+                                        return (
+                                            <div
+                                                key={courseId}
+                                                className="p-3 rounded-xl bg-secondary-50 dark:bg-secondary-800/40"
+                                            >
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <GraduationCap className="h-4 w-4 text-secondary-600 dark:text-secondary-400 flex-shrink-0" />
+                                                    <p className="font-semibold text-sm text-secondary-800 dark:text-secondary-200 truncate">
+                                                        {course.name}
+                                                    </p>
+                                                </div>
+                                                <p className="text-xs text-secondary-600 dark:text-secondary-400 ml-6">
+                                                    {courseEnrollments.length} student
+                                                    {courseEnrollments.length !== 1 ? 's' : ''}{' '}
+                                                    enrolled
                                                 </p>
                                             </div>
-                                            <div className="space-y-1 ml-6">
-                                                {enrollments.map(enrollment => {
-                                                    const student = students.find(s => s.id === enrollment.student);
-                                                    const batch = course.batches.find(b => b.id === enrollment.batch);
-                                                    return (
-                                                        <p key={enrollment.id} className="text-xs text-purple-700 dark:text-purple-300">
-                                                            {student?.name} ({batch?.name} batch)
-                                                        </p>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    );
-                                });
+                                        );
+                                    });
                             })()}
                         </div>
                     ) : (
-                        <div className="mb-6 p-4 rounded-lg bg-muted/30 text-center">
-                            <p className="text-sm text-muted-foreground">
+                        <div className="mb-5 p-4 rounded-xl bg-secondary-50 dark:bg-secondary-800/40">
+                            <p className="text-sm text-body-muted text-center">
                                 No active enrollments yet
                             </p>
                         </div>
                     )}
 
-                    <Link href="/dashboard/courses" className="block mt-auto">
-                        <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                    <Link href="/dashboard/courses" className="block">
+                        <Button variant="secondary" className="w-full" size="lg">
                             <BookOpen className="mr-2 h-4 w-4" />
                             Browse Courses
                         </Button>
                     </Link>
                 </div>
 
-                {/* Profile Card - Fourth */}
-                <div className="bg-background rounded-xl border-2 p-8 hover:shadow-xl transition-all hover:border-gray-200 dark:hover:border-gray-700 flex flex-col">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                            <UserCircle className="h-8 w-8 text-gray-600 dark:text-gray-400" />
+                {/* Profile Card - Primary themed */}
+                <div className="bg-card-profile-bg border-2 border-card-profile-border rounded-card p-6 hover:shadow-bubblegum transition-all duration-normal group">
+                    <div className="flex items-center gap-4 mb-5">
+                        <div className="h-14 w-14 rounded-2xl bg-primary-200 dark:bg-primary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <UserCircle className="h-7 w-7 text-primary-600 dark:text-primary-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-xl font-bold mb-1 truncate">{user?.name}</h3>
-                            <p className="text-sm text-muted-foreground">Your Profile</p>
+                            <h3 className="text-xl font-bold text-heading truncate">
+                                {user?.name}
+                            </h3>
+                            <p className="text-sm text-body-muted">Your Profile</p>
                         </div>
                     </div>
 
-                    <div className="mb-6 space-y-3">
+                    <div className="mb-5 p-4 rounded-xl bg-primary-50 dark:bg-primary-800/30 space-y-3">
                         {user?.email && (
                             <div className="flex items-center gap-2 text-sm">
-                                <span className="text-muted-foreground">Email:</span>
-                                <span className="font-medium truncate">{user.email}</span>
-                            </div>
-                        )}
-                        {user?.facebook_profile && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <span className="text-muted-foreground">Facebook:</span>
-                                <span className="font-medium truncate">{user.facebook_profile}</span>
+                                <span className="text-body-muted">Email:</span>
+                                <span className="font-medium text-heading truncate">
+                                    {user.email}
+                                </span>
                             </div>
                         )}
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-muted-foreground">Phone:</span>
-                            <span className="font-medium">{user?.phone || 'Not set'}</span>
+                            <span className="text-body-muted">Phone:</span>
+                            <span className="font-medium text-heading">
+                                {user?.phone || 'Not set'}
+                            </span>
                         </div>
+                        {user?.facebook_profile && (
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-body-muted">Facebook:</span>
+                                <span className="font-medium text-heading truncate">
+                                    {user.facebook_profile}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
-                    <Link href="/dashboard/profile" className="block mt-auto">
-                        <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white">
+                    <Link href="/dashboard/profile" className="block">
+                        <Button className="w-full" size="lg">
                             <UserCircle className="mr-2 h-4 w-4" />
                             Edit Profile
                         </Button>

@@ -139,7 +139,7 @@ export default function EnrollmentPage() {
 
         const selectedBatch = course.batches.find((b) => b.id === batchId);
         const admissionFee = course.admission_fee;
-        const tuitionFee = selectedBatch?.tuition_fee || course.tuition_fee;
+        const tuitionFee = selectedBatch?.tuition_fee || course.monthly_fee;
 
         // Apply coupon discount if applicable
         const discountedAdmission = couponApplied
@@ -206,8 +206,11 @@ export default function EnrollmentPage() {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-tp_red mb-4" />
-                <p className="text-muted-foreground">Loading enrollment data...</p>
+                <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-secondary-100 dark:bg-secondary-900/30 animate-pulse" />
+                    <Loader2 className="h-8 w-8 animate-spin text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-body-muted mt-4">Loading enrollment data...</p>
             </div>
         );
     }
@@ -215,18 +218,21 @@ export default function EnrollmentPage() {
     if (!course) {
         return (
             <div className="space-y-6">
-                <h1 className="text-3xl font-bold">Course Enrollment</h1>
+                <h1 className="text-3xl font-bold text-heading">Course Enrollment</h1>
 
-                <div className="bg-background rounded-lg border p-8 text-center">
-                    <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-3" />
-                    <h2 className="text-xl font-medium mb-2">Course Not Found</h2>
-                    <p className="text-muted-foreground mb-4">
+                <div className="bg-card rounded-card border-2 border-amber-200 dark:border-amber-800 p-8 text-center shadow-card">
+                    <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="h-8 w-8 text-amber-500" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">Course Not Found</h2>
+                    <p className="text-body-muted mb-4">
                         The course you're looking for could not be found. Please try again.
                     </p>
                     <Button
-                        variant="outline"
+                        variant="warning"
                         onClick={() => router.push('/dashboard/courses')}
                         className="mx-auto"
+                        size="lg"
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Courses
@@ -241,15 +247,15 @@ export default function EnrollmentPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">Enroll in Course</h1>
-                <p className="text-muted-foreground mt-2">
+                <h1 className="text-3xl font-bold text-heading">Enroll in Course</h1>
+                <p className="text-body-muted mt-2">
                     Complete your enrollment for {course.name}
                 </p>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Enrollment Form */}
-                <div className="flex-1 bg-background rounded-lg border p-6">
+                <div className="flex-1 bg-card rounded-card border shadow-card p-6">
                     <Formik
                         initialValues={{
                             studentId: parseInt(studentIdParam || '') || '',
@@ -264,11 +270,11 @@ export default function EnrollmentPage() {
                             <Form className="space-y-6">
                                 {/* Student Selection */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Select Student *</label>
+                                    <label className="text-sm font-medium text-heading">Select Student *</label>
                                     <Field
                                         as="select"
                                         name="studentId"
-                                        className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tp_red focus:ring-offset-2"
+                                        className="w-full h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
                                     >
                                         <option value="">Select a student</option>
                                         {students.map((student) => (
@@ -280,20 +286,20 @@ export default function EnrollmentPage() {
                                     <ErrorMessage
                                         name="studentId"
                                         component="div"
-                                        className="text-red-500 text-xs"
+                                        className="text-error text-xs"
                                     />
                                 </div>
 
                                 {/* Batch Selection */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Select Batch *</label>
+                                    <label className="text-sm font-medium text-heading">Select Batch *</label>
                                     <div className="grid gap-3 sm:grid-cols-2">
                                         {visibleBatches.map((batch) => (
                                             <label
                                                 key={batch.id}
                                                                                         className={`
-                                                    flex flex-col p-4 border rounded-lg cursor-pointer
-                                                    ${Number(values.batchId) === batch.id ? 'border-tp_red bg-red-50 dark:bg-red-900/10' : 'hover:bg-muted/50'}
+                                                    flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all
+                                                    ${Number(values.batchId) === batch.id ? 'border-primary bg-primary-50 dark:bg-primary-900/20 shadow-bubblegum' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-200 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}
                                                 `}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -306,17 +312,17 @@ export default function EnrollmentPage() {
                                                         value={batch.id}
                                                         checked={Number(values.batchId) === batch.id}
                                                         onChange={() => setFieldValue('batchId', batch.id)}
-                                                        className="h-4 w-4 text-tp_red border-gray-300 focus:ring-tp_red"
+                                                        className="h-4 w-4 text-primary border-neutral-300 focus:ring-primary"
                                                     />
                                                 </div>
-                                                <div className="mt-2 text-sm text-muted-foreground flex items-center">
-                                                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                                                <div className="mt-2 text-sm text-body-muted flex items-center">
+                                                    <Clock className="h-3.5 w-3.5 mr-1.5 text-secondary" />
                                                     {batch.timing}
                                                 </div>
                                                 {batch.tuition_fee &&
-                                                    batch.tuition_fee !== course.tuition_fee && (
-                                                        <div className="mt-1 text-sm text-muted-foreground flex items-center">
-                                                            <Tag className="h-3.5 w-3.5 mr-1.5" />
+                                                    batch.tuition_fee !== course.monthly_fee && (
+                                                <div className="mt-1 text-sm text-body-muted flex items-center">
+                                                            <Tag className="h-3.5 w-3.5 mr-1.5 text-tangerine-500" />
                                                             Special Fee: ৳{batch.tuition_fee}/month
                                                         </div>
                                                     )}
@@ -332,11 +338,11 @@ export default function EnrollmentPage() {
 
                                 {/* Start Month */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Start From *</label>
+                                    <label className="text-sm font-medium text-heading">Start From *</label>
                                     <Field
                                         as="select"
                                         name="startMonth"
-                                        className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tp_red focus:ring-offset-2"
+                                        className="w-full h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
                                     >
                                         {availableMonths.map((month) => (
                                             <option key={month.value} value={month.value}>
@@ -353,19 +359,19 @@ export default function EnrollmentPage() {
 
                                 {/* Coupon Code */}
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">
+                                    <label className="text-sm font-medium text-heading">
                                         Coupon Code (Optional)
                                     </label>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <Field
                                             name="couponCode"
                                             type="text"
                                             placeholder="Enter coupon code"
-                                            className="flex-1 h-10 rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tp_red focus:ring-offset-2"
+                                            className="flex-1 h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
                                         />
                                         <Button
                                             type="button"
-                                            variant="outline"
+                                            variant="secondary"
                                             disabled={!values.couponCode}
                                             onClick={() =>
                                                 validateCoupon(
@@ -385,8 +391,8 @@ export default function EnrollmentPage() {
                                 </div>
 
                                 {/* Fee Details */}
-                                <div className="bg-muted/30 p-4 rounded-lg">
-                                    <h3 className="font-semibold mb-3">Fee Details</h3>
+                                <div className="bg-secondary-50 dark:bg-secondary-900/20 p-5 rounded-2xl border border-secondary-200 dark:border-secondary-800">
+                                    <h3 className="font-bold text-heading mb-4">Fee Details</h3>
 
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
@@ -406,15 +412,15 @@ export default function EnrollmentPage() {
                                         </div>
 
                                         {couponApplied && (
-                                            <div className="flex justify-between text-green-600">
+                                            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
                                                 <span>Coupon Discount</span>
                                                 <span>{couponDiscount}% off</span>
                                             </div>
                                         )}
 
-                                        <div className="pt-2 border-t flex justify-between font-semibold">
+                                        <div className="pt-3 border-t border-secondary-200 dark:border-secondary-700 flex justify-between font-bold text-heading">
                                             <span>Total Payable</span>
-                                            <span>
+                                            <span className="text-primary">
                                                 ৳
                                                 {calculateFees(Number(values.batchId) || undefined).total.toLocaleString()}
                                             </span>
@@ -428,6 +434,7 @@ export default function EnrollmentPage() {
                                         type="button"
                                         variant="outline"
                                         onClick={() => router.push('/dashboard/courses')}
+                                        size="lg"
                                     >
                                         <ArrowLeft className="mr-2 h-4 w-4" />
                                         Cancel
@@ -435,7 +442,7 @@ export default function EnrollmentPage() {
 
                                     <Button
                                         type="submit"
-                                        className="bg-tp_red hover:bg-red-600"
+                                        size="lg"
                                         disabled={enrolling || !isValid}
                                     >
                                         {enrolling ? (
@@ -457,12 +464,12 @@ export default function EnrollmentPage() {
                 </div>
 
                 {/* Course Details */}
-                <div className="lg:w-1/3 bg-background rounded-lg border p-6">
+                <div className="lg:w-1/3 bg-card-courses-bg border-2 border-card-courses-border rounded-card p-6 shadow-card">
                     <div className="space-y-6">
                         <div>
-                            <h2 className="text-xl font-semibold">{course.name}</h2>
+                            <h2 className="text-xl font-bold text-heading">{course.name}</h2>
                             {course.description && (
-                                <p className="text-muted-foreground text-sm mt-2">
+                                <p className="text-body-muted text-sm mt-2">
                                     {course.description}
                                 </p>
                             )}
@@ -479,7 +486,7 @@ export default function EnrollmentPage() {
                             <div className="flex justify-between">
                                 <span className="text-sm">Monthly Tuition Fee</span>
                                 <span className="font-medium">
-                                    ৳{course.tuition_fee.toLocaleString()}/month
+                                    ৳{course.monthly_fee.toLocaleString()}/month
                                 </span>
                             </div>
 
@@ -489,29 +496,29 @@ export default function EnrollmentPage() {
                             </div>
                         </div>
 
-                        <div className="pt-4 border-t">
-                            <h3 className="font-medium mb-2">Enrollment Process</h3>
-                            <ol className="space-y-3 text-sm text-muted-foreground">
+                        <div className="pt-4 border-t border-secondary-200 dark:border-secondary-800">
+                            <h3 className="font-semibold text-heading mb-3">Enrollment Process</h3>
+                            <ol className="space-y-3 text-sm text-body-muted">
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                                    <span className="bg-primary-100 dark:bg-primary-900/30 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
                                         1
                                     </span>
                                     <span>Select student, batch, and start month</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                                    <span className="bg-secondary-100 dark:bg-secondary-900/30 text-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
                                         2
                                     </span>
                                     <span>Apply coupon code if available</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                                    <span className="bg-tangerine-100 dark:bg-tangerine-900/30 text-tangerine-600 dark:text-tangerine-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
                                         3
                                     </span>
                                     <span>Complete payment to finalize enrollment</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
+                                    <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
                                         4
                                     </span>
                                     <span>Access course materials and join class</span>
@@ -519,16 +526,16 @@ export default function EnrollmentPage() {
                             </ol>
                         </div>
 
-                        <div className="bg-muted/30 p-4 rounded-lg">
-                            <h3 className="font-medium mb-2 flex items-center">
-                                <CheckCircle className="mr-1.5 h-4 w-4 text-green-500" />
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+                            <h3 className="font-semibold text-heading mb-2 flex items-center">
+                                <CheckCircle className="mr-2 h-5 w-5 text-emerald-500" />
                                 Important Information
                             </h3>
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li>- Classes begin from the 1st of the selected month</li>
-                                <li>- Tuition fees are due by the 5th of each month</li>
-                                <li>- Course materials will be available after enrollment</li>
-                                <li>- You can contact support for any assistance</li>
+                            <ul className="space-y-2 text-sm text-body-muted">
+                                <li>• Classes begin from the 1st of the selected month</li>
+                                <li>• Tuition fees are due by the 5th of each month</li>
+                                <li>• Course materials will be available after enrollment</li>
+                                <li>• You can contact support for any assistance</li>
                             </ul>
                         </div>
                     </div>
