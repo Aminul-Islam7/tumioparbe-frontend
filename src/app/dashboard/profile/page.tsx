@@ -139,6 +139,7 @@ export default function ProfilePage() {
                         }}
                         validationSchema={ParentProfileSchema}
                         onSubmit={handleUpdateProfile}
+                        enableReinitialize={true}
                     >
                         {({ errors, touched, dirty, isValid }) => (
                             <Form className="space-y-4">
