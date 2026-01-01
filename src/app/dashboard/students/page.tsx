@@ -241,7 +241,7 @@ export default function StudentsPage() {
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Information
                                     </Button>
-                                    <Link href="/dashboard/courses" className="block">
+                                    <Link href={`/dashboard/courses?studentId=${student.id}`} className="block">
                                         <Button
                                             className="w-full"
                                             size="lg"

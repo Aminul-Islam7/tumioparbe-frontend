@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { courseApi, enrollmentApi, userApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,6 +27,7 @@ import {
 export default function CoursesPage() {
     const { user } = useAuth(true);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { showSuccess, showError } = useToast();
 
     // Loading and error states
@@ -75,14 +76,30 @@ export default function CoursesPage() {
                 ? enrollmentsRes.data
                 : enrollmentsRes.data?.results || [];
 
+
             // Update state
             setStudents(fetchedStudents);
             setCourses(fetchedCourses);
             setEnrollments(fetchedEnrollments);
 
-            // Auto-select first student if available and none selected
+            // Auto-select student based on URL query param or first student
             if (fetchedStudents.length > 0 && !selectedStudentId) {
-                setSelectedStudentId(fetchedStudents[0].id);
+                // Check if there's a studentId in URL query parameters
+                const urlStudentId = searchParams.get('studentId');
+                if (urlStudentId) {
+                    const studentIdNum = parseInt(urlStudentId, 10);
+                    // Check if this student exists in the fetched list
+                    const studentExists = fetchedStudents.some((s) => s.id === studentIdNum);
+                    if (studentExists) {
+                        setSelectedStudentId(studentIdNum);
+                    } else {
+                        // Fall back to first student if URL student not found
+                        setSelectedStudentId(fetchedStudents[0].id);
+                    }
+                } else {
+                    // No URL param, select first student
+                    setSelectedStudentId(fetchedStudents[0].id);
+                }
             }
         } catch (err) {
             console.error('Failed to fetch data:', err);
@@ -91,7 +108,7 @@ export default function CoursesPage() {
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    }, [selectedStudentId]);
+    }, [selectedStudentId, searchParams]);
 
     // Initial data fetch - only once when user is available
     useEffect(() => {
