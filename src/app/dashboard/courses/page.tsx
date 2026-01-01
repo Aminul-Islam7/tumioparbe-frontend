@@ -251,9 +251,9 @@ export default function CoursesPage() {
 
 
             {/* Student Selector - Pill Buttons */}
-            <div className="bg-card rounded-card border shadow-card p-5">
-                <p className="text-sm font-medium text-body-muted mb-4">Select a child:</p>
-                <div className="flex flex-wrap gap-3">
+            <div className="bg-card rounded-card border shadow-card p-4 sm:p-5">
+                <p className="text-sm font-medium text-body-muted mb-4 text-center md:text-left">Select a child:</p>
+                <div className="flex flex-wrap justify-center md:justify-start gap-3">
                     {students.map((student) => {
                         const isSelected = selectedStudentId === student.id;
                         return (

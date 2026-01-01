@@ -309,9 +309,9 @@ export default function PaymentsPage() {
     return (
         <div className="space-y-6">
             {/* Payment Summary */}
-            <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-6 shadow-card">
+            <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-4 sm:p-6 shadow-card">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                    <div>
+                    <div className="text-center md:text-left">
                         <h2 className="text-xl font-bold text-heading">Payment Summary</h2>
                         <p className="text-body-muted text-sm mt-1">
                             {pendingInvoices.length === 0
@@ -321,7 +321,7 @@ export default function PaymentsPage() {
                     </div>
 
                     {pendingInvoices.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex flex-wrap items-center justify-center md:justify-end gap-4">
                             <div className="bg-tangerine-50 dark:bg-tangerine-800/30 px-5 py-3 rounded-2xl border border-tangerine-200 dark:border-tangerine-800">
                                 <div className="text-xs text-center text-tangerine-600 dark:text-tangerine-400 font-medium">Total Due</div>
                                 <div className="text-2xl font-bold text-tangerine-700 dark:text-tangerine-300">৳{totalPending.toLocaleString()}</div>
@@ -382,8 +382,8 @@ export default function PaymentsPage() {
                 </div>
             ) : (
                 <div className="bg-card rounded-card border shadow-card overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-2 p-4 bg-secondary-50 dark:bg-secondary-900/20 font-medium text-sm text-heading border-b border-secondary-100 dark:border-secondary-800">
+                    {/* Desktop Table Header - hidden on mobile */}
+                    <div className="hidden md:grid grid-cols-12 gap-2 p-4 bg-secondary-50 dark:bg-secondary-900/20 font-medium text-sm text-heading border-b border-secondary-100 dark:border-secondary-800">
                         {pendingInvoices.length > 0 && (
                             <div className="col-span-1 flex items-center">
                                 <button
@@ -413,88 +413,210 @@ export default function PaymentsPage() {
                         <div className="col-span-2 text-right">Action</div>
                     </div>
 
-                    {/* Table Body */}
+                    {/* Mobile Select All Header - shown only on mobile when there are pending invoices */}
+                    {pendingInvoices.length > 0 && (
+                        <div className="md:hidden flex items-center justify-between p-3 bg-secondary-50 dark:bg-secondary-900/20 border-b border-secondary-100 dark:border-secondary-800">
+                            <button
+                                onClick={selectAllPending}
+                                className="flex items-center gap-2 p-2 hover:bg-secondary-100 dark:hover:bg-secondary-800 rounded-lg transition-colors text-sm font-medium"
+                            >
+                                {selectedInvoices.length === pendingInvoices.length &&
+                                pendingInvoices.length > 0 ? (
+                                    <CheckSquare className="h-5 w-5 text-primary" />
+                                ) : (
+                                    <Square className="h-5 w-5" />
+                                )}
+                                <span>{selectedInvoices.length === pendingInvoices.length ? 'Deselect All' : 'Select All'}</span>
+                            </button>
+                            <span className="text-sm text-body-muted">
+                                {pendingInvoices.length} pending
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Table Body / Card List */}
                     <div className="divide-y">
                         {allItems.map((item) => (
                             <div
                                 key={`${item.type}-${item.id}`}
-                                className={`grid grid-cols-12 gap-2 p-4 items-center text-sm transition-colors ${
+                                className={`transition-colors ${
                                     !item.isPaid
-                                        ? 'bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-100/50 dark:hover:bg-amber-900/20'
-                                        : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
+                                        ? 'bg-amber-50/50 dark:bg-amber-900/10'
+                                        : ''
                                 }`}
                             >
-                                {/* Checkbox for pending invoices */}
-                                {pendingInvoices.length > 0 && (
-                                    <div className="col-span-1 flex items-center">
-                                        {!item.isPaid ? (
-                                            <button
-                                                onClick={() => toggleInvoiceSelection(item.id)}
-                                                className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                                            >
-                                                {selectedInvoices.includes(item.id) ? (
-                                                    <CheckSquare className="h-5 w-5 text-primary" />
-                                                ) : (
-                                                    <Square className="h-5 w-5" />
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <CheckCircle className="h-5 w-5 text-emerald-500" />
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Student Name */}
+                                {/* Desktop Row */}
                                 <div
-                                    className={
-                                        pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'
-                                    }
+                                    className={`hidden md:grid grid-cols-12 gap-2 p-4 items-center text-sm ${
+                                        !item.isPaid
+                                            ? 'hover:bg-amber-100/50 dark:hover:bg-amber-900/20'
+                                            : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
+                                    }`}
                                 >
-                                    <span className="font-medium">{item.studentName}</span>
-                                </div>
-
-                                {/* Course & Batch */}
-                                <div className="col-span-3">
-                                    <div>{item.courseName}</div>
-                                    {item.batchName && (
-                                        <div className="text-xs text-muted-foreground">
-                                            {item.batchName}
+                                    {/* Checkbox for pending invoices */}
+                                    {pendingInvoices.length > 0 && (
+                                        <div className="col-span-1 flex items-center">
+                                            {!item.isPaid ? (
+                                                <button
+                                                    onClick={() => toggleInvoiceSelection(item.id)}
+                                                    className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                                >
+                                                    {selectedInvoices.includes(item.id) ? (
+                                                        <CheckSquare className="h-5 w-5 text-primary" />
+                                                    ) : (
+                                                        <Square className="h-5 w-5" />
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <CheckCircle className="h-5 w-5 text-emerald-500" />
+                                            )}
                                         </div>
                                     )}
+
+                                    {/* Student Name */}
+                                    <div
+                                        className={
+                                            pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'
+                                        }
+                                    >
+                                        <span className="font-medium">{item.studentName}</span>
+                                    </div>
+
+                                    {/* Course & Batch */}
+                                    <div className="col-span-3">
+                                        <div>{item.courseName}</div>
+                                        {item.batchName && (
+                                            <div className="text-xs text-muted-foreground">
+                                                {item.batchName}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Month */}
+                                    <div className="col-span-2">{item.monthDisplay}</div>
+
+                                    {/* Amount */}
+                                    <div className="col-span-2 text-right font-medium">
+                                        ৳{item.amount.toLocaleString()}
+                                    </div>
+
+                                    {/* Action */}
+                                    <div className="col-span-2 text-right">
+                                        {!item.isPaid ? (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handlePayInvoice(item.id)}
+                                                disabled={processingPayment}
+                                                variant="tangerine"
+                                            >
+                                                {processingPayment ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <CreditCard className="h-4 w-4 mr-1" />
+                                                        Pay
+                                                    </>
+                                                )}
+                                            </Button>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                                <CheckCircle className="h-3.5 w-3.5" />
+                                                Paid
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Month */}
-                                <div className="col-span-2">{item.monthDisplay}</div>
+                                {/* Mobile Card */}
+                                <div
+                                    className={`md:hidden p-4 space-y-3 ${
+                                        !item.isPaid
+                                            ? 'hover:bg-amber-100/50 dark:hover:bg-amber-900/20'
+                                            : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
+                                    }`}
+                                >
+                                    {/* Top row: Checkbox/Status + Student + Amount */}
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                                            {/* Checkbox or Paid status */}
+                                            <div className="shrink-0 pt-0.5">
+                                                {!item.isPaid ? (
+                                                    <button
+                                                        onClick={() => toggleInvoiceSelection(item.id)}
+                                                        className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                                                    >
+                                                        {selectedInvoices.includes(item.id) ? (
+                                                            <CheckSquare className="h-5 w-5 text-primary" />
+                                                        ) : (
+                                                            <Square className="h-5 w-5" />
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    <CheckCircle className="h-5 w-5 text-emerald-500 ml-1" />
+                                                )}
+                                            </div>
+                                            
+                                            {/* Student & Course info */}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="font-semibold text-heading truncate">
+                                                    {item.studentName}
+                                                </div>
+                                                <div className="text-sm text-body-muted truncate">
+                                                    {item.courseName}
+                                                    {item.batchName && ` • ${item.batchName}`}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Amount */}
+                                        <div className="text-right shrink-0">
+                                            <div className="font-bold text-lg text-heading">
+                                                ৳{item.amount.toLocaleString()}
+                                            </div>
+                                            <div className="text-xs text-body-muted">
+                                                {item.monthDisplay}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                {/* Amount */}
-                                <div className="col-span-2 text-right font-medium">
-                                    ৳{item.amount.toLocaleString()}
-                                </div>
-
-                                {/* Action */}
-                                <div className="col-span-2 text-right">
-                                    {!item.isPaid ? (
-                                        <Button
-                                            size="sm"
-                                            onClick={() => handlePayInvoice(item.id)}
-                                            disabled={processingPayment}
-                                            variant="tangerine"
-                                        >
-                                            {processingPayment ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <CreditCard className="h-4 w-4 mr-1" />
-                                                    Pay
-                                                </>
-                                            )}
-                                        </Button>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                                            <CheckCircle className="h-3.5 w-3.5" />
-                                            Paid
-                                        </span>
-                                    )}
+                                    {/* Action row */}
+                                    <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                                        {item.isPaid ? (
+                                            <>
+                                                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+                                                    <CheckCircle className="h-4 w-4" />
+                                                    Payment Complete
+                                                </span>
+                                                {item.transactionId && (
+                                                    <span className="text-xs text-body-muted truncate max-w-[120px]">
+                                                        TXN: {item.transactionId}
+                                                    </span>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-sm font-medium">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    Payment Due
+                                                </span>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handlePayInvoice(item.id)}
+                                                    disabled={processingPayment}
+                                                    variant="tangerine"
+                                                >
+                                                    {processingPayment ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <CreditCard className="h-4 w-4 mr-1" />
+                                                            Pay Now
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

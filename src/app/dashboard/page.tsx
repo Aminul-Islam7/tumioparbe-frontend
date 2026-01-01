@@ -108,9 +108,9 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-lavender flex items-center justify-center shadow-bubblegum">
-                    <Sparkles className="h-7 w-7 text-white" />
+            <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-primary to-lavender flex items-center justify-center shadow-bubblegum shrink-0">
+                    <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-heading">
@@ -121,15 +121,15 @@ export default function DashboardPage() {
             </div>
 
             {/* Dashboard Cards Grid */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
                 {/* Total Due Card - Tangerine themed */}
-                <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-6 hover:shadow-tangerine transition-all duration-normal group">
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="h-14 w-14 rounded-2xl bg-tangerine-200 dark:bg-tangerine-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <CreditCard className="h-7 w-7 text-tangerine-600 dark:text-tangerine-400" />
+                <div className="bg-card-achievements-bg border-2 border-card-achievements-border rounded-card p-4 sm:p-6 hover:shadow-tangerine transition-all duration-normal group min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-tangerine-200 dark:bg-tangerine-800/50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                            <CreditCard className="h-6 w-6 sm:h-7 sm:w-7 text-tangerine-600 dark:text-tangerine-400" />
                         </div>
                         <div>
-                            <h3 className="text-3xl font-bold text-heading">
+                            <h3 className="text-2xl sm:text-3xl font-bold text-heading">
                                 ৳{totalDue.toLocaleString()}
                             </h3>
                             <p className="text-sm text-body-muted">Total Due</p>
@@ -172,13 +172,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* My Children Card - Lavender themed (matches sidebar) */}
-                <div className="bg-card-assignments-bg border-2 border-card-assignments-border rounded-card p-6 hover:shadow-lavender transition-all duration-normal group">
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="h-14 w-14 rounded-2xl bg-lavender-200 dark:bg-lavender-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Users className="h-7 w-7 text-lavender-600 dark:text-lavender-400" />
+                <div className="bg-card-assignments-bg border-2 border-card-assignments-border rounded-card p-4 sm:p-6 hover:shadow-lavender transition-all duration-normal group min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-lavender-200 dark:bg-lavender-800/50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                            <Users className="h-6 w-6 sm:h-7 sm:w-7 text-lavender-600 dark:text-lavender-400" />
                         </div>
                         <div>
-                            <h3 className="text-3xl font-bold text-heading">{students.length}</h3>
+                            <h3 className="text-2xl sm:text-3xl font-bold text-heading">{students.length}</h3>
                             <p className="text-sm text-body-muted">
                                 {students.length === 1 ? 'Child' : 'Children'}
                             </p>
@@ -222,13 +222,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Enrolled Courses Card - Sky Blue themed (matches sidebar) */}
-                <div className="bg-card-courses-bg border-2 border-card-courses-border rounded-card p-6 hover:shadow-sky transition-all duration-normal group">
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="h-14 w-14 rounded-2xl bg-secondary-200 dark:bg-secondary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <BookOpen className="h-7 w-7 text-secondary-600 dark:text-secondary-400" />
+                <div className="bg-card-courses-bg border-2 border-card-courses-border rounded-card p-4 sm:p-6 hover:shadow-sky transition-all duration-normal group min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-secondary-200 dark:bg-secondary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                            <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-secondary-600 dark:text-secondary-400" />
                         </div>
                         <div>
-                            <h3 className="text-3xl font-bold text-heading">
+                            <h3 className="text-2xl sm:text-3xl font-bold text-heading">
                                 {activeEnrollments.length > 0
                                     ? Array.from(
                                           new Set(
@@ -283,8 +283,8 @@ export default function DashboardPage() {
                                                     </p>
                                                 </div>
                                                 <p className="text-xs text-secondary-600 dark:text-secondary-400 ml-6">
-                                                    {courseEnrollments.length} student
-                                                    {courseEnrollments.length !== 1 ? 's' : ''}{' '}
+                                                    {courseEnrollments.length} child
+                                                    {courseEnrollments.length !== 1 ? 'ren' : ''}{' '}
                                                     enrolled
                                                 </p>
                                             </div>
@@ -309,10 +309,10 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Profile Card - Primary themed */}
-                <div className="bg-card-profile-bg border-2 border-card-profile-border rounded-card p-6 hover:shadow-bubblegum transition-all duration-normal group">
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="h-14 w-14 rounded-2xl bg-primary-200 dark:bg-primary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <UserCircle className="h-7 w-7 text-primary-600 dark:text-primary-400" />
+                <div className="bg-card-profile-bg border-2 border-card-profile-border rounded-card p-4 sm:p-6 hover:shadow-bubblegum transition-all duration-normal group min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+                        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-primary-200 dark:bg-primary-800/50 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                            <UserCircle className="h-6 w-6 sm:h-7 sm:w-7 text-primary-600 dark:text-primary-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="text-xl font-bold text-heading truncate">
