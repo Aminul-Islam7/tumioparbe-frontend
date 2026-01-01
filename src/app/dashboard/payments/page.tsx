@@ -404,11 +404,11 @@ export default function PaymentsPage() {
                                 </button>
                             </div>
                         )}
-                        <div className={pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'}>
+                        <div className={pendingInvoices.length > 0 ? 'col-span-3' : 'col-span-4'}>
                             Student
                         </div>
                         <div className="col-span-3">Course</div>
-                        <div className="col-span-2">Month</div>
+                        <div className="col-span-1">Month</div>
                         <div className="col-span-2 text-right">Amount</div>
                         <div className="col-span-2 text-right">Action</div>
                     </div>
@@ -476,7 +476,7 @@ export default function PaymentsPage() {
                                     {/* Student Name */}
                                     <div
                                         className={
-                                            pendingInvoices.length > 0 ? 'col-span-2' : 'col-span-3'
+                                            pendingInvoices.length > 0 ? 'col-span-3' : 'col-span-4'
                                         }
                                     >
                                         <span className="font-medium">{item.studentName}</span>
@@ -493,7 +493,7 @@ export default function PaymentsPage() {
                                     </div>
 
                                     {/* Month */}
-                                    <div className="col-span-2">{item.monthDisplay}</div>
+                                    <div className="col-span-1">{item.monthDisplay}</div>
 
                                     {/* Amount */}
                                     <div className="col-span-2 text-right font-medium">
@@ -519,10 +519,17 @@ export default function PaymentsPage() {
                                                 )}
                                             </Button>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                                                <CheckCircle className="h-3.5 w-3.5" />
-                                                Paid
-                                            </span>
+                                            <div className="text-right">
+                                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                                    <CheckCircle className="h-3.5 w-3.5" />
+                                                    Paid
+                                                </span>
+                                                {item.transactionId && (
+                                                    <div className="text-xs text-body-muted mt-0.5">
+                                                        TXN: {item.transactionId}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
