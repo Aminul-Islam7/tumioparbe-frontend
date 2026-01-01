@@ -24,6 +24,17 @@ module.exports = {
                 brand: {
                     red: 'hsl(var(--brand-red-500))',
                     bubblegum: 'hsl(var(--brand-bubblegum-500))',
+                    50: 'hsl(var(--brand-red-50))',
+                    100: 'hsl(var(--brand-red-100))',
+                    200: 'hsl(var(--brand-red-200))',
+                    300: 'hsl(var(--brand-red-300))',
+                    400: 'hsl(var(--brand-red-400))',
+                    500: 'hsl(var(--brand-red-500))',
+                    600: 'hsl(var(--brand-red-600))',
+                    700: 'hsl(var(--brand-red-700))',
+                    800: 'hsl(var(--brand-red-800))',
+                    900: 'hsl(var(--brand-red-900))',
+                    950: 'hsl(var(--brand-red-950))',
                 },
 
                 /* Primary - Bubblegum Pink */

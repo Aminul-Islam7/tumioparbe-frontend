@@ -30,10 +30,10 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium', className }) => {
                 className="transition-transform duration-200 group-hover:scale-105"
             />
             <div className="flex flex-col mt-2">
-                <span className="font-bold text-sm sm:text-base md:text-lg xl:text-xl leading-[1.1] transition-colors text-tp_red group-hover:text-tp_red/90 font-bengali">
+                <span className="font-bold text-sm sm:text-base md:text-lg xl:text-xl leading-[1.1] transition-colors text-brand-400 group-hover:text-brand/90 font-bengali">
                     শিশু-কিশোর
                 </span>
-                <span className="font-bold text-sm sm:text-base md:text-lg xl:text-xl leading-[1.1] transition-colors text-tp_red group-hover:text-tp_red/90 font-bengali">
+                <span className="font-bold text-sm sm:text-base md:text-lg xl:text-xl leading-[1.1] transition-colors text-brand-400 group-hover:text-brand/90 font-bengali">
                     পারফর্মিং প্ল্যাটফর্ম
                 </span>
             </div>

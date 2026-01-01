@@ -84,8 +84,8 @@ export default function LightDarkSwitch({ className }: LightDarkSwitchProps) {
                     // backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
                     boxShadow: isHovered
                         ? isDarkMode
-                            ? '0 0 8px 2px rgba(155, 93, 229, 0.7), inset 0 0 8px rgba(155, 93, 229, 0.4)'
-                            : '0 0 8px 2px rgba(255, 112, 166, 0.7), inset 0 0 8px rgba(255, 112, 166, 0.4)'
+                            ? '0 0 8px 2px hsl(var(--brand-bubblegum-500) / 0.7), inset 0 0 8px hsl(var(--brand-bubblegum-500) / 0.4)'
+                            : '0 0 8px 2px hsl(var(--brand-bubblegum-500) / 0.7), inset 0 0 8px hsl(var(--brand-bubblegum-500) / 0.4)'
                         : 'none',
                 }}
                 transition={{ type: 'tween', duration: 0.3 }}
@@ -98,7 +98,7 @@ export default function LightDarkSwitch({ className }: LightDarkSwitchProps) {
                     animate={{
                         scale: isDarkMode ? 0 : 1,
                         opacity: isDarkMode ? 0 : 1,
-                        color: isHovered ? '#FF70A6' : '#FFD670', // Bubblegum on hover, Sunny Yellow default
+                        color: isHovered ? 'var(--color-primary)' : 'var(--color-accent-tangerine)', // Primary on hover, Tangerine default
                     }}
                     transition={{
                         type: 'spring',
@@ -116,7 +116,7 @@ export default function LightDarkSwitch({ className }: LightDarkSwitchProps) {
                     animate={{
                         scale: isDarkMode ? 1 : 0,
                         opacity: isDarkMode ? 1 : 0,
-                        color: isHovered ? '#9B5DE5' : '#70D6FF', // Purple on hover, Sky Blue default
+                        color: isHovered ? 'var(--color-primary)' : 'var(--color-secondary)', // Primary on hover, Sky Blue default
                     }}
                     transition={{
                         type: 'spring',
