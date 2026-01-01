@@ -85,7 +85,6 @@ export default function EnrollmentPage() {
 
                 setAvailableMonths(months);
             } catch (error) {
-                console.error('Failed to fetch enrollment data:', error);
                 showError('Error', 'Failed to load enrollment data. Please try again.');
             } finally {
                 setLoading(false);
@@ -121,7 +120,6 @@ export default function EnrollmentPage() {
                 return false;
             }
         } catch (error) {
-            console.error('Failed to validate coupon:', error);
             showError('Error', 'Failed to validate coupon. Please try again.');
             return false;
         }
@@ -196,7 +194,6 @@ export default function EnrollmentPage() {
                 }
             }
         } catch (error) {
-            console.error('Failed to complete enrollment:', error);
             showError('Error', 'Failed to complete enrollment. Please try again.');
         } finally {
             setEnrolling(false);

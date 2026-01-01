@@ -102,7 +102,6 @@ export default function CoursesPage() {
                 }
             }
         } catch (err) {
-            console.error('Failed to fetch data:', err);
             setError('Failed to load data. Please try again.');
         } finally {
             setIsLoading(false);

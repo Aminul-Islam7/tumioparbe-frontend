@@ -226,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const SidebarContent = () => (
         <>
             <div className="p-5 border-b border-default">
-                <Link href="/" className="flex items-center gap-3 cursor-pointer group" onClick={closeMobileSidebar}>
+                <Link href="/?stay=true" className="flex items-center gap-3 cursor-pointer group" onClick={closeMobileSidebar}>
                     <div className="relative w-10 h-10 group-hover:scale-105 transition-transform shrink-0">
                         <Image
                             src="/logo.png"
@@ -263,7 +263,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Home button at bottom */}
             <div className="p-4 border-t border-default">
                 <Link
-                    href="/"
+                    href="/?stay=true"
                     onClick={closeMobileSidebar}
                     className="flex items-center gap-3 rounded-xl px-4 py-3 text-body-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-fast"
                 >
@@ -327,7 +327,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         {/* Left side: Logo (mobile) / Page Title */}
                         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                             {/* Logo - mobile only (icon without text) */}
-                            <Link href="/" className="lg:hidden shrink-0">
+                            <Link href="/?stay=true" className="lg:hidden shrink-0">
                                 <div className="relative w-8 h-8 hover:scale-105 transition-transform">
                                     <Image
                                         src="/logo.png"

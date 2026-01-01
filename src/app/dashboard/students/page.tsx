@@ -64,7 +64,6 @@ export default function StudentsPage() {
 
                     setStudents(fetchedStudents);
                 } catch (error) {
-                    console.error('Failed to fetch student data:', error);
                     setApiError('Unable to connect to the server');
                     showError('Error', 'Failed to load student data. Please try again.');
                 } finally {
@@ -106,7 +105,6 @@ export default function StudentsPage() {
                 }
             }
         } catch (error) {
-            console.error('Failed to save student:', error);
             showError('Error', 'Failed to save student information. Please try again.');
         } finally {
             setSavingStudent(false);

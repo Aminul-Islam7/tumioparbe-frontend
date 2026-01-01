@@ -67,7 +67,6 @@ export default function PaymentsPage() {
             setPendingInvoices(invoices);
             setPaidPayments(payments);
         } catch (error) {
-            console.error('Failed to fetch payment data:', error);
             showError('Error', 'Failed to load payment data. Please try again.');
         } finally {
             setLoading(false);
@@ -208,7 +207,6 @@ export default function PaymentsPage() {
                 await fetchData();
             }
         } catch (error) {
-            console.error('Failed to initiate payment:', error);
             showError('Error', 'Failed to initiate payment. Please try again.');
         } finally {
             setProcessingPayment(false);
@@ -247,7 +245,6 @@ export default function PaymentsPage() {
                 await fetchData();
             }
         } catch (error) {
-            console.error('Failed to initiate bulk payment:', error);
             showError('Error', 'Failed to initiate bulk payment. Please try again.');
         } finally {
             setProcessingPayment(false);
@@ -287,7 +284,6 @@ export default function PaymentsPage() {
                 await fetchData();
             }
         } catch (error) {
-            console.error('Failed to initiate payment:', error);
             showError('Error', 'Failed to initiate payment. Please try again.');
         } finally {
             setProcessingPayment(false);

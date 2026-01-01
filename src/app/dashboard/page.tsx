@@ -69,7 +69,6 @@ export default function DashboardPage() {
             setEnrollments(enrollmentsData);
             setCourses(coursesData);
         } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
             showError('Error', 'Failed to load dashboard data.');
         } finally {
             setLoading(false);

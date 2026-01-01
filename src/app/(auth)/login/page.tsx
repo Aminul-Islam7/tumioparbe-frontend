@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { authApi, userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { User } from '@/types';
-import { setAuthTokens } from '@/lib/auth';
-import { AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { setAuthTokens, isAuthenticated } from '@/lib/auth';
+import { AlertCircle, CheckCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 const LoginSchema = Yup.object().shape({
     phone: Yup.string()
@@ -27,6 +27,14 @@ export default function Login() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated()) {
+            router.replace('/dashboard');
+        }
+    }, [router]);
 
     const handleSubmit = async (values: { phone: string; password: string }) => {
         try {
@@ -58,7 +66,6 @@ export default function Login() {
                 }
             }, 500);
         } catch (error: any) {
-            console.error('Login error:', error);
             const message = error.response?.data?.detail || 
                            error.response?.data?.message || 
                            'Invalid phone number or password. Please try again.';
@@ -127,17 +134,30 @@ export default function Login() {
                                     Forgot password?
                                 </Link>
                             </div>
-                            <Field
-                                id="password"
-                                name="password"
-                                type="password"
-                                placeholder="••••••••"
-                                className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
-                                    errors.password && touched.password
-                                        ? 'border-error'
-                                        : 'border-neutral-200 dark:border-neutral-700'
-                                }`}
-                            />
+                            <div className="relative">
+                                <Field
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    className={`flex h-12 w-full rounded-xl border bg-card dark:bg-card/50 px-4 py-2 pr-12 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all ${
+                                        errors.password && touched.password
+                                            ? 'border-error'
+                                            : 'border-neutral-200 dark:border-neutral-700'
+                                    }`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
+                            </div>
                             <ErrorMessage
                                 name="password"
                                 component="div"

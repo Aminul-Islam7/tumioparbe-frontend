@@ -73,7 +73,6 @@ export default function ProfilePage() {
                 showSuccess('Success', 'Your profile has been updated.');
             }
         } catch (error) {
-            console.error('Failed to update profile:', error);
             showError('Error', 'Failed to update profile. Please try again.');
         } finally {
             setSavingParent(false);
@@ -97,7 +96,6 @@ export default function ProfilePage() {
                 resetForm();
             }
         } catch (error: any) {
-            console.error('Failed to change password:', error);
             const errorMessage =
                 error.response?.data?.errors?.current_password?.[0] ||
                 error.response?.data?.errors?.new_password?.[0] ||

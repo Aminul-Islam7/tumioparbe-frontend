@@ -190,7 +190,7 @@ export default function Navbar({ className }: NavbarProps) {
     }, [isMenuOpen]);
 
     const navLinks = [
-        { href: '/', label: 'Home', color: 'primary' },
+        { href: '/?stay=true', label: 'Home', color: 'primary' },
         { href: '/courses', label: 'Courses', color: 'secondary' },
         { href: '/Awards', label: 'Awards', color: 'sunny' },
         { href: '/about', label: 'About', color: 'lavender' },
@@ -232,7 +232,13 @@ export default function Navbar({ className }: NavbarProps) {
         );
     };
 
-    const isLinkActive = (href: string) => pathname === href;
+    const isLinkActive = (href: string) => {
+        // For home page, check if pathname is / (regardless of query params)
+        if (href === '/?stay=true') {
+            return pathname === '/';
+        }
+        return pathname === href;
+    };
 
     if (pathname?.startsWith('/dashboard')) {
         return null;

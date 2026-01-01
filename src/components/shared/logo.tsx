@@ -21,7 +21,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium', className }) => {
     const { width, height } = dimensions[size];
 
     return (
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+        <Link href="/?stay=true" className="flex items-center gap-2 sm:gap-3 group">
             <Image
                 src={logoPng}
                 alt="Logo"

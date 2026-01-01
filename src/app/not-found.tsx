@@ -15,7 +15,7 @@ export default function NotFound() {
                             Sorry, we couldn't find the page you're looking for.
                         </p>
                     </div>
-                    <Link href="/">
+                    <Link href="/?stay=true">
                         <Button size="lg" className="gap-2">
                             <Home className="h-4 w-4" />
                             Back to Home

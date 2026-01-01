@@ -1,11 +1,36 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, CheckCircle, Globe, Star, Sparkles, Heart } from 'lucide-react';
 import Logo from '@/components/shared/logo';
+import { isAuthenticated } from '@/lib/auth';
 
 export default function Home() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [isChecking, setIsChecking] = useState(true);
+
+    useEffect(() => {
+        // Only redirect if user is logged in AND didn't explicitly navigate here
+        // The "stay" parameter indicates the user intentionally wants to view the home page
+        const stayOnHome = searchParams.get('stay') === 'true';
+        
+        if (!stayOnHome && isAuthenticated()) {
+            router.replace('/dashboard');
+        } else {
+            setIsChecking(false);
+        }
+    }, [router, searchParams]);
+
+    // Show nothing while checking auth (prevents flash of content before redirect)
+    if (isChecking) {
+        return null;
+    }
+
     return (
         <div className="flex flex-col min-h-screen">
             <main className="flex-1">

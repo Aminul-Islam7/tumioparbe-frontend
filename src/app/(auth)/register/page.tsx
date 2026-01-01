@@ -8,7 +8,8 @@ import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { isAuthenticated } from '@/lib/auth';
+import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 // Step 1: Phone Schema
 const PhoneSchema = Yup.object().shape({
@@ -68,6 +69,15 @@ export default function Register() {
     const [countdown, setCountdown] = useState(60);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated()) {
+            router.replace('/dashboard');
+        }
+    }, [router]);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -100,7 +110,6 @@ export default function Register() {
             setTimeout(() => setCurrentStep(2), 500);
         } catch (error) {
             const apiError = error as ApiErrorResponse;
-            console.error('OTP request error:', error);
             setErrorMessage(
                 apiError.response?.data?.message || apiError.message || 'Failed to send OTP. Please try again.'
             );
@@ -120,7 +129,6 @@ export default function Register() {
             setTimeout(() => setCurrentStep(3), 500);
         } catch (error) {
             const apiError = error as ApiErrorResponse;
-            console.error('OTP verification error:', error);
             setErrorMessage(
                 apiError.response?.data?.message ||
                     apiError.message ||
@@ -157,7 +165,6 @@ export default function Register() {
             }
         } catch (error) {
             const apiError = error as ApiErrorResponse;
-            console.error('Registration error:', error);
             setErrorMessage(
                 apiError.response?.data?.message ||
                     apiError.message ||
@@ -454,17 +461,30 @@ export default function Register() {
                                     <label htmlFor="password" className="text-sm font-medium">
                                         Password *
                                     </label>
-                                    <Field
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
-                                            errors.password && touched.password
-                                                ? 'border-red-500'
-                                                : 'border-input'
-                                        }`}
-                                    />
+                                    <div className="relative">
+                                        <Field
+                                            id="password"
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="••••••••"
+                                            className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                                errors.password && touched.password
+                                                    ? 'border-red-500'
+                                                    : 'border-input'
+                                            }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
                                     <ErrorMessage
                                         name="password"
                                         component="div"
@@ -479,17 +499,30 @@ export default function Register() {
                                     >
                                         Confirm Password *
                                     </label>
-                                    <Field
-                                        id="confirm_password"
-                                        name="confirm_password"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
-                                            errors.confirm_password && touched.confirm_password
-                                                ? 'border-red-500'
-                                                : 'border-input'
-                                        }`}
-                                    />
+                                    <div className="relative">
+                                        <Field
+                                            id="confirm_password"
+                                            name="confirm_password"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            placeholder="••••••••"
+                                            className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
+                                                errors.confirm_password && touched.confirm_password
+                                                    ? 'border-red-500'
+                                                    : 'border-input'
+                                            }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
                                     <ErrorMessage
                                         name="confirm_password"
                                         component="div"
