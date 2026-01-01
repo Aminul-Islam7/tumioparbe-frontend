@@ -161,7 +161,7 @@ export default function StudentsPage() {
             ) : (
                 <>
                     {/* Student Cards Grid */}
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
                         {/* Existing Students */}
                         {students.map((student) => (
                             <div
