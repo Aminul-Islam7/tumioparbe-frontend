@@ -3,7 +3,8 @@ import type { NextRequest } from 'next/server';
 
 interface JwtPayload {
     exp: number;
-    [key: string]: string | number | boolean;
+    is_staff?: boolean;
+    [key: string]: string | number | boolean | undefined;
 }
 
 // JWT decoder that works in Edge Runtime
@@ -23,13 +24,37 @@ function tokenExpired(token: string): boolean {
     return decoded.exp < currentTime;
 }
 
-export function middleware(request: NextRequest) {
-    // Check if this is a dashboard route
-    if (request.nextUrl.pathname.startsWith('/dashboard')) {
-        // Get auth token from cookies
-        const accessToken = request.cookies.get('access_token')?.value;
+function isAdminUser(token: string): boolean {
+    const decoded = parseJwt(token);
+    return decoded?.is_staff === true;
+}
 
-        console.log('Middleware Debug: access_token:', accessToken);
+export function middleware(request: NextRequest) {
+    const accessToken = request.cookies.get('access_token')?.value;
+    
+    // Check if this is an admin route
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        console.log('Middleware Debug: Admin route, checking access_token:', accessToken);
+
+        // If no token or token is expired, redirect to login
+        if (!accessToken || tokenExpired(accessToken)) {
+            console.log('Middleware Debug: Token missing or expired for admin route');
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('returnUrl', request.nextUrl.pathname);
+            return NextResponse.redirect(loginUrl);
+        }
+
+        // Check if user is admin
+        if (!isAdminUser(accessToken)) {
+            console.log('Middleware Debug: User is not admin, redirecting to dashboard');
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+
+        console.log('Middleware Debug: Admin user verified, proceeding to admin dashboard');
+    }
+    // Check if this is a dashboard route
+    else if (request.nextUrl.pathname.startsWith('/dashboard')) {
+        console.log('Middleware Debug: Dashboard route, checking access_token:', accessToken);
 
         // If no token or token is expired, redirect to login
         if (!accessToken || tokenExpired(accessToken)) {
@@ -46,5 +71,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: '/dashboard/:path*',
+    matcher: ['/dashboard/:path*', '/admin/:path*'],
 };

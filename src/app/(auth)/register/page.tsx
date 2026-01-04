@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, isAdmin as checkIsAdmin } from '@/lib/auth';
 import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 // Step 1: Phone Schema
@@ -75,7 +75,11 @@ export default function Register() {
     // Redirect if already logged in
     useEffect(() => {
         if (isAuthenticated()) {
-            router.replace('/dashboard');
+            if (checkIsAdmin()) {
+                router.replace('/admin/dashboard');
+            } else {
+                router.replace('/dashboard');
+            }
         }
     }, [router]);
 
@@ -111,7 +115,9 @@ export default function Register() {
         } catch (error) {
             const apiError = error as ApiErrorResponse;
             setErrorMessage(
-                apiError.response?.data?.message || apiError.message || 'Failed to send OTP. Please try again.'
+                apiError.response?.data?.message ||
+                    apiError.message ||
+                    'Failed to send OTP. Please try again.'
             );
         } finally {
             setLoading(false);
@@ -161,7 +167,9 @@ export default function Register() {
                 );
 
                 setSuccessMessage('Registration successful! Welcome to Tumio Parbe!');
-                setTimeout(() => router.push('/dashboard'), 500);
+                // Redirect based on user role
+                const redirectPath = response.data.user.is_admin ? '/admin/dashboard' : '/dashboard';
+                setTimeout(() => router.push(redirectPath), 500);
             }
         } catch (error) {
             const apiError = error as ApiErrorResponse;
@@ -221,7 +229,9 @@ export default function Register() {
                                 {successMessage && (
                                     <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                                         <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-emerald-800 dark:text-emerald-200">{successMessage}</p>
+                                        <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                                            {successMessage}
+                                        </p>
                                     </div>
                                 )}
 
@@ -292,7 +302,9 @@ export default function Register() {
                                 {errorMessage && (
                                     <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                                         <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                        <p className="text-sm text-red-800 dark:text-red-200">
+                                            {errorMessage}
+                                        </p>
                                     </div>
                                 )}
 
@@ -300,7 +312,9 @@ export default function Register() {
                                 {successMessage && (
                                     <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                                         <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                        <p className="text-sm text-green-800 dark:text-green-200">
+                                            {successMessage}
+                                        </p>
                                     </div>
                                 )}
 
@@ -324,7 +338,9 @@ export default function Register() {
                                                 setErrorMessage('');
                                                 setSuccessMessage('');
                                                 await authApi.requestOtp(phone);
-                                                setSuccessMessage('OTP resent! Please check your phone for a new verification code.');
+                                                setSuccessMessage(
+                                                    'OTP resent! Please check your phone for a new verification code.'
+                                                );
                                             } catch (error) {
                                                 const apiError = error as ApiErrorResponse;
                                                 setErrorMessage(
@@ -374,7 +390,7 @@ export default function Register() {
                                         id="name"
                                         name="name"
                                         type="text"
-                                        placeholder="Name of Father or Mother"
+                                        placeholder="Mother or Father of Student"
                                         className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
                                             errors.name && touched.name
                                                 ? 'border-red-500'
@@ -513,7 +529,9 @@ export default function Register() {
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            onClick={() =>
+                                                setShowConfirmPassword(!showConfirmPassword)
+                                            }
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
                                         >
                                             {showConfirmPassword ? (
@@ -534,7 +552,9 @@ export default function Register() {
                                 {errorMessage && (
                                     <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                                         <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+                                        <p className="text-sm text-red-800 dark:text-red-200">
+                                            {errorMessage}
+                                        </p>
                                     </div>
                                 )}
 
@@ -542,7 +562,9 @@ export default function Register() {
                                 {successMessage && (
                                     <div className="flex items-start gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                                         <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+                                        <p className="text-sm text-green-800 dark:text-green-200">
+                                            {successMessage}
+                                        </p>
                                     </div>
                                 )}
 
@@ -631,7 +653,10 @@ export default function Register() {
             {/* Login link */}
             <div className="text-center pt-4 mt-6 border-t border-neutral-100 dark:border-neutral-800">
                 <span className="text-body-muted">Already have an account?</span>{' '}
-                <Link href="/login" className="text-primary hover:text-primary-dark font-semibold transition-colors">
+                <Link
+                    href="/login"
+                    className="text-primary hover:text-primary-dark font-semibold transition-colors"
+                >
                     Log in
                 </Link>
             </div>

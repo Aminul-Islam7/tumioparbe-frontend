@@ -18,7 +18,7 @@ type NavColor = 'primary' | 'secondary' | 'sunny' | 'tangerine' | 'lavender';
 
 export default function Navbar({ className }: NavbarProps) {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, isAdmin } = useAuthStore();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [hasScrolled, setHasScrolled] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -240,9 +240,13 @@ export default function Navbar({ className }: NavbarProps) {
         return pathname === href;
     };
 
-    if (pathname?.startsWith('/dashboard')) {
+    // Hide navbar on dashboard and admin routes
+    if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin')) {
         return null;
     }
+
+    // Determine dashboard path based on user role
+    const dashboardPath = isAdmin ? '/admin/dashboard' : '/dashboard';
 
     return (
         <header
@@ -280,8 +284,8 @@ export default function Navbar({ className }: NavbarProps) {
                     <div className="hidden md:flex items-center space-x-3">
                         <LightDarkSwitch />
                         {isAuthenticated ? (
-                            <Link href="/dashboard">
-                                <Button size="sm">Dashboard</Button>
+                            <Link href={dashboardPath}>
+                                <Button size="sm">{isAdmin ? 'Admin Panel' : 'Dashboard'}</Button>
                             </Link>
                         ) : (
                             <div className="flex items-center space-x-2">
@@ -370,9 +374,9 @@ export default function Navbar({ className }: NavbarProps) {
                             ))}
                             <div className="pt-4 w-full space-y-3">
                                 {isAuthenticated ? (
-                                    <Link href="/dashboard" className="block">
+                                    <Link href={dashboardPath} className="block">
                                         <Button className="w-full" size="lg">
-                                            Dashboard
+                                            {isAdmin ? 'Admin Panel' : 'Dashboard'}
                                         </Button>
                                     </Link>
                                 ) : (

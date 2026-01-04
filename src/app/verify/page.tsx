@@ -157,8 +157,9 @@ export default function Verify() {
                                 'Your account has been created successfully.'
                             );
 
-                            // Redirect to dashboard
-                            router.push('/dashboard');
+                            // Redirect based on user role
+                            const redirectPath = registerResponse.data.user?.is_admin ? '/admin/dashboard' : '/dashboard';
+                            router.push(redirectPath);
                         }
                     } catch (registerError) {
                         console.error('Registration error:', registerError);

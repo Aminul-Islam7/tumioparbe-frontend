@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookOpen, CheckCircle, Globe, Star, Sparkles, Heart } from 'lucide-react';
 import Logo from '@/components/shared/logo';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, isAdmin } from '@/lib/auth';
 
 export default function Home() {
     const router = useRouter();
@@ -20,7 +20,12 @@ export default function Home() {
         const stayOnHome = searchParams.get('stay') === 'true';
         
         if (!stayOnHome && isAuthenticated()) {
-            router.replace('/dashboard');
+            // Redirect admin users to admin dashboard, others to regular dashboard
+            if (isAdmin()) {
+                router.replace('/admin/dashboard');
+            } else {
+                router.replace('/dashboard');
+            }
         } else {
             setIsChecking(false);
         }

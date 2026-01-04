@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { authApi, userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { User } from '@/types';
-import { setAuthTokens, isAuthenticated } from '@/lib/auth';
+import { setAuthTokens, isAuthenticated, isAdmin as checkIsAdmin } from '@/lib/auth';
 import { AlertCircle, CheckCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 const LoginSchema = Yup.object().shape({
@@ -32,7 +32,11 @@ export default function Login() {
     // Redirect if already logged in
     useEffect(() => {
         if (isAuthenticated()) {
-            router.replace('/dashboard');
+            if (checkIsAdmin()) {
+                router.replace('/admin/dashboard');
+            } else {
+                router.replace('/dashboard');
+            }
         }
     }, [router]);
 

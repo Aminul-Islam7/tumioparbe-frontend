@@ -108,6 +108,15 @@ export function isAuthenticated(): boolean {
     return !!getAuthTokens();
 }
 
+export function isAdmin(): boolean {
+    const tokens = getAuthTokens();
+    if (!tokens?.access) return false;
+    
+    const decoded = parseJwt(tokens.access);
+    // Check for is_staff which is what Django uses for admin users
+    return decoded?.is_staff === true || decoded?.is_admin === true;
+}
+
 export function logout(): void {
     clearAuthTokens();
     clearUserData();
@@ -115,7 +124,8 @@ export function logout(): void {
 
 interface JwtPayload {
     exp: number;
-    is_admin: boolean;
+    is_admin?: boolean;
+    is_staff?: boolean;
     [key: string]: any;
 }
 
@@ -143,5 +153,5 @@ export function getRoleFromToken(token?: string): 'admin' | 'parent' | null {
     const decoded = parseJwt(token);
     if (!decoded) return null;
 
-    return decoded.is_admin ? 'admin' : 'parent';
+    return decoded.is_admin || decoded.is_staff ? 'admin' : 'parent';
 }
