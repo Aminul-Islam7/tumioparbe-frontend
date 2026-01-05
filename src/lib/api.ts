@@ -203,6 +203,12 @@ export const paymentApi = {
     executeBkashPayment: (paymentID: string) =>
         api.post<Payment>('/payments/payments/execute_bkash_payment/', { paymentID }),
 
+    queryPaymentStatus: (paymentID: string) =>
+        api.post<{ payment_id: number; bkash_payment_id: string; transaction_status: string; payment_status: string }>(
+            '/payments/payments/query_bkash_payment/', 
+            { paymentID }
+        ),
+
     getPaymentHistory: () =>
         api.get<PaginatedResponse<Payment>>('/payments/payments/payment_history/'),
 };

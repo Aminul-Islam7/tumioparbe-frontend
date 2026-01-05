@@ -178,9 +178,9 @@ export default function PaymentsPage() {
     // Get callback URL for bKash
     const getCallbackUrl = () => {
         if (typeof window !== 'undefined') {
-            return `${window.location.origin}/dashboard/payments`;
+            return `${window.location.origin}/payment/success`;
         }
-        return '/dashboard/payments';
+        return '/payment/success';
     };
 
     // Handle single invoice payment
@@ -288,6 +288,23 @@ export default function PaymentsPage() {
                 <p className="text-body-muted mt-4">Loading payment data...</p>
             </div>
         );
+    }
+
+    // Format date time string
+    function formatDateTime(dateStr?: string): string {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+            });
+        } catch {
+            return '';
+        }
     }
 
     return (
@@ -504,13 +521,18 @@ export default function PaymentsPage() {
                                             </Button>
                                         ) : (
                                             <div className="text-right">
-                                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                                <div className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs">
                                                     <CheckCircle className="h-3.5 w-3.5" />
-                                                    Paid
-                                                </span>
+                                                    <span className="font-medium">Paid</span>
+                                                </div>
+                                                {item.paymentDate && (
+                                                    <div className="text-[10px] text-body-muted mt-0.5">
+                                                        {formatDateTime(item.paymentDate)}
+                                                    </div>
+                                                )}
                                                 {item.transactionId && (
-                                                    <div className="text-xs text-body-muted mt-0.5">
-                                                        TXN: {item.transactionId}
+                                                    <div className="text-[10px] text-body-muted/70 font-mono mt-0.5">
+                                                        {item.transactionId.slice(-8)}
                                                     </div>
                                                 )}
                                             </div>
@@ -573,17 +595,24 @@ export default function PaymentsPage() {
                                     {/* Action row */}
                                     <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
                                         {item.isPaid ? (
-                                            <>
-                                                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+                                            <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                                     <CheckCircle className="h-4 w-4" />
-                                                    Payment Complete
-                                                </span>
+                                                    <div>
+                                                        <span className="text-sm font-medium">Paid</span>
+                                                        {item.paymentDate && (
+                                                            <span className="text-xs text-body-muted ml-1.5">
+                                                                {formatDateTime(item.paymentDate)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                                 {item.transactionId && (
-                                                    <span className="text-xs text-body-muted truncate max-w-[120px]">
-                                                        TXN: {item.transactionId}
+                                                    <span className="text-[10px] text-body-muted font-mono">
+                                                        {item.transactionId.slice(-8)}
                                                     </span>
                                                 )}
-                                            </>
+                                            </div>
                                         ) : (
                                             <>
                                                 <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-sm font-medium">
