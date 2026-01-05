@@ -23,13 +23,17 @@ import {
     EyeOff,
     ExternalLink,
     Settings,
+    Lock,
+    Unlock,
+    Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { courseApi } from '@/lib/api';
 import { adminApi, AdminEnrollmentDetails } from '@/lib/adminApi';
 import { Course, Batch } from '@/types';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-toastify';
+
 
 // Helper to calculate age from date of birth
 function calculateAge(dateOfBirth: string): number {
@@ -90,7 +94,7 @@ function TransferModal({
     
     const handleTransfer = async () => {
         if (!destinationBatchId) {
-            toast.error('Please select a destination batch');
+            console.error('Please select a destination batch');
             return;
         }
         await onTransfer(destinationBatchId, selectedStudents);
@@ -222,18 +226,12 @@ function EditFeeModal({
                 </p>
                 
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="use_default"
-                            checked={useDefault}
-                            onChange={(e) => setUseDefault(e.target.checked)}
-                            className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                        />
-                        <label htmlFor="use_default" className="text-sm font-medium text-heading">
-                            Use batch/course default fee
-                        </label>
-                    </div>
+                    <ToggleSwitch
+                        id="use_default"
+                        checked={useDefault}
+                        onChange={(checked) => setUseDefault(checked)}
+                        label="Use batch/course default fee"
+                    />
                     
                     {!useDefault && (
                         <div>
@@ -466,18 +464,12 @@ function BatchSettingsModal({ isOpen, onClose, onSave, batch, isSaving }: BatchS
                     </div>
                     
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <input
-                                type="checkbox"
-                                id="batch_use_course_fee"
-                                checked={useCourseFee}
-                                onChange={(e) => setUseCourseFee(e.target.checked)}
-                                className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                            />
-                            <label htmlFor="batch_use_course_fee" className="text-sm font-medium text-heading">
-                                Use course-level tuition fee
-                            </label>
-                        </div>
+                        <ToggleSwitch
+                            id="batch_use_course_fee"
+                            checked={useCourseFee}
+                            onChange={(checked) => setUseCourseFee(checked)}
+                            label="Use course-level tuition fee"
+                        />
                         
                         {!useCourseFee && (
                             <div>
@@ -496,17 +488,13 @@ function BatchSettingsModal({ isOpen, onClose, onSave, batch, isSaving }: BatchS
                         )}
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
+                    <div className="mt-4">
+                        <ToggleSwitch
                             id="batch_is_visible"
                             checked={formData.is_visible}
-                            onChange={(e) => setFormData({ ...formData, is_visible: e.target.checked })}
-                            className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
+                            onChange={(checked) => setFormData({ ...formData, is_visible: checked })}
+                            label="Open for enrollment"
                         />
-                        <label htmlFor="batch_is_visible" className="text-sm font-medium text-heading">
-                            Batch is visible to users
-                        </label>
                     </div>
                     
                     <div className="flex gap-3 pt-4">
@@ -546,10 +534,15 @@ interface StudentActionsProps {
     onEditFee: () => void;
     onTransfer: () => void;
     onDeactivate: () => void;
+    index?: number;
+    totalCount?: number;
 }
 
-function StudentActions({ enrollment, onEditFee, onTransfer, onDeactivate }: StudentActionsProps) {
+function StudentActions({ enrollment, onEditFee, onTransfer, onDeactivate, index = 0, totalCount = 0 }: StudentActionsProps) {
     const [isOpen, setIsOpen] = useState(false);
+    
+    // Show dropdown above if in the last 3 rows
+    const showAbove = totalCount > 0 && index >= totalCount - 3;
     
     return (
         <div className="relative">
@@ -563,10 +556,13 @@ function StudentActions({ enrollment, onEditFee, onTransfer, onDeactivate }: Stu
             {isOpen && (
                 <>
                     <div 
-                        className="fixed inset-0 z-10"
+                        className="fixed inset-0 z-dropdown"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-1 z-20 bg-card rounded-xl border border-default shadow-lg py-1 w-44">
+                    <div className={cn(
+                        "absolute right-0 z-dropdown bg-card rounded-xl border border-default shadow-xl py-1 w-64",
+                        showAbove ? "bottom-full mb-1" : "top-full mt-1"
+                    )}>
                         <button
                             onClick={() => {
                                 setIsOpen(false);
@@ -585,7 +581,7 @@ function StudentActions({ enrollment, onEditFee, onTransfer, onDeactivate }: Stu
                             className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-2"
                         >
                             <ArrowRightLeft className="w-4 h-4" />
-                            Move to Batch
+                            Transfer to another batch
                         </button>
                         <button
                             onClick={() => {
@@ -621,9 +617,6 @@ export default function BatchDetailPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<'name' | 'enrollment_date' | 'fee'>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-    
-    // Selection for bulk actions
-    const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     
     // Modals
     const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -663,8 +656,7 @@ export default function BatchDetailPage() {
             setEnrollments(studentsResponse.data || []);
             
         } catch (err: any) {
-            console.error('Error fetching batch data:', err);
-            toast.error('Failed to load batch data');
+            console.error('Failed to load batch data:', err);
         } finally {
             setLoading(false);
         }
@@ -708,35 +700,17 @@ export default function BatchDetailPage() {
         return result;
     }, [enrollments, searchQuery, sortBy, sortOrder]);
     
-    // Selection handlers
-    const toggleSelectAll = () => {
-        if (selectedStudents.length === filteredEnrollments.length) {
-            setSelectedStudents([]);
-        } else {
-            setSelectedStudents(filteredEnrollments.map(e => e.student.id));
-        }
-    };
-    
-    const toggleStudent = (studentId: number) => {
-        setSelectedStudents(prev =>
-            prev.includes(studentId)
-                ? prev.filter(id => id !== studentId)
-                : [...prev, studentId]
-        );
-    };
-    
+
     // Action handlers
     const handleTransfer = async (destinationBatchId: number, studentIds: number[]) => {
         try {
             setIsTransferring(true);
             await adminApi.transferStudents(batchId, { destination_batch_id: destinationBatchId, student_ids: studentIds });
-            toast.success(`Transferred ${studentIds.length} student(s) successfully`);
             setTransferModalOpen(false);
-            setSelectedStudents([]);
+            setSelectedEnrollment(null);
             fetchData();
         } catch (err: any) {
             console.error('Error transferring students:', err);
-            toast.error(err.response?.data?.error || 'Failed to transfer students');
         } finally {
             setIsTransferring(false);
         }
@@ -748,13 +722,11 @@ export default function BatchDetailPage() {
         try {
             setIsSavingFee(true);
             await adminApi.updateEnrollmentFee(selectedEnrollment.id, { tuition_fee: fee });
-            toast.success('Fee updated successfully');
             setEditFeeModalOpen(false);
             setSelectedEnrollment(null);
             fetchData();
         } catch (err: any) {
             console.error('Error updating fee:', err);
-            toast.error(err.response?.data?.error || 'Failed to update fee');
         } finally {
             setIsSavingFee(false);
         }
@@ -766,13 +738,11 @@ export default function BatchDetailPage() {
         try {
             setIsDeactivating(true);
             await adminApi.deactivateEnrollment(selectedEnrollment.id);
-            toast.success('Enrollment deactivated');
             setDeactivateModalOpen(false);
             setSelectedEnrollment(null);
             fetchData();
         } catch (err: any) {
             console.error('Error deactivating enrollment:', err);
-            toast.error(err.response?.data?.error || 'Failed to deactivate enrollment');
         } finally {
             setIsDeactivating(false);
         }
@@ -782,15 +752,33 @@ export default function BatchDetailPage() {
         try {
             setIsSavingSettings(true);
             await adminApi.updateBatch(batchId, data);
-            toast.success('Batch settings updated');
             setSettingsModalOpen(false);
             fetchData();
         } catch (err: any) {
             console.error('Error updating batch:', err);
-            toast.error(err.response?.data?.error || 'Failed to update batch');
         } finally {
             setIsSavingSettings(false);
         }
+    };
+
+    // Toggle enrollment status
+    const handleToggleEnrollment = async () => {
+        if (!batch) return;
+        try {
+            await adminApi.updateBatch(batchId, {
+                ...batch,
+                is_visible: !batch.is_visible,
+            });
+            fetchData();
+        } catch (err: any) {
+            console.error('Error toggling enrollment:', err);
+        }
+    };
+    
+    // Copy link handler
+    const handleCopy = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        // Link copied
     };
     
     if (loading) {
@@ -834,38 +822,66 @@ export default function BatchDetailPage() {
                         <div className="flex items-center gap-2 mb-1">
                             <h1 className="text-2xl font-bold text-heading">{batch.name}</h1>
                             {batch.is_visible ? (
-                                <Eye className="w-5 h-5 text-lavender-500" />
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                                    <Unlock className="w-3 h-3" />
+                                    Open
+                                </span>
                             ) : (
-                                <EyeOff className="w-5 h-5 text-neutral-400" />
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium">
+                                    <Lock className="w-3 h-3" />
+                                    Closed
+                                </span>
                             )}
                         </div>
                         <p className="text-body-muted">
-                            {course.name} • {batch.timing}
+                            {course.name}
                         </p>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    {/* Desktop: Links and Settings */}
+                    {/* Desktop: Links and Settings */}
+                    <div className="hidden sm:flex items-center gap-2">
                         {batch.group_link && (
-                            <a
-                                href={batch.group_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4" />
-                                Group
-                            </a>
+                            <div className="flex items-center rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 overflow-hidden">
+                                <a
+                                    href={batch.group_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 active:bg-emerald-200 dark:active:bg-emerald-900/50 active:scale-[0.98] transition-all border-r border-emerald-200 dark:border-emerald-800"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    Group
+                                </a>
+                                <button
+                                    onClick={() => handleCopy(batch.group_link || '', 'Group link')}
+                                    className="flex items-center gap-1.5 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 active:bg-emerald-200 dark:active:bg-emerald-900/50 active:scale-[0.98] transition-all"
+                                    title="Copy group link"
+                                >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span className="text-sm font-medium">Link</span>
+                                </button>
+                            </div>
                         )}
                         {batch.class_link && (
-                            <a
-                                href={batch.class_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary-50 dark:bg-secondary-900/20 text-secondary text-sm font-medium hover:bg-secondary-100 dark:hover:bg-secondary-900/30 transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4" />
-                                Class
-                            </a>
+                            <div className="flex items-center rounded-lg border border-secondary/20 bg-secondary-50 dark:bg-secondary-900/20 overflow-hidden">
+                                <a
+                                    href={batch.class_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-secondary text-sm font-medium hover:bg-secondary-100 dark:hover:bg-secondary-900/30 active:bg-secondary-200 dark:active:bg-secondary-900/50 active:scale-[0.98] transition-all border-r border-secondary/20"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    Class
+                                </a>
+                                <button
+                                    onClick={() => handleCopy(batch.class_link || '', 'Class link')}
+                                    className="flex items-center gap-1.5 px-3 py-2 text-secondary hover:bg-secondary-100 dark:hover:bg-secondary-900/30 active:bg-secondary-200 dark:active:bg-secondary-900/50 active:scale-[0.98] transition-all"
+                                    title="Copy class link"
+                                >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span className="text-sm font-medium">Link</span>
+                                </button>
+                            </div>
                         )}
                         <Button
                             variant="outline"
@@ -878,33 +894,100 @@ export default function BatchDetailPage() {
                 </div>
             </div>
             
-            {/* Stats Card */}
+            {/* Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-card rounded-xl border border-default p-4">
+                    <p className="text-sm text-body-muted mb-1">Timing</p>
+                    <p className="text-lg font-semibold text-heading">{batch.timing}</p>
+                </div>
                 <div className="bg-card rounded-xl border border-default p-4">
                     <p className="text-sm text-body-muted mb-1">Students</p>
                     <p className="text-2xl font-bold text-heading">{enrollments.length}</p>
                 </div>
                 <div className="bg-card rounded-xl border border-default p-4">
                     <p className="text-sm text-body-muted mb-1">Monthly Fee</p>
-                    <p className="text-2xl font-bold text-heading">৳{batch.tuition_fee || course.monthly_fee}</p>
+                    <p className="text-2xl font-bold text-heading">৳{Math.round(batch.tuition_fee || course.monthly_fee)}</p>
                 </div>
-                <div className="bg-card rounded-xl border border-default p-4">
-                    <p className="text-sm text-body-muted mb-1">Status</p>
-                    <p className={cn(
-                        'text-lg font-semibold',
-                        batch.is_visible ? 'text-emerald-600' : 'text-neutral-500'
-                    )}>
-                        {batch.is_visible ? 'Visible' : 'Hidden'}
-                    </p>
+                <button
+                    onClick={handleToggleEnrollment}
+                    className="bg-card rounded-xl border border-default p-4 text-left hover:border-primary/30 transition-colors group"
+                >
+                    <p className="text-sm text-body-muted mb-1">Enrollment</p>
+                    <div className="flex items-center gap-2">
+                        {batch.is_visible ? (
+                            <>
+                                <Unlock className="w-5 h-5 text-emerald-500 group-hover:text-emerald-600 transition-colors" />
+                                <span className="text-lg font-semibold text-emerald-600">Open</span>
+                            </>
+                        ) : (
+                            <>
+                                <Lock className="w-5 h-5 text-amber-500 group-hover:text-amber-600 transition-colors" />
+                                <span className="text-lg font-semibold text-amber-600">Closed</span>
+                            </>
+                        )}
+                    </div>
+                </button>                
+            </div>
+
+            {/* Mobile: Links and Settings Button */}
+            {/* Mobile: Links and Settings Button */}
+            <div className="sm:hidden flex flex-col gap-3">
+                <div className="flex gap-2">
+                    {batch.group_link && (
+                        <div className="flex-1 flex rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 overflow-hidden">
+                            <a
+                                href={batch.group_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 active:bg-emerald-200 dark:active:bg-emerald-900/50 active:scale-[0.98] transition-all border-r border-emerald-200 dark:border-emerald-800"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                Group
+                            </a>
+                            <button
+                                onClick={() => handleCopy(batch.group_link || '', 'Group link')}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 active:bg-emerald-200 dark:active:bg-emerald-900/50 active:scale-[0.98] transition-all"
+                                title="Copy group link"
+                            >
+                                <Copy className="w-3.5 h-3.5" />
+                                <span className="text-sm font-medium">Link</span>
+                            </button>
+                        </div>
+                    )}
+                    {batch.class_link && (
+                        <div className="flex-1 flex rounded-lg border border-secondary/20 bg-secondary-50 dark:bg-secondary-900/20 overflow-hidden">
+                            <a
+                                href={batch.class_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-secondary text-sm font-medium hover:bg-secondary-100 dark:hover:bg-secondary-900/30 active:bg-secondary-200 dark:active:bg-secondary-900/50 active:scale-[0.98] transition-all border-r border-secondary/20"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                Class
+                            </a>
+                            <button
+                                onClick={() => handleCopy(batch.class_link || '', 'Class link')}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-secondary hover:bg-secondary-100 dark:hover:bg-secondary-900/30 active:bg-secondary-200 dark:active:bg-secondary-900/50 active:scale-[0.98] transition-all"
+                                title="Copy class link"
+                            >
+                                <Copy className="w-3.5 h-3.5" />
+                                <span className="text-sm font-medium">Link</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
-                <div className="bg-card rounded-xl border border-default p-4">
-                    <p className="text-sm text-body-muted mb-1">Other Batches</p>
-                    <p className="text-2xl font-bold text-heading">{allBatches.length - 1}</p>
-                </div>
+                <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setSettingsModalOpen(true)}
+                >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                </Button>
             </div>
             
             {/* Student List Card */}
-            <div className="bg-card rounded-2xl border border-default shadow-sm">
+            <div className="bg-card rounded-2xl border border-default shadow-sm overflow-hidden">
                 {/* Search and Filters */}
                 <div className="p-4 border-b border-default">
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -941,139 +1024,161 @@ export default function BatchDetailPage() {
                         </div>
                     </div>
                     
-                    {/* Bulk Actions */}
-                    {selectedStudents.length > 0 && (
-                        <div className="flex items-center gap-3 mt-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
-                            <span className="text-sm font-medium text-primary">
-                                {selectedStudents.length} selected
-                            </span>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setTransferModalOpen(true)}
-                                className="text-primary"
-                            >
-                                <ArrowRightLeft className="w-4 h-4 mr-1" />
-                                Transfer
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setSelectedStudents([])}
-                            >
-                                <X className="w-4 h-4 mr-1" />
-                                Clear
-                            </Button>
-                        </div>
-                    )}
+
                 </div>
                 
-                {/* Student Table */}
+                {/* Student List - Compact cards on mobile, Table on desktop */}
                 {filteredEnrollments.length > 0 ? (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-default bg-neutral-50 dark:bg-neutral-900/50">
-                                    <th className="px-4 py-3 text-left">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedStudents.length === filteredEnrollments.length && filteredEnrollments.length > 0}
-                                            onChange={toggleSelectAll}
-                                            className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                                        />
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
-                                        Student
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider hidden md:table-cell">
-                                        Parent
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider hidden sm:table-cell">
-                                        Fee
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider hidden lg:table-cell">
-                                        Enrolled
-                                    </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-body-muted uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-default">
-                                {filteredEnrollments.map((enrollment) => (
-                                    <tr key={enrollment.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors">
-                                        <td className="px-4 py-3">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedStudents.includes(enrollment.student.id)}
-                                                onChange={() => toggleStudent(enrollment.student.id)}
-                                                className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                                            />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Link
-                                                href={`/admin/students/${enrollment.student.id}`}
-                                                className="group"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-full bg-lavender-100 dark:bg-lavender-900/30 flex items-center justify-center shrink-0">
-                                                        <UserCircle className="h-6 w-6 text-lavender-600 dark:text-lavender-400" />
+                    <>
+                        {/* Mobile View - Compact List */}
+                        <div className="md:hidden divide-y divide-default">
+                            {filteredEnrollments.map((enrollment, index) => (
+                                <div key={enrollment.id} className="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors">
+                                    <div className="flex items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <Link
+                                                    href={`/admin/students/${enrollment.student.id}`}
+                                                    className="flex-1 min-w-0 group"
+                                                >
+                                                    <div className="flex items-start gap-2">
+                                                        <div className="h-8 w-8 rounded-full bg-lavender-100 dark:bg-lavender-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                                                            <UserCircle className="h-5 w-5 text-lavender-600 dark:text-lavender-400" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-medium text-sm text-heading group-hover:text-primary transition-colors">
+                                                                {enrollment.student.name}
+                                                            </p>
+                                                            <p className="text-xs text-body-muted">
+                                                                {enrollment.student.parent.name} • {enrollment.student.parent.phone}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-heading group-hover:text-primary transition-colors">
-                                                            {enrollment.student.name}
-                                                        </p>
-                                                        <p className="text-xs text-body-muted">
-                                                            {calculateAge(enrollment.student.date_of_birth)} years old
-                                                        </p>
+                                                </Link>
+                                                <div className="flex items-start gap-1 shrink-0">
+                                                    <div className="text-right">
+                                                        <p className="font-semibold text-sm text-heading">৳{Math.round(enrollment.effective_tuition_fee)}</p>
+                                                        <FeeTypeBadge type={enrollment.fee_type} />
                                                     </div>
+                                                    <StudentActions
+                                                        enrollment={enrollment}
+                                                        onEditFee={() => {
+                                                            setSelectedEnrollment(enrollment);
+                                                            setEditFeeModalOpen(true);
+                                                        }}
+                                                        onTransfer={() => {
+                                                            setSelectedEnrollment(enrollment);
+                                                            setTransferModalOpen(true);
+                                                        }}
+                                                        onDeactivate={() => {
+                                                            setSelectedEnrollment(enrollment);
+                                                            setDeactivateModalOpen(true);
+                                                        }}
+                                                        index={index}
+                                                        totalCount={filteredEnrollments.length}
+                                                    />
                                                 </div>
-                                            </Link>
-                                        </td>
-                                        <td className="px-4 py-3 hidden md:table-cell">
-                                            <Link
-                                                href={`/admin/users/${enrollment.student.parent.id}`}
-                                                className="text-heading hover:text-primary transition-colors"
-                                            >
-                                                {enrollment.student.parent.name}
-                                            </Link>
-                                            <p className="text-xs text-body-muted">
-                                                {enrollment.student.parent.phone}
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3 hidden sm:table-cell">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium text-heading">
-                                                    ৳{enrollment.effective_tuition_fee}
-                                                </span>
-                                                <FeeTypeBadge type={enrollment.fee_type} />
                                             </div>
-                                        </td>
-                                        <td className="px-4 py-3 hidden lg:table-cell text-body-muted text-sm">
-                                            {new Date(enrollment.earliest_enrollment_month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <StudentActions
-                                                enrollment={enrollment}
-                                                onEditFee={() => {
-                                                    setSelectedEnrollment(enrollment);
-                                                    setEditFeeModalOpen(true);
-                                                }}
-                                                onTransfer={() => {
-                                                    setSelectedStudents([enrollment.student.id]);
-                                                    setTransferModalOpen(true);
-                                                }}
-                                                onDeactivate={() => {
-                                                    setSelectedEnrollment(enrollment);
-                                                    setDeactivateModalOpen(true);
-                                                }}
-                                            />
-                                        </td>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop View - Table */}
+                        <div className="hidden md:block overflow-visible">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-default bg-neutral-50 dark:bg-neutral-900/50">
+
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
+                                            Student
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
+                                            Parent
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
+                                            Fee
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider hidden lg:table-cell">
+                                            Enrolled
+                                        </th>
+                                        <th className="px-4 py-3 text-right text-xs font-semibold text-body-muted uppercase tracking-wider w-16">
+                                            Actions
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-default">
+                                    {filteredEnrollments.map((enrollment, index) => (
+                                        <tr key={enrollment.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors">
+
+                                            <td className="px-4 py-3">
+                                                <Link
+                                                    href={`/admin/students/${enrollment.student.id}`}
+                                                    className="group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-lavender-100 dark:bg-lavender-900/30 flex items-center justify-center shrink-0">
+                                                            <UserCircle className="h-6 w-6 text-lavender-600 dark:text-lavender-400" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-heading group-hover:text-primary transition-colors">
+                                                                {enrollment.student.name}
+                                                            </p>
+                                                            <p className="text-xs text-body-muted">
+                                                                {calculateAge(enrollment.student.date_of_birth)} years old
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <Link
+                                                    href={`/admin/users/${enrollment.student.parent.id}`}
+                                                    className="text-heading hover:text-primary transition-colors"
+                                                >
+                                                    {enrollment.student.parent.name}
+                                                </Link>
+                                                <p className="text-xs text-body-muted">
+                                                    {enrollment.student.parent.phone}
+                                                </p>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-heading">
+                                                        ৳{Math.round(enrollment.effective_tuition_fee)}
+                                                    </span>
+                                                    <FeeTypeBadge type={enrollment.fee_type} />
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 hidden lg:table-cell text-body-muted text-sm">
+                                                {new Date(enrollment.earliest_enrollment_month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <StudentActions
+                                                    enrollment={enrollment}
+                                                    onEditFee={() => {
+                                                        setSelectedEnrollment(enrollment);
+                                                        setEditFeeModalOpen(true);
+                                                    }}
+                                                    onTransfer={() => {
+                                                        setSelectedEnrollment(enrollment);
+                                                        setTransferModalOpen(true);
+                                                    }}
+                                                    onDeactivate={() => {
+                                                        setSelectedEnrollment(enrollment);
+                                                        setDeactivateModalOpen(true);
+                                                    }}
+                                                    index={index}
+                                                    totalCount={filteredEnrollments.length}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
                 ) : (
                     <div className="text-center py-12">
                         <Users className="w-12 h-12 mx-auto mb-4 text-body-subtle" />
@@ -1095,10 +1200,10 @@ export default function BatchDetailPage() {
                 isOpen={transferModalOpen}
                 onClose={() => {
                     setTransferModalOpen(false);
-                    setSelectedStudents([]);
+                    setSelectedEnrollment(null);
                 }}
                 onTransfer={handleTransfer}
-                selectedStudents={selectedStudents}
+                selectedStudents={selectedEnrollment ? [selectedEnrollment.student.id] : []}
                 currentBatchId={batchId}
                 availableBatches={allBatches}
                 isTransferring={isTransferring}

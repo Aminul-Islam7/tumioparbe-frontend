@@ -4,7 +4,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { TouchHandler } from '@/components/providers/touch-handler';
-import { Toaster } from '@/components/ui/toaster';
+
 import Navbar from '@/components/shared/navbar';
 import { ClientLayout } from '@/components/providers/client-layout';
 import { AnimatedBlobs } from '@/components/ui/animated-blobs';
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                 <main className="flex-1">{children}</main>
                             </div>
                             <AnimatedBlobs />
-                            <Toaster />
+
                         </ClientLayout>
                     </TouchHandler>
                 </ThemeProvider>

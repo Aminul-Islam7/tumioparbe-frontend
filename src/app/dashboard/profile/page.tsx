@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
 import { userApi, authApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { Button } from '@/components/ui/button';
 import {
     User,
@@ -51,7 +51,7 @@ const ChangePasswordSchema = Yup.object().shape({
 export default function ProfilePage() {
     const router = useRouter();
     const { user, updateUser, logout } = useAuth(true);
-    const { showSuccess, showError } = useToast();
+
     const [savingParent, setSavingParent] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -70,10 +70,10 @@ export default function ProfilePage() {
             const response = await userApi.updateProfile(values);
             if (response.data.success && response.data.data) {
                 updateUser(response.data.data);
-                showSuccess('Success', 'Your profile has been updated.');
+
             }
         } catch (error) {
-            showError('Error', 'Failed to update profile. Please try again.');
+            console.error('Failed to update profile:', error);
         } finally {
             setSavingParent(false);
         }
@@ -92,7 +92,6 @@ export default function ProfilePage() {
                 values.confirmPassword
             );
             if (response.data.success) {
-                showSuccess('Success', 'Your password has been changed successfully.');
                 resetForm();
             }
         } catch (error: any) {
@@ -101,7 +100,7 @@ export default function ProfilePage() {
                 error.response?.data?.errors?.new_password?.[0] ||
                 error.response?.data?.message ||
                 'Failed to change password. Please try again.';
-            showError('Error', errorMessage);
+            console.error('Failed to change password:', errorMessage);
         } finally {
             setChangingPassword(false);
         }

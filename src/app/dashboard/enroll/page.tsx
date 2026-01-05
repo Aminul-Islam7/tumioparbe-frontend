@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { courseApi, userApi, enrollmentApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { Course, Batch, Student } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +33,7 @@ export default function EnrollmentPage() {
     const { user } = useAuth(true);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { showSuccess, showError } = useToast();
+
 
     const courseIdParam = searchParams.get('course');
     const studentIdParam = searchParams.get('student');
@@ -85,14 +85,15 @@ export default function EnrollmentPage() {
 
                 setAvailableMonths(months);
             } catch (error) {
-                showError('Error', 'Failed to load enrollment data. Please try again.');
+                console.error('Failed to load enrollment data:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [courseIdParam, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [courseIdParam]);
 
     // Get visible batches
     const getVisibleBatches = () => {
@@ -108,19 +109,14 @@ export default function EnrollmentPage() {
             if (response.data.valid) {
                 setCouponApplied(true);
                 setCouponDiscount(response.data.discount);
-                showSuccess(
-                    'Coupon Applied',
-                    `Discount of ${response.data.discount}% applied successfully.`
-                );
                 return true;
             } else {
                 setCouponApplied(false);
                 setCouponDiscount(0);
-                showError('Invalid Coupon', 'The coupon code is invalid or expired.');
                 return false;
             }
         } catch (error) {
-            showError('Error', 'Failed to validate coupon. Please try again.');
+            console.error('Failed to validate coupon:', error);
             return false;
         }
     };
@@ -180,10 +176,7 @@ export default function EnrollmentPage() {
                 });
 
                 if (paymentResponse.data) {
-                    showSuccess(
-                        'Enrollment Initiated',
-                        'You will now be redirected to complete payment.'
-                    );
+                    // Enrollment successful, redirect to payment
 
                     // Redirect to payment page or handle as needed
                     // This should be replaced with actual code to handle the payment gateway
@@ -194,7 +187,7 @@ export default function EnrollmentPage() {
                 }
             }
         } catch (error) {
-            showError('Error', 'Failed to complete enrollment. Please try again.');
+            console.error('Failed to complete enrollment:', error);
         } finally {
             setEnrolling(false);
         }
@@ -320,7 +313,7 @@ export default function EnrollmentPage() {
                                                     batch.tuition_fee !== course.monthly_fee && (
                                                 <div className="mt-1 text-sm text-body-muted flex items-center">
                                                             <Tag className="h-3.5 w-3.5 mr-1.5 text-tangerine-500" />
-                                                            Special Fee: ৳{batch.tuition_fee}/month
+                                                            Special Fee: ৳{Math.round(batch.tuition_fee)}/month
                                                         </div>
                                                     )}
                                             </label>
@@ -396,7 +389,7 @@ export default function EnrollmentPage() {
                                             <span>Admission Fee</span>
                                             <span>
                                                 ৳
-                                                {calculateFees(Number(values.batchId) || undefined).admissionFee.toLocaleString()}
+                                                {Math.round(calculateFees(Number(values.batchId) || undefined).admissionFee).toLocaleString()}
                                             </span>
                                         </div>
 
@@ -404,7 +397,7 @@ export default function EnrollmentPage() {
                                             <span>First Month Tuition</span>
                                             <span>
                                                 ৳
-                                                {calculateFees(Number(values.batchId) || undefined).tuitionFee.toLocaleString()}
+                                                {Math.round(calculateFees(Number(values.batchId) || undefined).tuitionFee).toLocaleString()}
                                             </span>
                                         </div>
 
@@ -419,7 +412,7 @@ export default function EnrollmentPage() {
                                             <span>Total Payable</span>
                                             <span className="text-primary">
                                                 ৳
-                                                {calculateFees(Number(values.batchId) || undefined).total.toLocaleString()}
+                                                {Math.round(calculateFees(Number(values.batchId) || undefined).total).toLocaleString()}
                                             </span>
                                         </div>
                                     </div>
@@ -476,14 +469,14 @@ export default function EnrollmentPage() {
                             <div className="flex justify-between">
                                 <span className="text-sm">Admission Fee</span>
                                 <span className="font-medium">
-                                    ৳{course.admission_fee.toLocaleString()}
+                                    ৳{Math.round(course.admission_fee).toLocaleString()}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-sm">Monthly Tuition Fee</span>
                                 <span className="font-medium">
-                                    ৳{course.monthly_fee.toLocaleString()}/month
+                                    ৳{Math.round(course.monthly_fee).toLocaleString()}/month
                                 </span>
                             </div>
 

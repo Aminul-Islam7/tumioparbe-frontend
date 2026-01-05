@@ -28,6 +28,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium', className }) => {
                 width={width}
                 height={height}
                 className="transition-transform duration-200 group-hover:scale-105"
+                priority
             />
             <div className="flex flex-col mt-2">
                 <span className="font-bold text-sm sm:text-base md:text-lg xl:text-xl leading-[1.1] transition-colors text-brand-400 group-hover:text-brand/90 font-bengali">

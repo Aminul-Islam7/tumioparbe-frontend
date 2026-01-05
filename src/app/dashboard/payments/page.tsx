@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { paymentApi } from '@/lib/api';
 import { Invoice, Payment } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ interface PaymentItem {
 
 export default function PaymentsPage() {
     const { user } = useAuth(true);
-    const { showSuccess, showError } = useToast();
+
 
     const [loading, setLoading] = useState(true);
     const [pendingInvoices, setPendingInvoices] = useState<Invoice[]>([]);
@@ -67,7 +67,7 @@ export default function PaymentsPage() {
             setPendingInvoices(invoices);
             setPaidPayments(payments);
         } catch (error) {
-            showError('Error', 'Failed to load payment data. Please try again.');
+            console.error('Failed to load payment data:', error);
         } finally {
             setLoading(false);
         }
@@ -186,7 +186,7 @@ export default function PaymentsPage() {
     // Handle single invoice payment
     const handlePayInvoice = async (invoiceId: number) => {
         if (!user?.phone) {
-            showError('Error', 'User phone number not available.');
+            console.error('User phone number not available');
             return;
         }
 
@@ -199,15 +199,13 @@ export default function PaymentsPage() {
             );
 
             if (response.data?.bkash_url) {
-                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
                 // Redirect to bKash payment page
                 window.location.href = response.data.bkash_url;
             } else {
-                showSuccess('Payment Initiated', 'Payment process started.');
                 await fetchData();
             }
         } catch (error) {
-            showError('Error', 'Failed to initiate payment. Please try again.');
+            console.error('Failed to initiate payment:', error);
         } finally {
             setProcessingPayment(false);
         }
@@ -216,12 +214,12 @@ export default function PaymentsPage() {
     // Handle bulk payment
     const handleBulkPayment = async () => {
         if (selectedInvoices.length === 0) {
-            showError('Error', 'Please select at least one invoice to pay.');
+            console.error('No invoices selected');
             return;
         }
 
         if (!user?.phone) {
-            showError('Error', 'User phone number not available.');
+            console.error('User phone number not available');
             return;
         }
 
@@ -234,18 +232,13 @@ export default function PaymentsPage() {
             );
 
             if (response.data?.bkash_url) {
-                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
                 window.location.href = response.data.bkash_url;
             } else {
-                showSuccess(
-                    'Payment Initiated',
-                    `Payment for ${selectedInvoices.length} invoice(s) has been initiated.`
-                );
                 setSelectedInvoices([]);
                 await fetchData();
             }
         } catch (error) {
-            showError('Error', 'Failed to initiate bulk payment. Please try again.');
+            console.error('Failed to initiate bulk payment:', error);
         } finally {
             setProcessingPayment(false);
         }
@@ -254,12 +247,12 @@ export default function PaymentsPage() {
     // Handle pay all
     const handlePayAll = async () => {
         if (pendingInvoices.length === 0) {
-            showError('Error', 'No pending invoices to pay.');
+            console.error('No pending invoices');
             return;
         }
 
         if (!user?.phone) {
-            showError('Error', 'User phone number not available.');
+            console.error('User phone number not available');
             return;
         }
 
@@ -273,18 +266,13 @@ export default function PaymentsPage() {
             );
 
             if (response.data?.bkash_url) {
-                showSuccess('Payment Initiated', 'Redirecting to payment gateway...');
                 window.location.href = response.data.bkash_url;
             } else {
-                showSuccess(
-                    'Payment Initiated',
-                    `Payment for all ${allIds.length} invoice(s) has been initiated.`
-                );
                 setSelectedInvoices([]);
                 await fetchData();
             }
         } catch (error) {
-            showError('Error', 'Failed to initiate payment. Please try again.');
+            console.error('Failed to initiate payment:', error);
         } finally {
             setProcessingPayment(false);
         }
@@ -320,7 +308,7 @@ export default function PaymentsPage() {
                         <div className="flex flex-wrap items-center justify-center md:justify-end gap-4">
                             <div className="bg-tangerine-50 dark:bg-tangerine-800/30 px-5 py-3 rounded-2xl border border-tangerine-200 dark:border-tangerine-800">
                                 <div className="text-xs text-center text-tangerine-600 dark:text-tangerine-400 font-medium">Total Due</div>
-                                <div className="text-2xl font-bold text-tangerine-700 dark:text-tangerine-300">৳{totalPending.toLocaleString()}</div>
+                                <div className="text-2xl font-bold text-tangerine-700 dark:text-tangerine-300">৳{Math.round(totalPending).toLocaleString()}</div>
                             </div>
 
                             <Button
@@ -336,7 +324,7 @@ export default function PaymentsPage() {
                                     )}
                                     <span className="font-semibold">Pay All</span>
                                 </div>
-                                <span className="text-sm font-medium">৳{totalPending.toLocaleString()}</span>
+                                <span className="text-sm font-medium">৳{Math.round(totalPending).toLocaleString()}</span>
                             </Button>
                         </div>
                     )}
@@ -347,7 +335,7 @@ export default function PaymentsPage() {
                     <div className="mt-5 pt-5 border-t border-tangerine-200 dark:border-tangerine-800 flex items-center justify-between">
                         <div className="text-sm text-heading">
                             <span className="font-bold text-primary">{selectedInvoices.length}</span> invoice(s)
-                            selected (৳{selectedTotal.toLocaleString()})
+                            selected (৳{Math.round(selectedTotal).toLocaleString()})
                         </div>
                         <Button
                             onClick={handleBulkPayment}
@@ -493,7 +481,7 @@ export default function PaymentsPage() {
 
                                     {/* Amount */}
                                     <div className="col-span-2 text-right font-medium">
-                                        ৳{item.amount.toLocaleString()}
+                                        ৳{Math.round(item.amount).toLocaleString()}
                                     </div>
 
                                     {/* Action */}
@@ -574,7 +562,7 @@ export default function PaymentsPage() {
                                         {/* Amount */}
                                         <div className="text-right shrink-0">
                                             <div className="font-bold text-lg text-heading">
-                                                ৳{item.amount.toLocaleString()}
+                                                ৳{Math.round(item.amount).toLocaleString()}
                                             </div>
                                             <div className="text-xs text-body-muted">
                                                 {item.monthDisplay}

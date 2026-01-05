@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { courseApi, enrollmentApi, userApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { Course, Batch, Student, Enrollment } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ export default function CoursesPage() {
     const { user } = useAuth(true);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { showSuccess, showError } = useToast();
+
 
     // Loading and error states
     const [isLoading, setIsLoading] = useState(true);
@@ -83,31 +83,40 @@ export default function CoursesPage() {
             setEnrollments(fetchedEnrollments);
 
             // Auto-select student based on URL query param or first student
-            if (fetchedStudents.length > 0 && !selectedStudentId) {
+            // Use functional update to avoid dependency on selectedStudentId
+            setSelectedStudentId((currentSelectedId) => {
+                // Only set if not already selected
+                if (currentSelectedId !== null) {
+                    return currentSelectedId;
+                }
+                
+                if (fetchedStudents.length === 0) {
+                    return null;
+                }
+                
                 // Check if there's a studentId in URL query parameters
-                const urlStudentId = searchParams.get('studentId');
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlStudentId = urlParams.get('studentId');
                 if (urlStudentId) {
                     const studentIdNum = parseInt(urlStudentId, 10);
                     // Check if this student exists in the fetched list
                     const studentExists = fetchedStudents.some((s) => s.id === studentIdNum);
                     if (studentExists) {
-                        setSelectedStudentId(studentIdNum);
-                    } else {
-                        // Fall back to first student if URL student not found
-                        setSelectedStudentId(fetchedStudents[0].id);
+                        return studentIdNum;
                     }
-                } else {
-                    // No URL param, select first student
-                    setSelectedStudentId(fetchedStudents[0].id);
                 }
-            }
+                
+                // Fall back to first student
+                return fetchedStudents[0].id;
+            });
         } catch (err) {
             setError('Failed to load data. Please try again.');
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    }, [selectedStudentId, searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Initial data fetch - only once when user is available
     useEffect(() => {
@@ -191,9 +200,9 @@ export default function CoursesPage() {
     const copyLink = async (link: string, label: string = 'Link') => {
         try {
             await navigator.clipboard.writeText(link);
-            showSuccess('Copied!', `${label} copied to clipboard`);
+            // Link copied successfully
         } catch (err) {
-            showError('Error', 'Failed to copy link');
+            console.error('Failed to copy link:', err);
         }
     };
 
@@ -351,12 +360,12 @@ export default function CoursesPage() {
                                         {!isEnrolled && (
                                             <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                                 <span>Admission Fee</span>
-                                                <span className="font-medium">৳{course.admission_fee}</span>
+                                                <span className="font-medium">৳{Math.round(course.admission_fee)}</span>
                                             </div>
                                         )}
                                         <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                             <span>Monthly Fee</span>
-                                            <span className="font-medium">৳{monthlyFee}</span>
+                                            <span className="font-medium">৳{Math.round(monthlyFee)}</span>
                                         </div>
                                         {!isEnrolled && (
                                             <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">

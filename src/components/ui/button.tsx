@@ -14,7 +14,7 @@ const buttonVariants = cva(
                 destructive:
                     'bg-error text-error-foreground shadow-button hover:bg-error-dark hover:shadow-button-hover rounded-button',
                 outline:
-                    'border-2 border-primary bg-transparent text-primary hover:bg-primary-100 rounded-button',
+                    'border-2 border-primary bg-transparent text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-button',
                 secondary:
                     'bg-secondary text-secondary-foreground shadow-sky hover:bg-secondary-dark hover:shadow-sky rounded-button',
                 ghost: 'hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-button',

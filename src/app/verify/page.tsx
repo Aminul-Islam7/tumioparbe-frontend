@@ -6,7 +6,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
 import { authApi, userApi } from '@/lib/api';
-import { useToast } from '@/hooks/useToast';
+
 import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForDisplay, getSmsRemainingTime, formatSmsRemainingTime } from '@/lib/sms';
 
@@ -18,7 +18,7 @@ export default function Verify() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { login } = useAuthStore();
-    const { showSuccess, showError } = useToast();
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [remainingTime, setRemainingTime] = useState(0);
@@ -125,10 +125,7 @@ export default function Verify() {
                     const registrationDataStr = sessionStorage.getItem('registrationData');
 
                     if (!registrationDataStr) {
-                        showError(
-                            'Registration Failed',
-                            'Registration data not found. Please try registering again.'
-                        );
+                        console.error('Registration data not found');
                         router.push('/register');
                         return;
                     }
@@ -152,35 +149,22 @@ export default function Verify() {
                             // Clear stored data
                             sessionStorage.removeItem('registrationData');
 
-                            showSuccess(
-                                'Registration Successful',
-                                'Your account has been created successfully.'
-                            );
-
                             // Redirect based on user role
                             const redirectPath = registerResponse.data.user?.is_admin ? '/admin/dashboard' : '/dashboard';
                             router.push(redirectPath);
                         }
                     } catch (registerError) {
                         console.error('Registration error:', registerError);
-                        showError(
-                            'Registration Failed',
-                            'There was a problem completing your registration.'
-                        );
                         router.push('/register');
                     }
                 } else if (action === 'login') {
                     // Handle login after OTP verification for password reset or other flows
-                    showSuccess('Verification Successful', '');
                     router.push('/login');
                 }
             }
         } catch (error) {
             console.error('Verification error:', error);
-            showError(
-                'Verification Failed',
-                'Invalid or expired verification code. Please try again.'
-            );
+            console.error('Verification failed:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -199,15 +183,9 @@ export default function Verify() {
                 const newExpiryTimestamp = Math.floor(Date.now() / 1000) + response.data.expires_in;
 
                 router.push(`/verify?phone=${phone}&action=${action}&expiry=${newExpiryTimestamp}`);
-
-                showSuccess('Code Resent', 'A new verification code has been sent to your phone.');
             }
         } catch (error) {
             console.error('OTP resend error:', error);
-            showError(
-                'Failed to Resend Code',
-                'There was a problem sending a new code. Please try again.'
-            );
         } finally {
             setIsResending(false);
         }

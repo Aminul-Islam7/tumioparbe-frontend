@@ -100,6 +100,7 @@ export default function Home() {
                                     alt="Students learning online"
                                     fill
                                     className="object-contain drop-shadow-2xl"
+                                    sizes="(max-width: 768px) 300px, (max-width: 1024px) 400px, 500px"
                                     priority
                                 />
                             </div>

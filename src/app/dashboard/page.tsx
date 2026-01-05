@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { paymentApi, userApi, enrollmentApi, courseApi } from '@/lib/api';
 import { Invoice, Student, Enrollment, Course } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ import {
 export default function DashboardPage() {
     const { user } = useAuth(true);
     const router = useRouter();
-    const { showError } = useToast();
+
 
     const [loading, setLoading] = useState(true);
     const [pendingInvoices, setPendingInvoices] = useState<Invoice[]>([]);
@@ -69,7 +69,7 @@ export default function DashboardPage() {
             setEnrollments(enrollmentsData);
             setCourses(coursesData);
         } catch (error) {
-            showError('Error', 'Failed to load dashboard data.');
+            console.error('Failed to load dashboard data:', error);
         } finally {
             setLoading(false);
         }
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <h3 className="text-2xl sm:text-3xl font-bold text-heading">
-                                ৳{totalDue.toLocaleString()}
+                                ৳{Math.round(totalDue).toLocaleString()}
                             </h3>
                             <p className="text-sm text-body-muted">Total Due</p>
                         </div>

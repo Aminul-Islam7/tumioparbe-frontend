@@ -90,7 +90,7 @@ export interface UpdateEnrollmentFeeData {
 export const adminApi = {
     // Dashboard Stats
     getStats: () =>
-        api.get<AdminStats>('/admin/stats/'),
+        api.get<AdminStats>('/common/reports/dashboard_stats/'),
 
     // Course Management
     getCourses: (params?: { is_active?: boolean }) =>

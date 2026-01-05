@@ -88,7 +88,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="p-6 bg-background rounded-lg shadow-sm border">
                     <h3 className="font-semibold mb-2">Total Due</h3>
-                    <p className="text-3xl font-bold">{loading ? '...' : `৳${stats.totalDue.toLocaleString()}`}</p>
+                    <p className="text-3xl font-bold">{loading ? '...' : `৳${Math.round(stats.totalDue).toLocaleString()}`}</p>
                     {stats.totalDue > 0 && (
                         <Button variant="default" size="sm" className="mt-4 bg-tp_red hover:bg-red-600" asChild>
                             <Link href="/dashboard/payments">
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                                             {/* This would require additional API calls to get course name */}
                                             Course #{enrollments.find((e) => e.id === invoice.enrollment)?.batch || 'Unknown'}
                                         </td>
-                                        <td className="p-2 text-right">৳{invoice.amount}</td>
+                                        <td className="p-2 text-right">৳{Math.round(invoice.amount)}</td>
                                         <td className="p-2 text-right">
                                             <Button
                                                 size="sm"

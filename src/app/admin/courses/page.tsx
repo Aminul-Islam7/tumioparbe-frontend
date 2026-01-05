@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
     BookOpen,
@@ -16,12 +16,15 @@ import {
     XCircle,
     Eye,
     EyeOff,
+    Lock,
+    Unlock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleSwitch } from '@/components/ui/toggle-switch';
 import { courseApi } from '@/lib/api';
 import { Course, Batch } from '@/types';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-toastify';
+
 import { adminApi } from '@/lib/adminApi';
 
 // Course Form Modal Component
@@ -147,18 +150,12 @@ function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting 
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="is_active"
-                            checked={formData.is_active}
-                            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                            className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                        />
-                        <label htmlFor="is_active" className="text-sm font-medium text-heading">
-                            Course is active
-                        </label>
-                    </div>
+                    <ToggleSwitch
+                        id="is_active"
+                        checked={formData.is_active}
+                        onChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                        label="Course is active"
+                    />
                     
                     <div className="flex gap-3 pt-4">
                         <Button
@@ -301,7 +298,7 @@ function BatchFormModal({ isOpen, onClose, onSubmit, initialData, courseId, isSu
                     
                     <div>
                         <label className="block text-sm font-medium text-heading mb-1">
-                            Group Link (WhatsApp/Telegram)
+                            Group Link
                         </label>
                         <input
                             type="url"
@@ -314,7 +311,7 @@ function BatchFormModal({ isOpen, onClose, onSubmit, initialData, courseId, isSu
                     
                     <div>
                         <label className="block text-sm font-medium text-heading mb-1">
-                            Class Link (Zoom/Meet)
+                            Class Link
                         </label>
                         <input
                             type="url"
@@ -326,18 +323,12 @@ function BatchFormModal({ isOpen, onClose, onSubmit, initialData, courseId, isSu
                     </div>
                     
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <input
-                                type="checkbox"
-                                id="use_course_fee"
-                                checked={useCourseFee}
-                                onChange={(e) => setUseCourseFee(e.target.checked)}
-                                className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                            />
-                            <label htmlFor="use_course_fee" className="text-sm font-medium text-heading">
-                                Use course-level tuition fee
-                            </label>
-                        </div>
+                        <ToggleSwitch
+                            id="use_course_fee"
+                            checked={useCourseFee}
+                            onChange={(checked) => setUseCourseFee(checked)}
+                            label="Use course-level tuition fee"
+                        />
                         
                         {!useCourseFee && (
                             <div>
@@ -357,17 +348,13 @@ function BatchFormModal({ isOpen, onClose, onSubmit, initialData, courseId, isSu
                         )}
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
+                    <div className="mt-4">
+                        <ToggleSwitch
                             id="is_visible"
                             checked={formData.is_visible}
-                            onChange={(e) => setFormData({ ...formData, is_visible: e.target.checked })}
-                            className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
+                            onChange={(checked) => setFormData({ ...formData, is_visible: checked })}
+                            label="Open for enrollment"
                         />
-                        <label htmlFor="is_visible" className="text-sm font-medium text-heading">
-                            Batch is visible to users
-                        </label>
                     </div>
                     
                     <div className="flex gap-3 pt-4">
@@ -407,13 +394,26 @@ function BatchFormModal({ isOpen, onClose, onSubmit, initialData, courseId, isSu
 interface DeleteModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: () => Promise<void>;
+    onConfirm?: () => Promise<void>;
     title: string;
     message: string;
     isDeleting: boolean;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    showConfirm?: boolean;
 }
 
-function DeleteModal({ isOpen, onClose, onConfirm, title, message, isDeleting }: DeleteModalProps) {
+function DeleteModal({ 
+    isOpen, 
+    onClose, 
+    onConfirm, 
+    title, 
+    message, 
+    isDeleting,
+    confirmLabel = 'Delete',
+    cancelLabel = 'Cancel',
+    showConfirm = true
+}: DeleteModalProps) {
     if (!isOpen) return null;
 
     return (
@@ -424,13 +424,19 @@ function DeleteModal({ isOpen, onClose, onConfirm, title, message, isDeleting }:
             />
             <div className="relative bg-card rounded-2xl shadow-xl max-w-sm w-full p-6 animate-scale-in">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
-                        <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    <div className={cn(
+                        "p-3 rounded-full",
+                        showConfirm ? "bg-red-100 dark:bg-red-900/30" : "bg-amber-100 dark:bg-amber-900/30"
+                    )}>
+                        <AlertCircle className={cn(
+                            "w-6 h-6",
+                            showConfirm ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"
+                        )} />
                     </div>
                     <h2 className="text-xl font-bold text-heading">{title}</h2>
                 </div>
                 
-                <p className="text-body-muted mb-6">{message}</p>
+                <p className="text-body-muted mb-6 whitespace-pre-line">{message}</p>
                 
                 <div className="flex gap-3">
                     <Button
@@ -440,24 +446,26 @@ function DeleteModal({ isOpen, onClose, onConfirm, title, message, isDeleting }:
                         className="flex-1"
                         disabled={isDeleting}
                     >
-                        Cancel
+                        {cancelLabel}
                     </Button>
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={onConfirm}
-                        className="flex-1"
-                        disabled={isDeleting}
-                    >
-                        {isDeleting ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Deleting...
-                            </>
-                        ) : (
-                            'Delete'
-                        )}
-                    </Button>
+                    {showConfirm && onConfirm && (
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={onConfirm}
+                            className="flex-1"
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                confirmLabel
+                            )}
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
@@ -467,213 +475,227 @@ function DeleteModal({ isOpen, onClose, onConfirm, title, message, isDeleting }:
 // Course Card Component
 interface CourseCardProps {
     course: Course;
-    isExpanded: boolean;
-    onToggle: () => void;
     onEdit: () => void;
     onDelete: () => void;
     onAddBatch: () => void;
     onEditBatch: (batch: Batch) => void;
     onDeleteBatch: (batch: Batch) => void;
+    onRefresh: () => void;
 }
 
 function CourseCard({ 
     course, 
-    isExpanded, 
-    onToggle, 
     onEdit, 
     onDelete,
     onAddBatch,
     onEditBatch,
     onDeleteBatch,
+    onRefresh,
 }: CourseCardProps) {
     const totalStudents = course.batches?.reduce((sum, b) => sum + (b.student_count || 0), 0) || 0;
     
+    // Sort batches by name, then by timing
+    const sortedBatches = useMemo(() => {
+        if (!course.batches) return [];
+        return [...course.batches].sort((a, b) => {
+            const nameCompare = a.name.localeCompare(b.name);
+            if (nameCompare !== 0) return nameCompare;
+            return a.timing.localeCompare(b.timing);
+        });
+    }, [course.batches]);
+    
+    // Toggle batch enrollment status
+    const handleToggleBatchEnrollment = async (batch: Batch) => {
+        try {
+            await adminApi.updateBatch(batch.id, {
+                ...batch,
+                is_visible: !batch.is_visible,
+            });
+            onRefresh();
+        } catch (err: any) {
+            console.error('Error toggling enrollment:', err);
+        }
+    };
+    
     return (
         <div className={cn(
-            'bg-card rounded-2xl border shadow-sm transition-all duration-300',
+            'bg-card rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden',
             course.is_active 
-                ? 'border-secondary-200 dark:border-secondary-800' 
+                ? 'border-neutral-200 dark:border-neutral-700' 
                 : 'border-neutral-200 dark:border-neutral-700 opacity-75'
         )}>
-            {/* Course Header */}
-            <div 
-                className="p-5 cursor-pointer"
-                onClick={onToggle}
-            >
-                <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <div className={cn(
-                            'p-3 rounded-xl shrink-0',
-                            course.is_active 
-                                ? 'bg-secondary-100 dark:bg-secondary-900/30' 
-                                : 'bg-neutral-100 dark:bg-neutral-800'
-                        )}>
-                            <BookOpen className={cn(
-                                'w-6 h-6',
+            <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-default">
+                {/* Left Side: Course Info */}
+                <div className="p-5">
+                    {/* Header with title and actions */}
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                        <div className="flex items-start gap-3">
+                            <div className={cn(
+                                'p-2.5 rounded-xl shrink-0',
                                 course.is_active 
-                                    ? 'text-secondary' 
-                                    : 'text-neutral-500'
-                            )} />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-lg font-bold text-heading truncate">
-                                    {course.name}
-                                </h3>
-                                {!course.is_active && (
-                                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400">
-                                        Inactive
-                                    </span>
+                                    ? 'bg-secondary-100 dark:bg-secondary-900/40' 
+                                    : 'bg-neutral-100 dark:bg-neutral-800'
+                            )}>
+                                <BookOpen className={cn(
+                                    'w-5 h-5',
+                                    course.is_active 
+                                        ? 'text-secondary' 
+                                        : 'text-neutral-500'
+                                )} />
+                            </div>
+                            
+                            <div>
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <h3 className="text-lg font-bold text-heading">
+                                        {course.name}
+                                    </h3>
+                                    {!course.is_active && (
+                                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400">
+                                            Inactive
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {course.description && (
+                                    <p className="text-sm text-body-muted line-clamp-2">
+                                        {course.description}
+                                    </p>
                                 )}
                             </div>
-                            
-                            {course.description && (
-                                <p className="text-sm text-body-muted line-clamp-1 mb-2">
-                                    {course.description}
-                                </p>
-                            )}
-                            
-                            <div className="flex flex-wrap items-center gap-3 text-sm text-body-muted">
-                                <span className="flex items-center gap-1.5">
-                                    <Users className="w-4 h-4" />
-                                    {totalStudents} students
-                                </span>
-                                <span>•</span>
-                                <span>{course.batches?.length || 0} batches</span>
-                                <span>•</span>
-                                <span>৳{course.admission_fee} admission</span>
-                                <span>•</span>
-                                <span>৳{course.monthly_fee}/month</span>
-                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                            <button
+                                onClick={onEdit}
+                                className="p-2 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-900/30 text-body-muted hover:text-secondary transition-colors"
+                                title="Edit course"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={onDelete}
+                                className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-body-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                title="Delete course"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 shrink-0">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit();
-                            }}
-                            className="p-2 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-900/30 text-body-muted hover:text-secondary transition-colors"
-                            title="Edit course"
-                        >
-                            <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete();
-                            }}
-                            className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-body-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                            title="Delete course"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                        <div className={cn(
-                            'p-1 rounded-lg transition-transform duration-300',
-                            isExpanded && 'rotate-180'
-                        )}>
-                            <ChevronDown className="w-5 h-5 text-body-muted" />
+                    {/* Stats grid - neutral colors */}
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                            <p className="text-xs text-body-muted mb-0.5">Admission Fee</p>
+                            <p className="font-semibold text-heading">৳{Math.round(course.admission_fee)}</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                            <p className="text-xs text-body-muted mb-0.5">Monthly Fee</p>
+                            <p className="font-semibold text-heading">৳{Math.round(course.monthly_fee)}</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                            <p className="text-xs text-body-muted mb-0.5">Students</p>
+                            <p className="font-semibold text-heading flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-body-muted" />
+                                {totalStudents}
+                            </p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                            <p className="text-xs text-body-muted mb-0.5">Batches</p>
+                            <p className="font-semibold text-heading">{course.batches?.length || 0}</p>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            {/* Batches Section */}
-            {isExpanded && (
-                <div className="border-t border-default p-4 bg-neutral-50/50 dark:bg-neutral-900/20 rounded-b-2xl">
-                    <div className="flex items-center justify-between mb-3">
+
+                {/* Right Side: Batches List */}
+                <div className="flex flex-col bg-neutral-50/50 dark:bg-neutral-900/20">
+                    <div className="p-3 border-b border-default flex items-center justify-between bg-card">
                         <h4 className="font-semibold text-heading text-sm">Batches</h4>
                         <Button
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={onAddBatch}
-                            className="text-secondary hover:text-secondary-dark"
+                            className="h-7 px-3 text-xs"
                         >
-                            <Plus className="w-4 h-4 mr-1" />
+                            <Plus className="w-3.5 h-3.5 mr-1" />
                             Add Batch
                         </Button>
                     </div>
-                    
-                    {course.batches && course.batches.length > 0 ? (
-                        <div className="space-y-2">
-                            {course.batches.map((batch) => (
-                                <div
-                                    key={batch.id}
-                                    className={cn(
-                                        'flex items-center justify-between p-3 rounded-xl border transition-colors',
-                                        batch.is_visible
-                                            ? 'bg-card border-lavender-200 dark:border-lavender-800'
-                                            : 'bg-neutral-50 dark:bg-neutral-800/50 border-neutral-200 dark:border-neutral-700 opacity-75'
-                                    )}
-                                >
-                                    <Link
-                                        href={`/admin/courses/${course.id}/batches/${batch.id}`}
-                                        className="flex-1 min-w-0 group"
+
+                    <div className="flex-1 overflow-y-auto max-h-[220px] p-2 custom-scrollbar">
+                        {sortedBatches.length > 0 ? (
+                            <div className="space-y-1.5">
+                                {sortedBatches.map((batch) => (
+                                    <div
+                                        key={batch.id}
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-card border border-neutral-200 dark:border-neutral-700 hover:border-primary/30 dark:hover:border-primary/30 hover:shadow-sm transition-all group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn(
-                                                'flex items-center gap-1.5',
-                                                !batch.is_visible && 'text-body-muted'
-                                            )}>
-                                                {batch.is_visible ? (
-                                                    <Eye className="w-4 h-4 text-lavender-500" />
-                                                ) : (
-                                                    <EyeOff className="w-4 h-4 text-neutral-400" />
-                                                )}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-heading group-hover:text-secondary transition-colors truncate">
-                                                        {batch.name}
+                                        <Link
+                                            href={`/admin/courses/${course.id}/batches/${batch.id}`}
+                                            className="flex-1 min-w-0 mr-2"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {!batch.is_visible && (
+                                                    <span title="Closed for enrollment" className="flex items-center">
+                                                        <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                                                     </span>
-                                                    <ChevronRight className="w-4 h-4 text-body-subtle opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                                <p className="text-xs text-body-muted truncate">
-                                                    {batch.timing} • {batch.student_count || 0} students
-                                                    {batch.tuition_fee && ` • ৳${batch.tuition_fee}/month`}
-                                                </p>
+                                                )}
+                                                <span className="font-medium text-heading group-hover:text-primary transition-colors truncate text-sm">
+                                                    {batch.name}
+                                                </span>
                                             </div>
+                                            <p className="text-xs text-body-muted truncate mt-0.5">
+                                                {batch.timing} • {batch.student_count || 0} students
+                                            </p>
+                                        </Link>
+                                        
+                                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                            <button
+                                                onClick={() => handleToggleBatchEnrollment(batch)}
+                                                className={cn(
+                                                    'p-1.5 rounded-lg transition-colors',
+                                                    batch.is_visible
+                                                        ? 'hover:bg-amber-100 dark:hover:bg-amber-900/30 text-body-muted hover:text-amber-600'
+                                                        : 'hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-body-muted hover:text-emerald-600'
+                                                )}
+                                                title={batch.is_visible ? 'Close enrollment' : 'Open enrollment'}
+                                            >
+                                                {batch.is_visible ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                            </button>
+                                            <button
+                                                onClick={() => onEditBatch(batch)}
+                                                className="p-1.5 rounded-lg hover:bg-lavender-100 dark:hover:bg-lavender-900/30 text-body-muted hover:text-lavender-600 dark:hover:text-lavender-400 transition-colors"
+                                                title="Edit batch"
+                                            >
+                                                <Edit2 className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                                onClick={() => onDeleteBatch(batch)}
+                                                className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-body-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                                title="Delete batch"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
                                         </div>
-                                    </Link>
-                                    
-                                    <div className="flex items-center gap-1 ml-2 shrink-0">
-                                        <button
-                                            onClick={() => onEditBatch(batch)}
-                                            className="p-1.5 rounded-lg hover:bg-lavender-100 dark:hover:bg-lavender-900/30 text-body-muted hover:text-lavender-600 dark:hover:text-lavender-400 transition-colors"
-                                            title="Edit batch"
-                                        >
-                                            <Edit2 className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                            onClick={() => onDeleteBatch(batch)}
-                                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-body-muted hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                                            title="Delete batch"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-6 text-body-muted">
-                            <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No batches yet</p>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={onAddBatch}
-                                className="mt-2 text-secondary"
-                            >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add your first batch
-                            </Button>
-                        </div>
-                    )}
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full py-6 text-body-muted">
+                                <BookOpen className="w-7 h-7 mb-2 opacity-20" />
+                                <p className="text-sm">No batches yet</p>
+                                <Button
+                                    size="sm"
+                                    variant="link"
+                                    onClick={onAddBatch}
+                                    className="text-secondary mt-1 h-auto p-0 text-xs"
+                                >
+                                    Create one
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
@@ -682,7 +704,6 @@ function CourseCard({
 export default function AdminCoursesPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedCourses, setExpandedCourses] = useState<Set<number>>(new Set());
     
     // Course Modal State
     const [courseModalOpen, setCourseModalOpen] = useState(false);
@@ -697,7 +718,13 @@ export default function AdminCoursesPage() {
     
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deletingItem, setDeletingItem] = useState<{ type: 'course' | 'batch'; id: number; name: string } | null>(null);
+    const [deletingItem, setDeletingItem] = useState<{ 
+        type: 'course' | 'batch'; 
+        id: number; 
+        name: string;
+        studentCount?: number;
+        batchCount?: number;
+    } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchCourses = useCallback(async () => {
@@ -709,7 +736,6 @@ export default function AdminCoursesPage() {
             setCourses(Array.isArray(coursesData) ? coursesData : []);
         } catch (err: any) {
             console.error('Error fetching courses:', err);
-            toast.error('Failed to load courses');
         } finally {
             setLoading(false);
         }
@@ -719,17 +745,7 @@ export default function AdminCoursesPage() {
         fetchCourses();
     }, [fetchCourses]);
 
-    const toggleCourse = (courseId: number) => {
-        setExpandedCourses(prev => {
-            const next = new Set(prev);
-            if (next.has(courseId)) {
-                next.delete(courseId);
-            } else {
-                next.add(courseId);
-            }
-            return next;
-        });
-    };
+
 
     // Course CRUD handlers
     const handleAddCourse = () => {
@@ -743,7 +759,12 @@ export default function AdminCoursesPage() {
     };
 
     const handleDeleteCourse = (course: Course) => {
-        setDeletingItem({ type: 'course', id: course.id, name: course.name });
+        setDeletingItem({ 
+            type: 'course', 
+            id: course.id, 
+            name: course.name,
+            batchCount: course.batches?.length || 0
+        });
         setDeleteModalOpen(true);
     };
 
@@ -752,16 +773,13 @@ export default function AdminCoursesPage() {
             setIsSavingCourse(true);
             if (editingCourse) {
                 await adminApi.updateCourse(editingCourse.id, data);
-                toast.success('Course updated successfully');
             } else {
                 await adminApi.createCourse(data);
-                toast.success('Course created successfully');
             }
             setCourseModalOpen(false);
             fetchCourses();
         } catch (err: any) {
             console.error('Error saving course:', err);
-            toast.error(err.response?.data?.detail || 'Failed to save course');
         } finally {
             setIsSavingCourse(false);
         }
@@ -781,7 +799,12 @@ export default function AdminCoursesPage() {
     };
 
     const handleDeleteBatch = (batch: Batch) => {
-        setDeletingItem({ type: 'batch', id: batch.id, name: batch.name });
+        setDeletingItem({ 
+            type: 'batch', 
+            id: batch.id, 
+            name: batch.name,
+            studentCount: batch.student_count || 0
+        });
         setDeleteModalOpen(true);
     };
 
@@ -792,19 +815,16 @@ export default function AdminCoursesPage() {
             setIsSavingBatch(true);
             if (editingBatch) {
                 await adminApi.updateBatch(editingBatch.id, data);
-                toast.success('Batch updated successfully');
             } else {
                 await adminApi.createBatch({
                     ...data,
                     course: selectedCourseId,
                 });
-                toast.success('Batch created successfully');
             }
             setBatchModalOpen(false);
             fetchCourses();
         } catch (err: any) {
             console.error('Error saving batch:', err);
-            toast.error(err.response?.data?.detail || 'Failed to save batch');
         } finally {
             setIsSavingBatch(false);
         }
@@ -817,26 +837,15 @@ export default function AdminCoursesPage() {
         try {
             setIsDeleting(true);
             if (deletingItem.type === 'course') {
-                const response = await adminApi.deleteCourse(deletingItem.id);
-                if (response.data?.message) {
-                    toast.info(response.data.message);
-                } else {
-                    toast.success('Course deleted successfully');
-                }
+                await adminApi.deleteCourse(deletingItem.id);
             } else {
-                const response = await adminApi.deleteBatch(deletingItem.id);
-                if (response.data?.message) {
-                    toast.info(response.data.message);
-                } else {
-                    toast.success('Batch deleted successfully');
-                }
+                await adminApi.deleteBatch(deletingItem.id);
             }
             setDeleteModalOpen(false);
             setDeletingItem(null);
             fetchCourses();
         } catch (err: any) {
             console.error('Error deleting:', err);
-            toast.error(err.response?.data?.detail || `Failed to delete ${deletingItem.type}`);
         } finally {
             setIsDeleting(false);
         }
@@ -853,14 +862,6 @@ export default function AdminCoursesPage() {
 
     return (
         <div className="space-y-6">
-            {/* Add Course Button */}
-            <div className="flex justify-end">
-                <Button onClick={handleAddCourse}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Course
-                </Button>
-            </div>
-
             {/* Courses List */}
             {courses.length > 0 ? (
                 <div className="space-y-4">
@@ -868,13 +869,12 @@ export default function AdminCoursesPage() {
                         <CourseCard
                             key={course.id}
                             course={course}
-                            isExpanded={expandedCourses.has(course.id)}
-                            onToggle={() => toggleCourse(course.id)}
                             onEdit={() => handleEditCourse(course)}
                             onDelete={() => handleDeleteCourse(course)}
                             onAddBatch={() => handleAddBatch(course.id)}
                             onEditBatch={(batch) => handleEditBatch(batch, course.id)}
                             onDeleteBatch={handleDeleteBatch}
+                            onRefresh={fetchCourses}
                         />
                     ))}
                 </div>
@@ -887,12 +887,28 @@ export default function AdminCoursesPage() {
                     <p className="text-body-muted mb-4">
                         Create your first course to get started
                     </p>
-                    <Button onClick={handleAddCourse}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Course
-                    </Button>
                 </div>
             )}
+
+            {/* Big Add Course Button */}
+            <button
+                onClick={handleAddCourse}
+                className="w-full p-6 bg-card border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl hover:border-secondary hover:bg-secondary-50/50 dark:hover:bg-secondary-900/20 transition-all duration-200 group"
+            >
+                <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 rounded-full bg-secondary-100 dark:bg-secondary-900/40 group-hover:bg-secondary-200 dark:group-hover:bg-secondary-900/60 transition-colors">
+                        <Plus className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div className="text-center">
+                        <p className="text-lg font-semibold text-heading group-hover:text-secondary transition-colors">
+                            Add New Course
+                        </p>
+                        <p className="text-sm text-body-muted">
+                            Create a new course with batches for students
+                        </p>
+                    </div>
+                </div>
+            </button>
 
             {/* Modals */}
             <CourseFormModal
@@ -914,20 +930,67 @@ export default function AdminCoursesPage() {
                 />
             )}
 
-            <DeleteModal
-                isOpen={deleteModalOpen}
-                onClose={() => {
-                    setDeleteModalOpen(false);
-                    setDeletingItem(null);
-                }}
-                onConfirm={handleConfirmDelete}
-                title={`Delete ${deletingItem?.type === 'course' ? 'Course' : 'Batch'}`}
-                message={deletingItem?.type === 'course'
-                    ? `Are you sure you want to delete "${deletingItem?.name}"? If there are enrolled students, the course will be marked as inactive instead.`
-                    : `Are you sure you want to delete "${deletingItem?.name}"? If there are enrolled students, the batch will be marked as hidden instead.`
+            {deletingItem && (() => {
+                let modalProps = {
+                    title: '',
+                    message: '',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel',
+                    showConfirm: true
+                };
+
+                if (deletingItem.type === 'batch') {
+                    if ((deletingItem.studentCount || 0) > 0) {
+                        modalProps = {
+                            title: 'Cannot Delete Batch',
+                            message: `There are ${deletingItem.studentCount} student(s) enrolled in this batch.\n\nYou need to deactivate the students or move them to another batch before deleting.`,
+                            confirmLabel: '',
+                            cancelLabel: 'Close',
+                            showConfirm: false
+                        };
+                    } else {
+                        modalProps = {
+                            title: 'Delete Batch',
+                            message: `Are you sure you want to delete batch "${deletingItem.name}"? This action cannot be undone.`,
+                            confirmLabel: 'Delete Batch',
+                            cancelLabel: 'Cancel',
+                            showConfirm: true
+                        };
+                    }
+                } else {
+                    // Course
+                    if ((deletingItem.batchCount || 0) > 0) {
+                        modalProps = {
+                            title: 'Inactivate Course',
+                            message: `This course has ${deletingItem.batchCount} batch(es). The course will be marked as inactive instead of being permanently deleted.`,
+                            confirmLabel: 'Inactivate Course',
+                            cancelLabel: 'Cancel',
+                            showConfirm: true
+                        };
+                    } else {
+                        modalProps = {
+                            title: 'Delete Course',
+                            message: `Are you sure you want to delete course "${deletingItem.name}"? This action cannot be undone.`,
+                            confirmLabel: 'Delete Course',
+                            cancelLabel: 'Cancel',
+                            showConfirm: true
+                        };
+                    }
                 }
-                isDeleting={isDeleting}
-            />
+
+                return (
+                    <DeleteModal
+                        isOpen={deleteModalOpen}
+                        onClose={() => {
+                            setDeleteModalOpen(false);
+                            setDeletingItem(null);
+                        }}
+                        onConfirm={handleConfirmDelete}
+                        isDeleting={isDeleting}
+                        {...modalProps}
+                    />
+                );
+            })()}
         </div>
     );
 }

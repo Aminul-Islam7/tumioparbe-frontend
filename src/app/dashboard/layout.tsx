@@ -233,7 +233,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             alt="Tumio Parbe"
                             fill
                             className="object-contain object-left"
-                            priority
+                            sizes="40px"
                         />
                     </div>
                     <span className="font-bold text-lg text-heading">তুমিও পারবে</span>
@@ -334,7 +334,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                         alt="Tumio Parbe"
                                         fill
                                         className="object-contain"
-                                        priority
+                                        sizes="32px"
                                     />
                                 </div>
                             </Link>

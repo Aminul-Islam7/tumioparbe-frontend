@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { userApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
+
 import { Student } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,7 @@ const StudentSchema = Yup.object().shape({
 
 export default function StudentsPage() {
     const { user } = useAuth(true);
-    const { showSuccess, showError } = useToast();
+
 
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
@@ -65,7 +65,6 @@ export default function StudentsPage() {
                     setStudents(fetchedStudents);
                 } catch (error) {
                     setApiError('Unable to connect to the server');
-                    showError('Error', 'Failed to load student data. Please try again.');
                 } finally {
                     setLoading(false);
                 }
@@ -90,7 +89,7 @@ export default function StudentsPage() {
                             student.id === selectedStudentId ? response.data : student
                         )
                     );
-                    showSuccess('Success', 'Student information updated.');
+
                     setSelectedStudentId(null);
                     setIsAddingStudent(false);
                 }
@@ -99,13 +98,13 @@ export default function StudentsPage() {
                 const response = await userApi.addStudent(values);
                 if (response.data) {
                     setStudents((prev) => [...prev, response.data]);
-                    showSuccess('Success', 'New student added successfully.');
+
                     resetForm();
                     setIsAddingStudent(false);
                 }
             }
         } catch (error) {
-            showError('Error', 'Failed to save student information. Please try again.');
+            console.error('Failed to save student information:', error);
         } finally {
             setSavingStudent(false);
         }

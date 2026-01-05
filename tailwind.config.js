@@ -243,7 +243,7 @@ module.exports = {
                     foreground: 'hsl(var(--accent-foreground))',
                 },
                 border: 'var(--border-default)',
-                input: 'var(--input-border)',
+                input: 'var(--bg-card)',
                 ring: 'hsl(var(--ring))',
 
                 /* Dashboard Card Colors */

@@ -201,11 +201,11 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
     const pageInfo: Record<string, { title: string }> = {
         '/admin/dashboard': { title: 'Overview' },
-        '/admin/courses': { title: 'Course Management' },
+        '/admin/courses': { title: 'Courses' },
         '/admin/students': { title: 'Students' },
         '/admin/users': { title: 'Users' },
-        '/admin/payments': { title: 'Payment History' },
-        '/admin/coupons': { title: 'Coupon Management' },
+        '/admin/payments': { title: 'Payments' },
+        '/admin/coupons': { title: 'Coupons' },
         '/admin/enrollments': { title: 'Enrollments' },
         '/admin/invoices': { title: 'Invoices' },
         '/admin/activity': { title: 'Activity Log' },
@@ -213,6 +213,11 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
     // Get page info, handle dynamic routes
     const getPageInfo = () => {
+        // Specific check for batch pages
+        if (pathname.includes('/batches/')) {
+            return { title: 'Batch' };
+        }
+
         // Exact match first
         if (pageInfo[pathname]) {
             return pageInfo[pathname];
@@ -308,7 +313,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     // Sidebar content (shared between desktop and mobile)
     const SidebarContent = () => (
         <>
-            <div className="py-[14px] px-4 border-b border-default">
+            <div className="p-5 border-b border-default">
                 <Link href="/admin/dashboard" className="flex items-center gap-3 cursor-pointer group" onClick={closeMobileSidebar}>
                     <div className="relative w-10 h-10 group-hover:scale-105 transition-transform shrink-0">
                         <Image
@@ -316,7 +321,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
                             alt="Tumio Parbe"
                             fill
                             className="object-contain object-left"
-                            priority
+                            sizes="40px"
                         />
                     </div>
                     <div className="flex flex-col">
@@ -420,7 +425,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
                                         alt="Tumio Parbe"
                                         fill
                                         className="object-contain"
-                                        priority
+                                        sizes="32px"
                                     />
                                 </div>
                             </Link>
