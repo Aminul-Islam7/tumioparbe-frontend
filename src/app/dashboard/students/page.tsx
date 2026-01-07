@@ -303,8 +303,8 @@ export default function StudentsPage() {
                                                 : '',
                                             school: getSelectedStudent()?.school || '',
                                             current_class: getSelectedStudent()?.current_class || '',
-                                            father_name: getSelectedStudent()?.father_name || '',
-                                            mother_name: getSelectedStudent()?.mother_name || '',
+                                            father_name: getSelectedStudent()?.father_name || (students.length > 0 ? students[0].father_name : ''),
+                                            mother_name: getSelectedStudent()?.mother_name || (students.length > 0 ? students[0].mother_name : ''),
                                         }}
                                         validationSchema={StudentSchema}
                                         onSubmit={handleSaveStudent}
