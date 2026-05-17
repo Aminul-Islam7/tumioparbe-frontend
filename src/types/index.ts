@@ -6,6 +6,7 @@ export interface User {
     facebook_profile: string;
     email?: string;
     is_admin: boolean;
+    date_joined?: string;
 }
 
 export interface Student {

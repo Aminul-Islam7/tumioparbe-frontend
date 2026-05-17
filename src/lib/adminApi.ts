@@ -151,21 +151,33 @@ export const adminApi = {
         api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, { is_active: false }),
 
     // Student Management
-    getAllStudents: (params?: { search?: string; batch?: number }) =>
+    getAllStudents: (params?: { search?: string; batch?: number; parent?: number }) =>
         api.get<PaginatedResponse<Student & { parent_name: string; parent_phone: string }>>('/accounts/students/', { params }),
 
     getStudent: (id: number) =>
         api.get<Student>(`/accounts/students/${id}/`),
 
     // Parent/User Management
+    getAllUsers: (params?: { search?: string }) =>
+        api.get<PaginatedResponse<User>>('/accounts/users/', { params }),
+
     getAllParents: (params?: { search?: string }) =>
         api.get<PaginatedResponse<User>>('/accounts/parents/', { params }),
 
-    getAllAdmins: () =>
-        api.get<PaginatedResponse<User>>('/accounts/admins/'),
+    getAllAdmins: (params?: { search?: string }) =>
+        api.get<PaginatedResponse<User>>('/accounts/admins/', { params }),
 
     getUser: (id: number) =>
         api.get<User>(`/accounts/users/${id}/`),
+
+    updateUser: (id: number, data: Partial<User>) =>
+        api.patch<User>(`/accounts/users/${id}/`, data),
+
+    grantAdmin: (id: number, password: string) =>
+        api.post<{ success: boolean; message: string; user: User }>(`/accounts/users/${id}/grant_admin/`, { password }),
+
+    revokeAdmin: (id: number, password: string) =>
+        api.post<{ success: boolean; message: string; user: User }>(`/accounts/users/${id}/revoke_admin/`, { password }),
 
     // Coupon Management
     getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
