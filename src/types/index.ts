@@ -111,8 +111,11 @@ export interface Payment {
     updated_at?: string;
     // Enriched fields from API
     student_name?: string;
+    student_id?: number;
     course_name?: string;
+    course_id?: number;
     batch_name?: string;
+    batch_id?: number;
     month?: string;
 }
 

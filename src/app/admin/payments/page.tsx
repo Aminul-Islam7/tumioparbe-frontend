@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { 
     CreditCard, 
     RefreshCw, 
@@ -30,6 +31,24 @@ const formatDate = (dateString: string) => {
         month: 'short', 
         year: 'numeric',
     }) + ', ' + date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
+const formatDateOnly = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric',
+    });
+};
+
+const formatTimeOnly = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
@@ -299,14 +318,14 @@ export default function AdminPaymentsPage() {
             case 'Completed':
                 return (
                     <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30">
-                        <CheckCircle className="w-3 h-3" />
+                        <CheckCircle className="w-3 h-3 shrink-0" />
                         Completed
                     </span>
                 );
             case 'Failed':
                 return (
                     <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30">
-                        <XCircle className="w-3 h-3" />
+                        <XCircle className="w-3 h-3 shrink-0" />
                         Failed
                     </span>
                 );
@@ -314,14 +333,14 @@ export default function AdminPaymentsPage() {
             case 'Pending':
                 return (
                     <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30">
-                        <Clock className="w-3 h-3" />
+                        <Clock className="w-3 h-3 shrink-0" />
                         {status}
                     </span>
                 );
             case 'Cancelled':
                 return (
                     <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-gray-500/20 text-gray-700 dark:text-gray-400 border border-gray-500/30">
-                        <XCircle className="w-3 h-3" />
+                        <XCircle className="w-3 h-3 shrink-0" />
                         Cancelled
                     </span>
                 );
@@ -403,18 +422,18 @@ export default function AdminPaymentsPage() {
                     </div>
 
                     {/* Status Filter */}
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-default rounded-lg bg-surface text-heading hover:bg-surface-hover"
+                            className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2 px-4 py-2 border border-default rounded-lg bg-surface text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         >
-                            <Filter className="w-4 h-4" />
-                            Status: {statusFilter === 'all' ? 'All' : statusFilter}
-                            <ChevronDown className="w-4 h-4" />
+                            <Filter className="w-4 h-4 shrink-0" />
+                            <span className="flex-1 text-left sm:flex-initial">Status: {statusFilter === 'all' ? 'All' : statusFilter}</span>
+                            <ChevronDown className="w-4 h-4 shrink-0" />
                         </button>
                         
                         {showFilters && (
-                            <div className="absolute right-0 mt-2 w-48 bg-card border border-default rounded-lg shadow-lg z-10">
+                            <div className="absolute left-0 sm:left-auto right-0 mt-2 w-full sm:w-48 bg-card border border-default rounded-lg shadow-lg z-10">
                                 {['all', 'Completed', 'Initiated', 'Failed', 'Cancelled'].map((status) => (
                                     <button
                                         key={status}
@@ -422,9 +441,9 @@ export default function AdminPaymentsPage() {
                                             setStatusFilter(status);
                                             setShowFilters(false);
                                         }}
-                                        className={`w-full text-left px-4 py-2 hover:bg-surface-hover first:rounded-t-lg last:rounded-b-lg ${
+                                        className={`w-full text-left px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800/60 transition-colors first:rounded-t-lg last:rounded-b-lg ${
                                             statusFilter === status 
-                                                ? 'bg-accent text-white font-medium' 
+                                                ? 'bg-accent text-accent-foreground font-semibold' 
                                                 : 'text-heading'
                                         }`}
                                     >
@@ -435,15 +454,7 @@ export default function AdminPaymentsPage() {
                         )}
                     </div>
 
-                    {/* Refresh */}
-                    <button
-                        onClick={fetchPayments}
-                        disabled={loading}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-default rounded-lg bg-surface text-heading hover:bg-surface-hover"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                        <span className="hidden sm:inline">Refresh</span>
-                    </button>
+
                 </div>
 
                 {/* Bulk Actions */}
@@ -455,7 +466,7 @@ export default function AdminPaymentsPage() {
                         <button
                             onClick={recoverSelectedPayments}
                             disabled={recovering}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:opacity-90 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-secondary hover:bg-secondary-dark rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
                         >
                             {recovering ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -554,11 +565,11 @@ export default function AdminPaymentsPage() {
                                             {payment.student_name || payment.course_name ? (
                                                 <div>
                                                     <p className="text-sm font-medium text-heading flex items-center gap-1">
-                                                        <User className="w-3 h-3" />
+                                                        <User className="w-3 h-3 shrink-0" />
                                                         {payment.student_name || 'Unknown'}
                                                     </p>
                                                     <p className="text-xs text-body-muted flex items-center gap-1 mt-0.5">
-                                                        <BookOpen className="w-3 h-3" />
+                                                        <BookOpen className="w-3 h-3 shrink-0" />
                                                         {payment.course_name || 'No course'} 
                                                         {payment.month && ` • ${payment.month}`}
                                                     </p>
@@ -576,11 +587,15 @@ export default function AdminPaymentsPage() {
                                         <td className="px-4 py-3">
                                             {getStatusBadge(payment.status)}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-body-muted whitespace-nowrap">
-                                            {payment.created_at || payment.payment_create_time
-                                                ? formatDate(payment.created_at || payment.payment_create_time)
-                                                : '-'
-                                            }
+                                        <td className="px-4 py-3 text-sm text-heading whitespace-nowrap">
+                                            {payment.created_at || payment.payment_create_time ? (
+                                                <div className="flex flex-col">
+                                                    <span>{formatDateOnly(payment.created_at || payment.payment_create_time)}</span>
+                                                    <span className="text-xs text-body-muted font-medium mt-0.5">{formatTimeOnly(payment.created_at || payment.payment_create_time)}</span>
+                                                </div>
+                                            ) : (
+                                                '-'
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -606,8 +621,14 @@ export default function AdminPaymentsPage() {
 
             {/* Payment Detail Modal */}
             {showDetailModal && selectedPayment && (
-                <div className="fixed inset-0 z-modal-backdrop flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm">
-                    <div className="relative z-modal bg-card rounded-2xl border border-default shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div 
+                    className="fixed inset-0 z-modal-backdrop flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm"
+                    onClick={() => setShowDetailModal(false)}
+                >
+                    <div 
+                        className="relative z-modal bg-card rounded-2xl border border-default shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         {/* Modal Header */}
                         <div className="bg-card border-b border-default px-6 py-4 flex items-center justify-between shrink-0">
                             <h2 className="text-lg font-semibold text-heading">Payment Details</h2>
@@ -615,7 +636,7 @@ export default function AdminPaymentsPage() {
                                 onClick={() => setShowDetailModal(false)}
                                 className="p-2 hover:bg-surface rounded-lg transition-colors"
                             >
-                                <X className="w-5 h-5 text-body-muted" />
+                                <X className="w-5 h-5 text-body-muted shrink-0" />
                             </button>
                         </div>
 
@@ -624,11 +645,11 @@ export default function AdminPaymentsPage() {
                             {/* Payment Info */}
                             <div>
                                 <h3 className="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <CreditCard className="w-4 h-4" />
+                                    <CreditCard className="w-4 h-4 shrink-0" />
                                     Payment Information
                                 </h3>
                                 <div className="bg-surface rounded-lg p-4 space-y-3">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <p className="text-xs text-body-muted">Transaction ID</p>
                                             <p className="font-mono text-sm text-heading">{selectedPayment.transaction_id || '-'}</p>
@@ -664,16 +685,23 @@ export default function AdminPaymentsPage() {
                             {/* Invoice & Enrollment Info */}
                             <div>
                                 <h3 className="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <FileText className="w-4 h-4" />
+                                    <FileText className="w-4 h-4 shrink-0" />
                                     Invoice & Enrollment
                                 </h3>
                                 <div className="bg-surface rounded-lg p-4">
                                     {selectedPayment.student_name || selectedPayment.course_name ? (
                                         <div className="space-y-3">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
                                                     <p className="text-xs text-body-muted">Student</p>
-                                                    <p className="text-heading">{selectedPayment.student_name || '-'}</p>
+                                                    {selectedPayment.student_id ? (
+                                                        <Link href={`/admin/students/${selectedPayment.student_id}`} className="group text-heading hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                                                            <ExternalLink className="w-3.5 h-3.5 text-body-muted group-hover:text-primary transition-colors shrink-0" />
+                                                            <span>{selectedPayment.student_name}</span>
+                                                        </Link>
+                                                    ) : (
+                                                        <p className="text-heading">{selectedPayment.student_name || '-'}</p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className="text-xs text-body-muted">Course</p>
@@ -681,7 +709,14 @@ export default function AdminPaymentsPage() {
                                                 </div>
                                                 <div>
                                                     <p className="text-xs text-body-muted">Batch</p>
-                                                    <p className="text-heading">{selectedPayment.batch_name || '-'}</p>
+                                                    {selectedPayment.batch_id ? (
+                                                        <Link href={`/admin/courses/${selectedPayment.course_id}/batches/${selectedPayment.batch_id}`} className="group text-heading hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                                                            <ExternalLink className="w-3.5 h-3.5 text-body-muted group-hover:text-primary transition-colors shrink-0" />
+                                                            <span>{selectedPayment.batch_name}</span>
+                                                        </Link>
+                                                    ) : (
+                                                        <p className="text-heading">{selectedPayment.batch_name || '-'}</p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className="text-xs text-body-muted">Month</p>
@@ -689,13 +724,13 @@ export default function AdminPaymentsPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 pt-2 border-t border-default">
-                                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                                <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                                                 <span className="text-sm text-green-700 dark:text-green-400">Enrollment linked successfully</span>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="text-center py-4">
-                                            <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                                            <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-2 shrink-0" />
                                             <p className="text-yellow-700 dark:text-yellow-400 font-medium">No enrollment linked to this payment</p>
                                             <p className="text-sm text-body-muted mt-1">This payment might need recovery if it was meant for a new enrollment.</p>
                                         </div>
@@ -707,7 +742,7 @@ export default function AdminPaymentsPage() {
                             {selectedPayment.payment_method === 'bKash' && selectedPayment.payment_id && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        <ExternalLink className="w-4 h-4" />
+                                        <ExternalLink className="w-4 h-4 shrink-0" />
                                         bKash Status
                                     </h3>
                                     <div className="bg-surface rounded-lg p-4">
@@ -715,7 +750,7 @@ export default function AdminPaymentsPage() {
                                             selectedPayment.bkash_query_result.success ? (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center gap-2">
-                                                        <CheckCircle className="w-4 h-4 text-green-500" />
+                                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                                                         <span className="text-green-700 dark:text-green-400">Query successful</span>
                                                     </div>
                                                     <p className="text-sm text-body-muted">
@@ -725,7 +760,7 @@ export default function AdminPaymentsPage() {
                                             ) : (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center gap-2">
-                                                        <XCircle className="w-4 h-4 text-red-500" />
+                                                        <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                                                         <span className="text-red-700 dark:text-red-400">{selectedPayment.bkash_query_result.error}</span>
                                                     </div>
                                                     {selectedPayment.bkash_query_result.status_code && (
@@ -739,17 +774,17 @@ export default function AdminPaymentsPage() {
                                                 </div>
                                             )
                                         ) : (
-                                            <div className="text-center">
+                                            <div className="text-left">
                                                 <p className="text-sm text-body-muted mb-3">Query bKash to check the current payment status</p>
                                                 <button
-                                                    onClick={queryBkashStatus}
-                                                    disabled={queryingBkash}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 disabled:opacity-50"
-                                                >
+                                                     onClick={queryBkashStatus}
+                                                     disabled={queryingBkash}
+                                                     className="inline-flex items-center gap-2 px-4 py-2 border border-default rounded-lg bg-surface text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                                 >
                                                     {queryingBkash ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                                                     ) : (
-                                                        <RefreshCw className="w-4 h-4" />
+                                                        <RefreshCw className="w-4 h-4 shrink-0" />
                                                     )}
                                                     Query bKash Status
                                                 </button>
@@ -763,7 +798,7 @@ export default function AdminPaymentsPage() {
                             {selectedPayment.payment_method === 'bKash' && selectedPayment.payment_id && (
                                 <div>
                                     <h3 className="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        <RotateCcw className="w-4 h-4" />
+                                        <RotateCcw className="w-4 h-4 shrink-0" />
                                         Recovery Actions
                                     </h3>
                                     <div className="bg-surface rounded-lg p-4">
@@ -777,9 +812,9 @@ export default function AdminPaymentsPage() {
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                                         >
                                             {recoveringPayment ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                                             ) : (
-                                                <RotateCcw className="w-4 h-4" />
+                                                <RotateCcw className="w-4 h-4 shrink-0" />
                                             )}
                                             Recover Payment & Enrollment
                                         </button>
