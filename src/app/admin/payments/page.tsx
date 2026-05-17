@@ -12,7 +12,6 @@ import {
     Loader2,
     ChevronDown,
     RotateCcw,
-    Eye,
     Filter,
     X,
     User,
@@ -522,15 +521,16 @@ export default function AdminPaymentsPage() {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-heading uppercase tracking-wider">
                                         Date
                                     </th>
-                                    <th className="px-4 py-3 text-center text-xs font-semibold text-heading uppercase tracking-wider">
-                                        Action
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-default">
                                 {filteredPayments.map((payment) => (
-                                    <tr key={payment.id} className={`hover:bg-surface/50 ${mightNeedRecovery(payment) ? 'bg-yellow-500/5' : ''}`}>
-                                        <td className="px-4 py-3">
+                                    <tr
+                                        key={payment.id}
+                                        onClick={() => openPaymentDetail(payment)}
+                                        className={`cursor-pointer hover:bg-surface/70 transition-colors ${mightNeedRecovery(payment) ? 'bg-yellow-500/5' : ''}`}
+                                    >
+                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                             {payment.payment_id && (
                                                 <input
                                                     type="checkbox"
@@ -582,15 +582,6 @@ export default function AdminPaymentsPage() {
                                                 : '-'
                                             }
                                         </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <button
-                                                onClick={() => openPaymentDetail(payment)}
-                                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/10 rounded-lg transition-colors"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                                View
-                                            </button>
-                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -615,10 +606,10 @@ export default function AdminPaymentsPage() {
 
             {/* Payment Detail Modal */}
             {showDetailModal && selectedPayment && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-                    <div className="bg-card rounded-2xl border border-default shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-modal-backdrop flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm">
+                    <div className="relative z-modal bg-card rounded-2xl border border-default shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
                         {/* Modal Header */}
-                        <div className="sticky top-0 bg-card border-b border-default px-6 py-4 flex items-center justify-between">
+                        <div className="bg-card border-b border-default px-6 py-4 flex items-center justify-between shrink-0">
                             <h2 className="text-lg font-semibold text-heading">Payment Details</h2>
                             <button
                                 onClick={() => setShowDetailModal(false)}
@@ -629,7 +620,7 @@ export default function AdminPaymentsPage() {
                         </div>
 
                         {/* Modal Content */}
-                        <div className="p-6 space-y-6">
+                        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
                             {/* Payment Info */}
                             <div>
                                 <h3 className="text-sm font-semibold text-heading uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -798,7 +789,7 @@ export default function AdminPaymentsPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="sticky bottom-0 bg-card border-t border-default px-6 py-4 flex justify-end">
+                        <div className="bg-card border-t border-default px-6 py-4 flex justify-end shrink-0">
                             <button
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-4 py-2 border border-default rounded-lg text-heading hover:bg-surface"
