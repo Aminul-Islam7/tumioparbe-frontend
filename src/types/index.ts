@@ -19,6 +19,34 @@ export interface Student {
     mother_name: string;
 }
 
+export interface FeaturedCouponDetails {
+    id: number;
+    code: string;
+    offer_message: string;
+    admission_fee_discount: number;
+    tuition_fee_discount: number;
+    first_month_discount: number;
+    discounted_admission_fee: number;
+    discounted_monthly_fee: number;
+}
+
+export interface Coupon {
+    id: number;
+    code: string;
+    description?: string;
+    offer_message?: string;
+    course?: number;
+    course_name?: string;
+    is_public: boolean;
+    admission_fee_discount: number;
+    tuition_fee_discount: number;
+    first_month_discount: number;
+    expires_at: string | null;
+    is_active: boolean;
+    is_expired?: boolean;
+    is_valid?: boolean;
+}
+
 export interface Course {
     id: number;
     name: string;
@@ -26,6 +54,8 @@ export interface Course {
     admission_fee: number;
     monthly_fee: number;
     is_active: boolean;
+    featured_coupon?: number;
+    featured_coupon_details?: FeaturedCouponDetails | null;
     batches: Batch[];
 }
 
@@ -77,6 +107,8 @@ export interface Payment {
     payer_reference: string;
     payment_create_time: string;
     payment_execute_time: string;
+    created_at?: string;
+    updated_at?: string;
     // Enriched fields from API
     student_name?: string;
     course_name?: string;
@@ -142,8 +174,28 @@ export interface EnrollmentInitiateRequest {
 }
 
 export interface EnrollmentPaymentRequest {
-    enrollment_id: number;
-    amount: number;
+    enrollment_data: {
+        student: number;
+        batch: number;
+        start_month: string;
+        coupon_code?: string;
+    };
+    callback_url: string;
+    customer_phone: string;
+}
+
+export interface EnrollmentPaymentResponse {
+    temp_invoice_id: number;
+    payment_id: string;
+    bkash_url: string;
+    total_amount: string;
+    first_month_waiver: boolean;
+    callback_urls: {
+        success: string | null;
+        failure: string | null;
+        cancelled: string | null;
+    };
+    enrollment_data: Record<string, any>;
 }
 
 // Dashboard statistics

@@ -14,7 +14,9 @@ import {
     RegistrationResponse,
     EnrollmentInitiateRequest,
     EnrollmentPaymentRequest,
+    EnrollmentPaymentResponse,
     DashboardStats,
+    Coupon,
 } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -167,7 +169,7 @@ export const enrollmentApi = {
         api.post<Enrollment>('/enrollments/enrollments/initiate/', data),
 
     initiatePayment: (data: EnrollmentPaymentRequest) =>
-        api.post<Payment>('/enrollments/enrollments/initiate_payment/', data),
+        api.post<EnrollmentPaymentResponse>('/enrollments/enrollments/initiate_payment/', data),
 
     verifyAndCompletePayment: (data: { payment_id: string }) =>
         api.post<Payment>('/enrollments/enrollments/verify_and_complete_payment/', data),
@@ -177,10 +179,16 @@ export const enrollmentApi = {
 
     getEnrollment: (id: number) => api.get<Enrollment>(`/enrollments/enrollments/${id}/`),
 
-    validateCoupon: (code: string, params?: { batch_id?: number }) =>
-        api.get<{ valid: boolean; discount: number }>('/enrollments/coupons/validate/', {
+    validateCoupon: (code: string, params?: { course_id?: number; admission_fee?: number; tuition_fee?: number }) =>
+        api.get<any>('/enrollments/coupons/validate/', {
             params: { code, ...params },
         }),
+    
+    getPublicCoupons: (params?: { course_id?: number }) =>
+        api.get<Coupon[]>('/enrollments/coupons/public_for_course/', { params }),
+
+    getValidCouponCodes: (params?: { course_id?: number }) =>
+        api.get<{ codes: string[] }>('/enrollments/coupons/valid_codes_for_course/', { params }),
 };
 
 // Payment API calls
@@ -209,8 +217,57 @@ export const paymentApi = {
             { paymentID }
         ),
 
+    recoverPayment: (paymentID: string) =>
+        api.post<{
+            status: 'success' | 'partial_success' | 'error';
+            message: string;
+            transaction_id?: string;
+            enrollment?: {
+                id: number;
+                student_name: string;
+                course_name: string;
+                batch_name: string;
+            };
+            recovery_action?: string;
+        }>('/payments/payments/recover_payment/', { paymentID }),
+
     getPaymentHistory: () =>
         api.get<PaginatedResponse<Payment>>('/payments/payments/payment_history/'),
+};
+
+// Admin API for payment management
+export const adminPaymentApi = {
+    // Get all payments with optional filters
+    getAllPayments: (filters?: { status?: string; method?: string; page?: number }) =>
+        api.get<PaginatedResponse<Payment>>('/payments/payments/', { params: filters }),
+
+    // Recover a specific payment
+    recoverPayment: (paymentID: string) =>
+        api.post<{
+            status: 'success' | 'partial_success' | 'error';
+            message: string;
+            transaction_id?: string;
+            enrollment?: {
+                id: number;
+                student_name: string;
+                course_name: string;
+                batch_name: string;
+            };
+            recovery_action?: string;
+        }>('/payments/payments/recover_payment/', { paymentID }),
+
+    // Query bKash status
+    queryPaymentStatus: (paymentID: string) =>
+        api.post<{
+            payment_id: number;
+            bkash_payment_id: string;
+            transaction_status: string;
+            payment_status: string;
+        }>('/payments/payments/query_bkash_payment/', { paymentID }),
+
+    // Get all invoices
+    getAllInvoices: (filters?: { is_paid?: boolean; page?: number }) =>
+        api.get<PaginatedResponse<Invoice>>('/payments/invoices/', { params: filters }),
 };
 
 export default api;

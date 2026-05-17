@@ -161,6 +161,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         '/dashboard/courses': {
             title: 'Courses',
         },
+        '/dashboard/enroll': {
+            title: 'Enrollment',
+        },
         '/dashboard/payments': {
             title: 'Payments',
         },

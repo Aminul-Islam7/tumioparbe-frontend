@@ -18,6 +18,7 @@ import {
     EyeOff,
     Lock,
     Unlock,
+    Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleSwitch } from '@/components/ui/toggle-switch';
@@ -42,6 +43,7 @@ interface CourseFormData {
     admission_fee: number;
     monthly_fee: number;
     is_active: boolean;
+    featured_coupon: number | null;
 }
 
 function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting }: CourseFormModalProps) {
@@ -51,7 +53,32 @@ function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting 
         admission_fee: 0,
         monthly_fee: 0,
         is_active: true,
+        featured_coupon: null,
     });
+    const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+
+    // Fetch available coupons when modal opens with initial data (for editing)
+    useEffect(() => {
+        if (isOpen && initialData) {
+            setLoadingCoupons(true);
+            // Fetch coupons that are public, active, and apply to this course (or all courses)
+            adminApi.getCoupons()
+                .then((response: any) => {
+                    const coupons = response.data?.results || response.data || [];
+                    // Filter for public, active, and valid for this course
+                    const validCoupons = coupons.filter((c: any) => 
+                        c.is_public && 
+                        c.is_active && 
+                        !c.is_expired &&
+                        (c.course === null || c.course === initialData.id)
+                    );
+                    setAvailableCoupons(validCoupons);
+                })
+                .catch(() => setAvailableCoupons([]))
+                .finally(() => setLoadingCoupons(false));
+        }
+    }, [isOpen, initialData]);
 
     useEffect(() => {
         if (initialData) {
@@ -61,6 +88,7 @@ function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting 
                 admission_fee: initialData.admission_fee,
                 monthly_fee: initialData.monthly_fee,
                 is_active: initialData.is_active,
+                featured_coupon: initialData.featured_coupon || null,
             });
         } else {
             setFormData({
@@ -69,6 +97,7 @@ function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting 
                 admission_fee: 0,
                 monthly_fee: 0,
                 is_active: true,
+                featured_coupon: null,
             });
         }
     }, [initialData, isOpen]);
@@ -156,6 +185,34 @@ function CourseFormModal({ isOpen, onClose, onSubmit, initialData, isSubmitting 
                         onChange={(checked) => setFormData({ ...formData, is_active: checked })}
                         label="Course is active"
                     />
+                    
+                    {/* Featured Coupon - Only shown when editing an existing course */}
+                    {initialData && (
+                        <div className="pt-4 border-t border-default mt-4">
+                            <label className="block text-sm font-medium text-heading mb-2">
+                                Featured Promotion
+                            </label>
+                            <select
+                                value={formData.featured_coupon || ''}
+                                onChange={(e) => setFormData({ 
+                                    ...formData, 
+                                    featured_coupon: e.target.value ? Number(e.target.value) : null 
+                                })}
+                                className="w-full px-4 py-2.5 rounded-xl border border-default bg-input focus:ring-2 focus:ring-primary/20"
+                                disabled={loadingCoupons}
+                            >
+                                <option value="">No promotion</option>
+                                {availableCoupons.map((coupon) => (
+                                    <option key={coupon.id} value={coupon.id}>
+                                        {coupon.code} - {coupon.offer_message || 'No message'}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-body-muted mt-1">
+                                Select a public coupon to display as a promotional offer on this course.
+                            </p>
+                        </div>
+                    )}
                     
                     <div className="flex gap-3 pt-4">
                         <Button
@@ -545,13 +602,19 @@ function CourseCard({
                             </div>
                             
                             <div>
-                                <div className="flex items-center gap-2 mb-0.5">
+                                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                                     <h3 className="text-lg font-bold text-heading">
                                         {course.name}
                                     </h3>
                                     {!course.is_active && (
                                         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400">
                                             Inactive
+                                        </span>
+                                    )}
+                                    {course.featured_coupon_details && (
+                                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
+                                            <Sparkles className="w-3 h-3" />
+                                            Offer
                                         </span>
                                     )}
                                 </div>

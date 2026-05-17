@@ -1,39 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { courseApi, userApi, enrollmentApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
-import { Course, Batch, Student } from '@/types';
+import { Course, Student, Coupon } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Select, SelectOption } from '@/components/ui/select';
 import {
-    Calendar,
     ArrowLeft,
-    ArrowRight,
-    CheckCircle,
     CreditCard,
-    Tag,
-    Clock,
     Loader2,
     AlertTriangle,
+    Ticket,
+    Info,
+    CheckCircle,
+    User,
 } from 'lucide-react';
 
 // Validation schema
 const EnrollmentSchema = Yup.object().shape({
-    studentId: Yup.number().required('Student is required'),
-    batchId: Yup.number().required('Batch is required'),
-    startMonth: Yup.string().required('Start month is required'),
+    studentId: Yup.number()
+        .required('Student is required')
+        .typeError('Student is required'),
+    batchId: Yup.number()
+        .required('Please select a batch')
+        .typeError('Please select a batch'),
+    startMonth: Yup.string().required('Please select a start month'),
     couponCode: Yup.string(),
 });
+
+// Helper function to calculate discount percentage
+const calculateDiscountPercent = (original: number, discounted: number): number => {
+    if (original <= 0) return 0;
+    const percent = ((original - discounted) / original) * 100;
+    return Math.ceil(percent);
+};
 
 export default function EnrollmentPage() {
     const { user } = useAuth(true);
     const router = useRouter();
     const searchParams = useSearchParams();
-
 
     const courseIdParam = searchParams.get('course');
     const studentIdParam = searchParams.get('student');
@@ -42,14 +52,15 @@ export default function EnrollmentPage() {
     const [enrolling, setEnrolling] = useState(false);
     const [course, setCourse] = useState<Course | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
-    const [availableMonths, setAvailableMonths] = useState<
-        {
-            value: string;
-            label: string;
-        }[]
-    >([]);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [availableMonths, setAvailableMonths] = useState<SelectOption[]>([]);
     const [couponApplied, setCouponApplied] = useState(false);
-    const [couponDiscount, setCouponDiscount] = useState(0);
+    const [couponError, setCouponError] = useState<string | null>(null);
+    const [publicCoupons, setPublicCoupons] = useState<Coupon[]>([]);
+    const [allCouponCodes, setAllCouponCodes] = useState<string[]>([]); // Preloaded valid codes
+    const [couponBenefits, setCouponBenefits] = useState<any[]>([]);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [initialCouponCode, setInitialCouponCode] = useState<string>('');
 
     // Fetch data
     useEffect(() => {
@@ -59,22 +70,63 @@ export default function EnrollmentPage() {
 
                 // Fetch students
                 const studentsResponse = await userApi.getStudents();
-                const fetchedStudents = studentsResponse.data.results || [];
+                const fetchedStudents = Array.isArray(studentsResponse.data)
+                    ? studentsResponse.data
+                    : studentsResponse.data?.results || [];
                 setStudents(fetchedStudents);
+
+                // Find the selected student from URL param
+                if (studentIdParam) {
+                    const studentId = parseInt(studentIdParam);
+                    const student = fetchedStudents.find((s: Student) => s.id === studentId);
+                    if (student) {
+                        setSelectedStudent(student);
+                    }
+                }
 
                 // Fetch course details if course ID is provided
                 if (courseIdParam) {
                     const courseResponse = await courseApi.getCourse(parseInt(courseIdParam));
-                    setCourse(courseResponse.data);
+                    const fetchedCourse = courseResponse.data;
+                    setCourse(fetchedCourse);
+
+                    // Check for featured coupon and set it as initial
+                    if (fetchedCourse.featured_coupon_details?.code) {
+                        setInitialCouponCode(fetchedCourse.featured_coupon_details.code);
+                    }
+
+                    // Fetch public coupons (for display as selectable offers)
+                    try {
+                        const couponsResponse = await enrollmentApi.getPublicCoupons({ course_id: parseInt(courseIdParam) });
+                        if (couponsResponse.data) {
+                            setPublicCoupons(couponsResponse.data);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch public coupons", err);
+                    }
+
+                    // Fetch ALL valid coupon codes (public + private) for instant frontend validation
+                    try {
+                        const codesResponse = await enrollmentApi.getValidCouponCodes({ course_id: parseInt(courseIdParam) });
+                        if (codesResponse.data?.codes) {
+                            setAllCouponCodes(codesResponse.data.codes);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch valid coupon codes", err);
+                    }
                 }
 
                 // Generate available months (current month + 2 future months)
                 const now = new Date();
-                const months = [];
+                const months: SelectOption[] = [];
 
                 for (let i = 0; i < 3; i++) {
                     const monthDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                    const value = monthDate.toISOString().substring(0, 7); // YYYY-MM format
+                    // Standardize to YYYY-MM-DD (backend requires full date)
+                    const year = monthDate.getFullYear();
+                    const month = String(monthDate.getMonth() + 1).padStart(2, '0');
+                    const value = `${year}-${month}-01`;
+                    
                     const label = monthDate.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -93,103 +145,263 @@ export default function EnrollmentPage() {
 
         fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [courseIdParam]);
+    }, [courseIdParam, studentIdParam]);
 
-    // Get visible batches
-    const getVisibleBatches = () => {
+    // Get visible batches as SelectOptions
+    const getBatchOptions = useCallback((): SelectOption[] => {
         if (!course) return [];
-        return course.batches.filter((batch) => batch.is_visible);
-    };
+        return course.batches
+            .filter((batch) => batch.is_visible)
+            .map((batch) => ({
+                value: batch.id,
+                label: batch.name,
+                description: `${batch.timing}${batch.tuition_fee && batch.tuition_fee !== course.monthly_fee ? ` • ৳${Math.round(batch.tuition_fee)}/mo` : ''}`,
+            }));
+    }, [course]);
 
-    // Handle coupon validation
+    // Validate coupon code against preloaded codes (frontend-only)
+    const validateCouponFrontend = useCallback((code: string): boolean => {
+        if (!code) return false;
+        const normalizedCode = code.toUpperCase().trim();
+        return allCouponCodes.includes(normalizedCode);
+    }, [allCouponCodes]);
+
+    // Handle coupon validation (full backend validation for benefits)
     const validateCoupon = async (code: string, batchId?: number) => {
         try {
-            const response = await enrollmentApi.validateCoupon(code, { batch_id: batchId });
+            if (!course || !code) {
+                setCouponApplied(false);
+                setCouponBenefits([]);
+                setCouponError(null);
+                return false;
+            }
+            
+            setCouponError(null);
+            const normalizedCode = code.toUpperCase().trim();
+            
+            const selectedBatch = batchId ? course.batches.find(b => b.id === batchId) : null;
+            const admissionFee = course.admission_fee;
+            const tuitionFee = selectedBatch?.tuition_fee || course.monthly_fee;
 
-            if (response.data.valid) {
+            const response = await enrollmentApi.validateCoupon(normalizedCode, { 
+                course_id: course.id,
+                admission_fee: admissionFee,
+                tuition_fee: tuitionFee
+            });
+
+            if (response.data && response.data.code) {
                 setCouponApplied(true);
-                setCouponDiscount(response.data.discount);
+                setCouponBenefits(response.data.benefits || []);
                 return true;
             } else {
                 setCouponApplied(false);
-                setCouponDiscount(0);
+                setCouponBenefits([]);
                 return false;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to validate coupon:', error);
+            setCouponApplied(false);
+            setCouponBenefits([]);
+            
+            const errorMessage = error?.response?.data?.error || 'Invalid coupon code';
+            setCouponError(errorMessage);
             return false;
         }
     };
 
-    // Calculate fee details
-    const calculateFees = (batchId: number | undefined) => {
-        if (!course || !batchId) {
-            return {
-                admissionFee: 0,
-                tuitionFee: 0,
-                total: 0,
-            };
+    // Debounce timer for coupon validation
+    const couponDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Handle coupon input change (validate on input)
+    const handleCouponChange = useCallback((code: string, setFieldValue: any, batchId?: number) => {
+        setFieldValue('couponCode', code.toUpperCase());
+        
+        // Clear any pending debounce
+        if (couponDebounceRef.current) {
+            clearTimeout(couponDebounceRef.current);
+        }
+        
+        if (!code.trim()) {
+            setCouponApplied(false);
+            setCouponBenefits([]);
+            setCouponError(null);
+            return;
         }
 
-        const selectedBatch = course.batches.find((b) => b.id === batchId);
+        // Add 1 second delay to let the user complete typing
+        couponDebounceRef.current = setTimeout(() => {
+            const normalizedCode = code.toUpperCase().trim();
+            
+            // Check against ALL preloaded valid codes (public + private)
+            if (validateCouponFrontend(normalizedCode)) {
+                // Valid code found! Fetch benefits from backend
+                validateCoupon(normalizedCode, batchId);
+            } else {
+                // Invalid code - reject immediately (no backend call needed)
+                setCouponApplied(false);
+                setCouponBenefits([]);
+                // Only show error if user has typed something substantial
+                if (normalizedCode.length >= 3) {
+                    setCouponError('Invalid coupon code');
+                } else {
+                    setCouponError(null);
+                }
+            }
+        }, 1000);
+    }, [validateCouponFrontend]);
+
+    // Auto-validate featured coupon on load (wait for codes to be loaded)
+    useEffect(() => {
+        if (initialCouponCode && course && allCouponCodes.length > 0 && !couponApplied) {
+            validateCoupon(initialCouponCode);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialCouponCode, course, allCouponCodes]);
+
+    // Get original fees
+    const getOriginalFees = (batchId: number | undefined) => {
+        if (!course) {
+            return { admissionFee: 0, tuitionFee: 0, total: 0 };
+        }
+
+        const selectedBatch = batchId ? course.batches.find((b) => b.id === batchId) : null;
         const admissionFee = course.admission_fee;
         const tuitionFee = selectedBatch?.tuition_fee || course.monthly_fee;
 
-        // Apply coupon discount if applicable
-        const discountedAdmission = couponApplied
-            ? admissionFee * (1 - couponDiscount / 100)
-            : admissionFee;
-        const discountedTuition = couponApplied
-            ? tuitionFee * (1 - couponDiscount / 100)
-            : tuitionFee;
+        return {
+            admissionFee,
+            tuitionFee,
+            total: admissionFee + tuitionFee,
+        };
+    };
+
+    // Get recurring monthly fee
+    const getRecurringMonthlyFee = (batchId: number | undefined) => {
+        if (!course) return 0;
+
+        const selectedBatch = batchId ? course.batches.find((b) => b.id === batchId) : null;
+        let tuitionFee = Number(selectedBatch?.tuition_fee || course.monthly_fee) || 0;
+
+        if (couponApplied && couponBenefits.length > 0) {
+            const tuitionBenefit = couponBenefits.find((b: any) => b.type === 'TUITION');
+            if (tuitionBenefit && tuitionBenefit.new_amount !== null) {
+                tuitionFee = parseFloat(tuitionBenefit.new_amount);
+            }
+        }
+
+        return tuitionFee;
+    };
+
+    // Calculate fee details
+    const calculateFees = (batchId: number | undefined) => {
+        if (!course) {
+            return { admissionFee: 0, tuitionFee: 0, total: 0 };
+        }
+
+        const selectedBatch = batchId ? course.batches.find((b) => b.id === batchId) : null;
+        let admissionFee = Number(course.admission_fee) || 0;
+        let tuitionFee = Number(selectedBatch?.tuition_fee || course.monthly_fee) || 0;
+
+        if (couponApplied && couponBenefits.length > 0) {
+            const admissionBenefit = couponBenefits.find((b: any) => b.type === 'ADMISSION');
+            if (admissionBenefit && admissionBenefit.new_amount !== null) {
+                admissionFee = parseFloat(admissionBenefit.new_amount);
+            }
+
+            const firstMonthBenefit = couponBenefits.find((b: any) => b.type === 'FIRST_MONTH');
+            const tuitionBenefit = couponBenefits.find((b: any) => b.type === 'TUITION');
+            
+            if (firstMonthBenefit && firstMonthBenefit.new_amount !== null) {
+                tuitionFee = parseFloat(firstMonthBenefit.new_amount);
+            } else if (tuitionBenefit && tuitionBenefit.new_amount !== null) {
+                tuitionFee = parseFloat(tuitionBenefit.new_amount);
+            }
+        }
 
         return {
-            admissionFee: discountedAdmission,
-            tuitionFee: discountedTuition,
-            total: discountedAdmission + discountedTuition,
+            admissionFee,
+            tuitionFee,
+            total: admissionFee + tuitionFee,
         };
     };
 
     // Handle enrollment
-    const handleEnrollment = async (values: any) => {
+    const handleEnrollment = async (values: any, { setSubmitting }: any) => {
         try {
+            setFormError(null);
             setEnrolling(true);
 
-            // Prepare enrollment data
+            // Validate that the user has a phone number on file
+            const customerPhone = user?.phone || '';
+            if (!customerPhone) {
+                setFormError(
+                    'Your account does not have a phone number. Please update your profile with a valid phone number before enrolling.'
+                );
+                return;
+            }
+
+            const normalizedCouponCode = values.couponCode ? values.couponCode.toUpperCase().trim() : undefined;
+
             const enrollmentData = {
                 student: values.studentId,
                 batch: values.batchId,
                 start_month: values.startMonth,
-                coupon_code: values.couponCode || undefined,
+                coupon_code: normalizedCouponCode,
             };
 
-            // Initiate enrollment
-            const enrollmentResponse = await enrollmentApi.initiateEnrollment(enrollmentData);
+            // Get callback URL for bKash redirect
+            const callbackUrl = `${window.location.origin}/dashboard/courses?student=${values.studentId}&payment_callback=true`;
 
-            if (enrollmentResponse.data) {
-                const enrollment = enrollmentResponse.data;
+            // Initiate payment with enrollment data
+            const paymentResponse = await enrollmentApi.initiatePayment({
+                enrollment_data: enrollmentData,
+                callback_url: callbackUrl,
+                customer_phone: customerPhone,
+            });
 
-                // Initiate payment
-                const paymentResponse = await enrollmentApi.initiatePayment({
-                    enrollment_id: enrollment.id,
-                    amount: calculateFees(values.batchId).total,
-                });
-
-                if (paymentResponse.data) {
-                    // Enrollment successful, redirect to payment
-
-                    // Redirect to payment page or handle as needed
-                    // This should be replaced with actual code to handle the payment gateway
+            if (paymentResponse.data) {
+                // If there's a bKash URL, redirect to it
+                if (paymentResponse.data.bkash_url) {
+                    window.location.href = paymentResponse.data.bkash_url;
+                } else {
+                    // Otherwise, just go back to courses
                     setTimeout(() => {
-                        // In a real implementation, redirect to payment gateway URL
                         router.push(`/dashboard/courses?student=${values.studentId}`);
                     }, 1500);
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to complete enrollment:', error);
+            
+            // Extract technical details for logging/debugging
+            let technicalDetails = '';
+            if (error?.response?.data) {
+                const data = error.response.data;
+                if (typeof data === 'string') {
+                    technicalDetails = data;
+                } else if (data.error) {
+                    technicalDetails = data.error;
+                } else if (data.detail) {
+                    technicalDetails = data.detail;
+                } else if (data.non_field_errors) {
+                    technicalDetails = data.non_field_errors.join(', ');
+                } else {
+                    const fieldErrors = Object.entries(data)
+                        .filter(([key]) => !['error', 'detail', 'non_field_errors'].includes(key))
+                        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                        .join('. ');
+                    if (fieldErrors) {
+                        technicalDetails = fieldErrors;
+                    }
+                }
+            }
+            
+            // User-friendly error message
+            const userMessage = 'An error occurred. Please try again later.';
+            setFormError(technicalDetails ? `${userMessage}\n\nError details: ${technicalDetails}` : userMessage);
         } finally {
             setEnrolling(false);
+            setSubmitting(false);
         }
     };
 
@@ -232,305 +444,524 @@ export default function EnrollmentPage() {
         );
     }
 
-    const visibleBatches = getVisibleBatches();
+    if (!selectedStudent) {
+        return (
+            <div className="space-y-6">
+                <h1 className="text-3xl font-bold text-heading">Course Enrollment</h1>
+
+                <div className="bg-card rounded-card border-2 border-amber-200 dark:border-amber-800 p-8 text-center shadow-card">
+                    <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="h-8 w-8 text-amber-500" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-heading mb-2">No Student Selected</h2>
+                    <p className="text-body-muted mb-4">
+                        Please select a student from the courses page to enroll them.
+                    </p>
+                    <Button
+                        variant="warning"
+                        onClick={() => router.push('/dashboard/courses')}
+                        className="mx-auto"
+                        size="lg"
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Courses
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    const batchOptions = getBatchOptions();
 
     return (
         <div className="space-y-6">
+            {/* Header with Student Info */}
             <div>
-                <h1 className="text-3xl font-bold text-heading">Enroll in Course</h1>
-                <p className="text-body-muted mt-2">
-                    Complete your enrollment for {course.name}
-                </p>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* Enrollment Form */}
-                <div className="flex-1 bg-card rounded-card border shadow-card p-6">
-                    <Formik
-                        initialValues={{
-                            studentId: parseInt(studentIdParam || '') || '',
-                            batchId: '',
-                            startMonth: availableMonths[0]?.value || '',
-                            couponCode: '',
-                        }}
-                        validationSchema={EnrollmentSchema}
-                        onSubmit={handleEnrollment}
-                    >
-                        {({ values, setFieldValue, isValid, dirty }) => (
-                            <Form className="space-y-6">
-                                {/* Student Selection */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-heading">Select Student *</label>
-                                    <Field
-                                        as="select"
-                                        name="studentId"
-                                        className="w-full h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
-                                    >
-                                        <option value="">Select a student</option>
-                                        {students.map((student) => (
-                                            <option key={student.id} value={student.id}>
-                                                {student.name}
-                                            </option>
-                                        ))}
-                                    </Field>
-                                    <ErrorMessage
-                                        name="studentId"
-                                        component="div"
-                                        className="text-error text-xs"
-                                    />
-                                </div>
-
-                                {/* Batch Selection */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-heading">Select Batch *</label>
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        {visibleBatches.map((batch) => (
-                                            <label
-                                                key={batch.id}
-                                                                                        className={`
-                                                    flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all
-                                                    ${Number(values.batchId) === batch.id ? 'border-primary bg-primary-50 dark:bg-primary-900/20 shadow-bubblegum' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-200 hover:bg-primary-50/50 dark:hover:bg-primary-900/10'}
-                                                `}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-medium">
-                                                        {batch.name}
-                                                    </span>
-                                                    <input
-                                                        type="radio"
-                                                        name="batchId"
-                                                        value={batch.id}
-                                                        checked={Number(values.batchId) === batch.id}
-                                                        onChange={() => setFieldValue('batchId', batch.id)}
-                                                        className="h-4 w-4 text-primary border-neutral-300 focus:ring-primary"
-                                                    />
-                                                </div>
-                                                <div className="mt-2 text-sm text-body-muted flex items-center">
-                                                    <Clock className="h-3.5 w-3.5 mr-1.5 text-secondary" />
-                                                    {batch.timing}
-                                                </div>
-                                                {batch.tuition_fee &&
-                                                    batch.tuition_fee !== course.monthly_fee && (
-                                                <div className="mt-1 text-sm text-body-muted flex items-center">
-                                                            <Tag className="h-3.5 w-3.5 mr-1.5 text-tangerine-500" />
-                                                            Special Fee: ৳{Math.round(batch.tuition_fee)}/month
-                                                        </div>
-                                                    )}
-                                            </label>
-                                        ))}
-                                    </div>
-                                    <ErrorMessage
-                                        name="batchId"
-                                        component="div"
-                                        className="text-red-500 text-xs"
-                                    />
-                                </div>
-
-                                {/* Start Month */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-heading">Start From *</label>
-                                    <Field
-                                        as="select"
-                                        name="startMonth"
-                                        className="w-full h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
-                                    >
-                                        {availableMonths.map((month) => (
-                                            <option key={month.value} value={month.value}>
-                                                {month.label}
-                                            </option>
-                                        ))}
-                                    </Field>
-                                    <ErrorMessage
-                                        name="startMonth"
-                                        component="div"
-                                        className="text-red-500 text-xs"
-                                    />
-                                </div>
-
-                                {/* Coupon Code */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-heading">
-                                        Coupon Code (Optional)
-                                    </label>
-                                    <div className="flex gap-3">
-                                        <Field
-                                            name="couponCode"
-                                            type="text"
-                                            placeholder="Enter coupon code"
-                                            className="flex-1 h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            disabled={!values.couponCode}
-                                            onClick={() =>
-                                                validateCoupon(
-                                                    values.couponCode,
-                                                    values.batchId ? Number(values.batchId) : undefined
-                                                )
-                                            }
-                                        >
-                                            Apply
-                                        </Button>
-                                    </div>
-                                    <ErrorMessage
-                                        name="couponCode"
-                                        component="div"
-                                        className="text-red-500 text-xs"
-                                    />
-                                </div>
-
-                                {/* Fee Details */}
-                                <div className="bg-secondary-50 dark:bg-secondary-900/20 p-5 rounded-2xl border border-secondary-200 dark:border-secondary-800">
-                                    <h3 className="font-bold text-heading mb-4">Fee Details</h3>
-
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span>Admission Fee</span>
-                                            <span>
-                                                ৳
-                                                {Math.round(calculateFees(Number(values.batchId) || undefined).admissionFee).toLocaleString()}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between">
-                                            <span>First Month Tuition</span>
-                                            <span>
-                                                ৳
-                                                {Math.round(calculateFees(Number(values.batchId) || undefined).tuitionFee).toLocaleString()}
-                                            </span>
-                                        </div>
-
-                                        {couponApplied && (
-                                            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
-                                                <span>Coupon Discount</span>
-                                                <span>{couponDiscount}% off</span>
-                                            </div>
-                                        )}
-
-                                        <div className="pt-3 border-t border-secondary-200 dark:border-secondary-700 flex justify-between font-bold text-heading">
-                                            <span>Total Payable</span>
-                                            <span className="text-primary">
-                                                ৳
-                                                {Math.round(calculateFees(Number(values.batchId) || undefined).total).toLocaleString()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Form Buttons */}
-                                <div className="flex justify-between pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.push('/dashboard/courses')}
-                                        size="lg"
-                                    >
-                                        <ArrowLeft className="mr-2 h-4 w-4" />
-                                        Cancel
-                                    </Button>
-
-                                    <Button
-                                        type="submit"
-                                        size="lg"
-                                        disabled={enrolling || !isValid}
-                                    >
-                                        {enrolling ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Proceed to Payment
-                                                <CreditCard className="ml-2 h-4 w-4" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </Form>
-                        )}
-                    </Formik>
-                </div>
-
-                {/* Course Details */}
-                <div className="lg:w-1/3 bg-card-courses-bg border-2 border-card-courses-border rounded-card p-6 shadow-card">
-                    <div className="space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-heading">{course.name}</h2>
-                            {course.description && (
-                                <p className="text-body-muted text-sm mt-2">
-                                    {course.description}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex justify-between">
-                                <span className="text-sm">Admission Fee</span>
-                                <span className="font-medium">
-                                    ৳{Math.round(course.admission_fee).toLocaleString()}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between">
-                                <span className="text-sm">Monthly Tuition Fee</span>
-                                <span className="font-medium">
-                                    ৳{Math.round(course.monthly_fee).toLocaleString()}/month
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between">
-                                <span className="text-sm">Available Batches</span>
-                                <span className="font-medium">{visibleBatches.length}</span>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-secondary-200 dark:border-secondary-800">
-                            <h3 className="font-semibold text-heading mb-3">Enrollment Process</h3>
-                            <ol className="space-y-3 text-sm text-body-muted">
-                                <li className="flex items-start gap-2">
-                                    <span className="bg-primary-100 dark:bg-primary-900/30 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
-                                        1
-                                    </span>
-                                    <span>Select student, batch, and start month</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="bg-secondary-100 dark:bg-secondary-900/30 text-secondary rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
-                                        2
-                                    </span>
-                                    <span>Apply coupon code if available</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="bg-tangerine-100 dark:bg-tangerine-900/30 text-tangerine-600 dark:text-tangerine-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
-                                        3
-                                    </span>
-                                    <span>Complete payment to finalize enrollment</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">
-                                        4
-                                    </span>
-                                    <span>Access course materials and join class</span>
-                                </li>
-                            </ol>
-                        </div>
-
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800">
-                            <h3 className="font-semibold text-heading mb-2 flex items-center">
-                                <CheckCircle className="mr-2 h-5 w-5 text-emerald-500" />
-                                Important Information
-                            </h3>
-                            <ul className="space-y-2 text-sm text-body-muted">
-                                <li>• Classes begin from the 1st of the selected month</li>
-                                <li>• Tuition fees are due by the 5th of each month</li>
-                                <li>• Course materials will be available after enrollment</li>
-                                <li>• You can contact support for any assistance</li>
-                            </ul>
-                        </div>
+                <div className="mt-3 flex items-center gap-3 bg-primary-50 dark:bg-primary-900/20 px-4 py-3 rounded-xl border border-primary-200 dark:border-primary-800">
+                    <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-800/50 flex items-center justify-center flex-shrink-0">
+                        <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-xs text-body-muted truncate">Enrolling in {course.name}</p>
+                        <p className="font-semibold text-heading truncate">{selectedStudent.name}</p>
+                        
                     </div>
                 </div>
             </div>
+
+            {/* Main Layout */}
+            <Formik
+                initialValues={{
+                    studentId: selectedStudent.id,
+                    batchId: '',
+                    startMonth: availableMonths[0]?.value || '',
+                    couponCode: initialCouponCode,
+                }}
+                validationSchema={EnrollmentSchema}
+                onSubmit={handleEnrollment}
+                enableReinitialize
+            >
+                {({ values, setFieldValue, isValid, errors, touched }) => (
+                    <Form>
+                        <div className="flex flex-col lg:flex-row gap-6">
+                            {/* Left Side - Form Fields */}
+                            <div className="flex-1 min-w-0 bg-card rounded-card border shadow-card p-4 sm:p-6">
+                                <div className="space-y-5">
+                                    {/* Form Error Message */}
+                                    {formError && (
+                                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3">
+                                            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-red-700 dark:text-red-300">Something went wrong</p>
+                                                <p className="text-sm text-red-600 dark:text-red-400 mt-1 whitespace-pre-line">{formError}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Batch Selection - Custom Dropdown */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-heading">Batch *</label>
+                                        <Select
+                                            name="batchId"
+                                            options={batchOptions}
+                                            value={values.batchId}
+                                            onChange={(val) => setFieldValue('batchId', val)}
+                                            placeholder="Select a batch"
+                                            error={!!(errors.batchId && touched.batchId)}
+                                        />
+                                        <ErrorMessage
+                                            name="batchId"
+                                            component="div"
+                                            className="text-red-500 text-xs"
+                                        />
+                                    </div>
+
+                                    {/* Start Month - Custom Dropdown */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-heading">Start From *</label>
+                                        <Select
+                                            name="startMonth"
+                                            options={availableMonths}
+                                            value={values.startMonth}
+                                            onChange={(val) => setFieldValue('startMonth', val)}
+                                            placeholder="Select start month"
+                                            error={!!(errors.startMonth && touched.startMonth)}
+                                        />
+                                        <ErrorMessage
+                                            name="startMonth"
+                                            component="div"
+                                            className="text-red-500 text-xs"
+                                        />
+                                    </div>
+
+                                    {/* Available Coupons */}
+                                    {publicCoupons.length > 0 && (
+                                        <div className="space-y-3">
+                                            <label className="text-sm font-medium text-heading">
+                                                Available Offers
+                                            </label>
+                                            <div className="space-y-2">
+                                                {publicCoupons.map((coupon) => {
+                                                    const isSelected = values.couponCode.toUpperCase() === coupon.code.toUpperCase();
+                                                    return (
+                                                        <div
+                                                            key={coupon.id}
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    setFieldValue('couponCode', '');
+                                                                    setCouponApplied(false);
+                                                                    setCouponBenefits([]);
+                                                                    setCouponError(null);
+                                                                } else {
+                                                                    setFieldValue('couponCode', coupon.code);
+                                                                    validateCoupon(
+                                                                        coupon.code,
+                                                                        values.batchId ? Number(values.batchId) : undefined
+                                                                    );
+                                                                }
+                                                            }}
+                                                            className={`
+                                                                p-3 border rounded-xl cursor-pointer transition-all relative overflow-hidden
+                                                                ${isSelected
+                                                                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10'
+                                                                    : 'border-neutral-200 dark:border-neutral-700 hover:border-emerald-300'
+                                                                }
+                                                            `}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                {/* Custom checkbox/radio */}
+                                                                <div className={`
+                                                                    w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors
+                                                                    ${isSelected 
+                                                                        ? 'border-emerald-500 bg-emerald-500' 
+                                                                        : 'border-neutral-300 dark:border-neutral-600'
+                                                                    }
+                                                                `}>
+                                                                    {isSelected && (
+                                                                        <CheckCircle className="w-3 h-3 text-white" />
+                                                                    )}
+                                                                </div>
+                                                                <div className={`p-2 rounded-lg flex-shrink-0 ${isSelected ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'}`}>
+                                                                    <Ticket className="w-4 h-4" />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-bold text-sm text-heading">{coupon.code}</div>
+                                                                    <div className="text-xs text-body-muted truncate">{coupon.offer_message || coupon.description}</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Coupon Code - Manual Entry (validates on input) */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-heading">
+                                            Coupon Code (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={values.couponCode}
+                                            onChange={(e) => handleCouponChange(e.target.value, setFieldValue, values.batchId ? Number(values.batchId) : undefined)}
+                                            placeholder="Enter coupon code"
+                                            className="w-full h-12 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-card px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all uppercase"
+                                            style={{ textTransform: 'uppercase' }}
+                                        />
+                                        {couponError && (
+                                            <div className="text-red-500 text-xs">{couponError}</div>
+                                        )}
+                                        {couponApplied && (
+                                            <div className="text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-1">
+                                                <CheckCircle className="w-3 h-3" />
+                                                Coupon applied successfully!
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Mobile-only: Fee Summary & Buttons */}
+                                <div className="lg:hidden mt-6 space-y-4">
+                                    {/* Fee Summary */}
+                                    <div className="bg-secondary-50 dark:bg-secondary-900/20 p-4 sm:p-5 rounded-2xl border border-secondary-200 dark:border-secondary-800">
+                                        <h3 className="font-bold text-heading mb-4">Fee Summary</h3>
+
+                                        <div className="space-y-3">
+                                            {/* Admission Fee */}
+                                            {(() => {
+                                                const original = getOriginalFees(Number(values.batchId) || undefined);
+                                                const calculated = calculateFees(Number(values.batchId) || undefined);
+                                                const hasDiscount = couponApplied && original.admissionFee > calculated.admissionFee;
+                                                const discountPercent = hasDiscount 
+                                                    ? calculateDiscountPercent(original.admissionFee, calculated.admissionFee)
+                                                    : 0;
+                                                
+                                                return (
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <span className="text-body text-sm">
+                                                            Admission Fee
+                                                            {hasDiscount && (
+                                                                <span className="ml-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                    ({discountPercent}% off)
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <span className="flex items-center gap-2 flex-shrink-0">
+                                                            {hasDiscount && (
+                                                                <span className="text-xs text-body-muted line-through">
+                                                                    ৳{Math.round(original.admissionFee).toLocaleString()}
+                                                                </span>
+                                                            )}
+                                                            <span className={`text-sm ${hasDiscount ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>
+                                                                ৳{Math.round(calculated.admissionFee).toLocaleString()}
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* First Month Tuition */}
+                                            {(() => {
+                                                const original = getOriginalFees(Number(values.batchId) || undefined);
+                                                const calculated = calculateFees(Number(values.batchId) || undefined);
+                                                const hasDiscount = couponApplied && original.tuitionFee > calculated.tuitionFee;
+                                                const discountPercent = hasDiscount 
+                                                    ? calculateDiscountPercent(original.tuitionFee, calculated.tuitionFee)
+                                                    : 0;
+                                                
+                                                return (
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <span className="text-body text-sm">
+                                                            First Month
+                                                            {hasDiscount && (
+                                                                <span className="ml-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                    ({discountPercent}% off)
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <span className="flex items-center gap-2 flex-shrink-0">
+                                                            {hasDiscount && (
+                                                                <span className="text-xs text-body-muted line-through">
+                                                                    ৳{Math.round(original.tuitionFee).toLocaleString()}
+                                                                </span>
+                                                            )}
+                                                            <span className={`text-sm ${hasDiscount ? 'text-emerald-600 dark:text-emerald-400 font-medium' : ''}`}>
+                                                                ৳{Math.round(calculated.tuitionFee).toLocaleString()}
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Total */}
+                                            {(() => {
+                                                const original = getOriginalFees(Number(values.batchId) || undefined);
+                                                const calculated = calculateFees(Number(values.batchId) || undefined);
+                                                const hasAnyDiscount = couponApplied && original.total > calculated.total;
+                                                const totalDiscountPercent = hasAnyDiscount 
+                                                    ? calculateDiscountPercent(original.total, calculated.total)
+                                                    : 0;
+
+                                                return (
+                                                    <div className="pt-3 border-t border-secondary-200 dark:border-secondary-700">
+                                                        <div className="flex justify-between items-start gap-2 font-bold text-heading">
+                                                            <span className="text-sm">
+                                                                Total Today
+                                                                {hasAnyDiscount && totalDiscountPercent > 0 && (
+                                                                    <span className="ml-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                        (Save {totalDiscountPercent}%)
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="flex items-center gap-2 flex-shrink-0">
+                                                                {hasAnyDiscount && (
+                                                                    <span className="text-xs text-body-muted line-through font-normal">
+                                                                        ৳{Math.round(original.total).toLocaleString()}
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-primary text-base">
+                                                                    ৳{Math.round(calculated.total).toLocaleString()}
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Recurring Monthly Fee Note */}
+                                            <div className="pt-2 text-xs text-body-muted">
+                                                From 2nd month: ৳{Math.round(getRecurringMonthlyFee(Number(values.batchId) || undefined)).toLocaleString()}/month
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Important Info */}
+                                    <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center gap-2">
+                                        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                                            Pay Tuition fees by the 5th of each month.
+                                        </p>
+                                    </div>
+
+                                    {/* Form Buttons - Stack on mobile */}
+                                    <div className="flex flex-col gap-3 pt-2">
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            disabled={enrolling || !isValid || !values.batchId}
+                                            className="w-full"
+                                        >
+                                            {enrolling ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Proceed to Payment
+                                                    <CreditCard className="ml-2 h-4 w-4" />
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => router.push('/dashboard/courses')}
+                                            className="w-full"
+                                        >
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Side - Fee Summary & Actions (Desktop only) */}
+                            <div className="hidden lg:block lg:w-[360px] flex-shrink-0">
+                                {/* Fee Summary Card */}
+                                <div className="bg-card rounded-card border shadow-card p-6 sticky top-6">
+                                    <h3 className="font-bold text-heading text-lg mb-5">Fee Summary</h3>
+
+                                    <div className="space-y-4">
+                                        {/* Admission Fee */}
+                                        {(() => {
+                                            const original = getOriginalFees(Number(values.batchId) || undefined);
+                                            const calculated = calculateFees(Number(values.batchId) || undefined);
+                                            const hasDiscount = couponApplied && original.admissionFee > calculated.admissionFee;
+                                            const discountPercent = hasDiscount 
+                                                ? calculateDiscountPercent(original.admissionFee, calculated.admissionFee)
+                                                : 0;
+                                            
+                                            return (
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-body">
+                                                        Admission Fee
+                                                        {hasDiscount && (
+                                                            <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                ({discountPercent}% off)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="flex items-center gap-2">
+                                                        {hasDiscount && (
+                                                            <span className="text-sm text-body-muted line-through">
+                                                                ৳{Math.round(original.admissionFee).toLocaleString()}
+                                                            </span>
+                                                        )}
+                                                        <span className={`font-medium ${hasDiscount ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+                                                            ৳{Math.round(calculated.admissionFee).toLocaleString()}
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* First Month Tuition */}
+                                        {(() => {
+                                            const original = getOriginalFees(Number(values.batchId) || undefined);
+                                            const calculated = calculateFees(Number(values.batchId) || undefined);
+                                            const hasDiscount = couponApplied && original.tuitionFee > calculated.tuitionFee;
+                                            const discountPercent = hasDiscount 
+                                                ? calculateDiscountPercent(original.tuitionFee, calculated.tuitionFee)
+                                                : 0;
+                                            
+                                            return (
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-body">
+                                                        First Month Tuition
+                                                        {hasDiscount && (
+                                                            <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                ({discountPercent}% off)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="flex items-center gap-2">
+                                                        {hasDiscount && (
+                                                            <span className="text-sm text-body-muted line-through">
+                                                                ৳{Math.round(original.tuitionFee).toLocaleString()}
+                                                            </span>
+                                                        )}
+                                                        <span className={`font-medium ${hasDiscount ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+                                                            ৳{Math.round(calculated.tuitionFee).toLocaleString()}
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Total */}
+                                        {(() => {
+                                            const original = getOriginalFees(Number(values.batchId) || undefined);
+                                            const calculated = calculateFees(Number(values.batchId) || undefined);
+                                            const hasAnyDiscount = couponApplied && original.total > calculated.total;
+                                            const totalDiscountPercent = hasAnyDiscount 
+                                                ? calculateDiscountPercent(original.total, calculated.total)
+                                                : 0;
+
+                                            return (
+                                                <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                                                    <div className="flex justify-between items-center font-bold text-heading">
+                                                        <span>
+                                                            Total Payable Today
+                                                        </span>
+                                                        <span className="flex items-center gap-2">
+                                                            {hasAnyDiscount && (
+                                                                <span className="text-sm text-body-muted line-through font-normal">
+                                                                    ৳{Math.round(original.total).toLocaleString()}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-primary text-xl">
+                                                                ৳{Math.round(calculated.total).toLocaleString()}
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                    {hasAnyDiscount && totalDiscountPercent > 0 && (
+                                                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 text-right">
+                                                            You save {totalDiscountPercent}%!
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Recurring Monthly Fee Note */}
+                                        <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                                            <div className="flex justify-between items-center text-sm text-body-muted">
+                                                <span>From 2nd month onwards:</span>
+                                                <span className="font-medium">
+                                                    ৳{Math.round(getRecurringMonthlyFee(Number(values.batchId) || undefined)).toLocaleString()}/month
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Important Info */}
+                                    <div className="mt-5 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center gap-2">
+                                        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                                            Tuition fees are due by the 5th of each month.
+                                        </p>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="mt-6 space-y-3">
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            disabled={enrolling || !isValid || !values.batchId}
+                                            className="w-full"
+                                        >
+                                            {enrolling ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Proceed to Payment
+                                                    <CreditCard className="ml-2 h-4 w-4" />
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => router.push('/dashboard/courses')}
+                                            className="w-full"
+                                        >
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Form>
+                )}
+            </Formik>
         </div>
     );
 }

@@ -6,6 +6,7 @@ import {
     PaginatedResponse,
     User,
     Student,
+    Coupon,
 } from '@/types';
 
 // Extended types for admin views
@@ -165,6 +166,10 @@ export const adminApi = {
 
     getUser: (id: number) =>
         api.get<User>(`/accounts/users/${id}/`),
+
+    // Coupon Management
+    getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
+        api.get<PaginatedResponse<Coupon>>('/enrollments/coupons/', { params }),
 };
 
 export default adminApi;

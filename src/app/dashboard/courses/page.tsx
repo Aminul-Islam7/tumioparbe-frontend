@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { courseApi, enrollmentApi, userApi } from '@/lib/api';
+import { courseApi, enrollmentApi, userApi, paymentApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 import { Course, Batch, Student, Enrollment } from '@/types';
@@ -22,6 +22,9 @@ import {
     Copy,
     ExternalLink,
     Users,
+    Sparkles,
+    XCircle,
+    X,
 } from 'lucide-react';
 
 export default function CoursesPage() {
@@ -43,8 +46,27 @@ export default function CoursesPage() {
     // UI state
     const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
 
+    // Payment callback modal state
+    const [paymentModal, setPaymentModal] = useState<{
+        isOpen: boolean;
+        status: 'success' | 'error' | 'cancelled' | 'processing';
+        title: string;
+        message: string;
+        transactionId?: string;
+        courseName?: string;
+        batchName?: string;
+        studentName?: string;
+    }>({
+        isOpen: false,
+        status: 'processing',
+        title: '',
+        message: '',
+    });
+    const [processingPayment, setProcessingPayment] = useState(false);
+
     // Track if initial fetch has been done
     const hasFetched = useRef(false);
+    const paymentCallbackProcessed = useRef(false);
 
     // Fetch all data
     const fetchData = useCallback(async (showLoadingState = true) => {
@@ -125,6 +147,236 @@ export default function CoursesPage() {
             fetchData();
         }
     }, [user, fetchData]);
+
+    // Handle bKash payment callback with robust retry and recovery
+    useEffect(() => {
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 2000; // 2 seconds
+
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+        const attemptPaymentExecution = async (paymentID: string, attempt: number = 1): Promise<any> => {
+            try {
+                const response = await paymentApi.executeBkashPayment(paymentID);
+                return { success: true, data: response.data };
+            } catch (error: any) {
+                console.error(`Payment execution attempt ${attempt} failed:`, error);
+                
+                if (attempt < MAX_RETRIES) {
+                    // Wait before retrying with exponential backoff
+                    await delay(RETRY_DELAY * attempt);
+                    return attemptPaymentExecution(paymentID, attempt + 1);
+                }
+                
+                // All retries failed - try recovery endpoint as fallback
+                console.log('Attempting payment recovery...');
+                try {
+                    const recoveryResponse = await paymentApi.recoverPayment(paymentID);
+                    return { success: true, data: recoveryResponse.data, recovered: true };
+                } catch (recoveryError: any) {
+                    console.error('Recovery also failed:', recoveryError);
+                    return { 
+                        success: false, 
+                        error: recoveryError,
+                        originalError: error
+                    };
+                }
+            }
+        };
+
+        const handlePaymentCallback = async () => {
+            const paymentID = searchParams.get('paymentID');
+            const bkashStatus = searchParams.get('status');
+            
+            if (!paymentID || paymentCallbackProcessed.current) return;
+            
+            // Mark as processed to prevent duplicate processing
+            paymentCallbackProcessed.current = true;
+            
+            // Store payment ID in localStorage for manual recovery if needed
+            try {
+                localStorage.setItem('pendingPaymentID', paymentID);
+                localStorage.setItem('pendingPaymentTime', new Date().toISOString());
+            } catch (e) {
+                // localStorage not available, continue anyway
+            }
+            
+            // Show processing modal
+            setPaymentModal({
+                isOpen: true,
+                status: 'processing',
+                title: 'Processing Payment',
+                message: 'Please wait while we confirm your payment...',
+            });
+            setProcessingPayment(true);
+            
+            try {
+                if (bkashStatus === 'cancel') {
+                    // Payment was cancelled by user - clean up
+                    try {
+                        localStorage.removeItem('pendingPaymentID');
+                        localStorage.removeItem('pendingPaymentTime');
+                    } catch (e) {}
+                    
+                    setPaymentModal({
+                        isOpen: true,
+                        status: 'cancelled',
+                        title: 'Payment Cancelled',
+                        message: 'You cancelled the payment. No charges have been made to your account.',
+                    });
+                } else if (bkashStatus === 'failure') {
+                    // Payment failed at bKash - clean up
+                    try {
+                        localStorage.removeItem('pendingPaymentID');
+                        localStorage.removeItem('pendingPaymentTime');
+                    } catch (e) {}
+                    
+                    setPaymentModal({
+                        isOpen: true,
+                        status: 'error',
+                        title: 'Payment Failed',
+                        message: 'The payment could not be completed. Please try again.',
+                    });
+                } else {
+                    // Attempt payment execution with retries and recovery fallback
+                    const result = await attemptPaymentExecution(paymentID);
+                    
+                    if (result.success) {
+                        const data = result.data as any;
+                        
+                        if (data.status === 'success') {
+                            // Success! Clear pending payment
+                            try {
+                                localStorage.removeItem('pendingPaymentID');
+                                localStorage.removeItem('pendingPaymentTime');
+                            } catch (e) {}
+                            
+                            const enrollmentInfo = data.enrollment || {};
+                            setPaymentModal({
+                                isOpen: true,
+                                status: 'success',
+                                title: '🎉 Enrollment Successful!',
+                                message: result.recovered 
+                                    ? 'Your enrollment was recovered successfully!'
+                                    : 'Congratulations! Your child has been successfully enrolled.',
+                                transactionId: data.transaction_id,
+                                courseName: enrollmentInfo.course_name,
+                                batchName: enrollmentInfo.batch_name,
+                                studentName: enrollmentInfo.student_name,
+                            });
+                            
+                            // Refresh data to show the new enrollment
+                            fetchData(false);
+                        } else if (data.status === 'payment_succeeded_enrollment_failed' || data.status === 'partial_success') {
+                            // Keep pending payment for manual recovery
+                            setPaymentModal({
+                                isOpen: true,
+                                status: 'error',
+                                title: 'Enrollment Issue',
+                                message: `Your payment was successful (Transaction: ${data.transaction_id}), but there was an issue completing the enrollment. Please contact support with your transaction ID. We will resolve this shortly.`,
+                                transactionId: data.transaction_id,
+                            });
+                        } else {
+                            setPaymentModal({
+                                isOpen: true,
+                                status: 'error',
+                                title: 'Payment Issue',
+                                message: data.message || 'There was an issue processing your payment.',
+                            });
+                        }
+                    } else {
+                        // All attempts failed
+                        setPaymentModal({
+                            isOpen: true,
+                            status: 'error',
+                            title: 'Connection Issue',
+                            message: 'We couldn\'t confirm your payment status due to a connection issue. If money was deducted from your account, please don\'t worry - your payment is safe. Try refreshing the page or contact support.',
+                        });
+                    }
+                }
+            } catch (error: any) {
+                console.error('Payment callback error:', error);
+                setPaymentModal({
+                    isOpen: true,
+                    status: 'error',
+                    title: 'Something Went Wrong',
+                    message: 'An unexpected error occurred. If you completed the payment, please refresh the page. Your payment is safe and will be processed.',
+                });
+            } finally {
+                setProcessingPayment(false);
+                
+                // Clean up URL params
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        };
+        
+        handlePaymentCallback();
+    }, [searchParams, fetchData]);
+
+    // Manual payment recovery function
+    const retryPaymentRecovery = async () => {
+        const pendingPaymentID = localStorage.getItem('pendingPaymentID');
+        if (!pendingPaymentID) {
+            setPaymentModal({
+                isOpen: true,
+                status: 'error',
+                title: 'No Pending Payment',
+                message: 'No pending payment found to recover.',
+            });
+            return;
+        }
+        
+        setPaymentModal({
+            isOpen: true,
+            status: 'processing',
+            title: 'Recovering Payment',
+            message: 'Attempting to verify and recover your payment...',
+        });
+        
+        try {
+            const response = await paymentApi.recoverPayment(pendingPaymentID);
+            const data = response.data;
+            
+            if (data.status === 'success') {
+                localStorage.removeItem('pendingPaymentID');
+                localStorage.removeItem('pendingPaymentTime');
+                
+                setPaymentModal({
+                    isOpen: true,
+                    status: 'success',
+                    title: '🎉 Payment Recovered!',
+                    message: 'Your payment and enrollment have been successfully recovered.',
+                    transactionId: data.transaction_id,
+                    courseName: data.enrollment?.course_name,
+                    batchName: data.enrollment?.batch_name,
+                    studentName: data.enrollment?.student_name,
+                });
+                
+                fetchData(false);
+            } else {
+                setPaymentModal({
+                    isOpen: true,
+                    status: 'error',
+                    title: 'Recovery Issue',
+                    message: data.message || 'Could not recover the payment. Please contact support.',
+                });
+            }
+        } catch (error) {
+            console.error('Recovery error:', error);
+            setPaymentModal({
+                isOpen: true,
+                status: 'error',
+                title: 'Recovery Failed',
+                message: 'Could not connect to the server. Please try again later.',
+            });
+        }
+    };
+
+    // Close payment modal
+    const closePaymentModal = () => {
+        setPaymentModal(prev => ({ ...prev, isOpen: false }));
+    };
 
     // Refresh data
     const handleRefresh = () => {
@@ -336,11 +588,19 @@ export default function CoursesPage() {
                                     rounded-card border-2 overflow-hidden flex flex-col transition-all duration-normal group
                                     ${
                                         isEnrolled
-                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 hover:shadow-lime'
+                                            ? 'bg-card-courses-bg border-emerald-300 dark:border-emerald-700 hover:shadow-lime'
                                             : 'bg-card-courses-bg border-card-courses-border hover:shadow-sky'
                                     }
                                 `}
                             >
+                                {/* Offer Badge - Only for non-enrolled courses with featured coupon */}
+                                {!isEnrolled && course.featured_coupon_details && (
+                                    <div className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 text-white text-sm font-semibold px-4 py-2 flex items-center gap-2">
+                                        <Sparkles className="h-4 w-4" />
+                                        <span>{course.featured_coupon_details.offer_message || 'Special Offer Available!'}</span>
+                                    </div>
+                                )}
+
                                 {/* Enrolled Badge */}
                                 {isEnrolled && (
                                     <div className="bg-gradient-to-r from-emerald-500 to-lime-500 text-white text-xs font-semibold px-4 py-2 flex items-center gap-2">
@@ -357,16 +617,61 @@ export default function CoursesPage() {
 
                                     <div className="space-y-2 mb-4">
                                         {/* Show admission fee only if NOT enrolled */}
-                                        {!isEnrolled && (
-                                            <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
-                                                <span>Admission Fee</span>
-                                                <span className="font-medium">৳{Math.round(course.admission_fee)}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
-                                            <span>Monthly Fee</span>
-                                            <span className="font-medium">৳{Math.round(monthlyFee)}</span>
-                                        </div>
+                                        {!isEnrolled && (() => {
+                                            const coupon_details = course.featured_coupon_details;
+                                            const hasDiscount = coupon_details && coupon_details.admission_fee_discount > 0;
+                                            const discountPercent = hasDiscount && coupon_details
+                                                ? Math.ceil(((course.admission_fee - coupon_details.discounted_admission_fee) / course.admission_fee) * 100)
+                                                : 0;
+                                            return (
+                                                <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
+                                                    <span>
+                                                        Admission Fee
+                                                        {hasDiscount && (
+                                                            <span className="ml-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                ({discountPercent}% off)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    {hasDiscount && coupon_details ? (
+                                                        <span className="font-medium flex items-center gap-2">
+                                                            <span className="line-through text-body-muted">৳{Math.round(course.admission_fee)}</span>
+                                                            <span className="text-emerald-600 dark:text-emerald-400">৳{Math.round(coupon_details.discounted_admission_fee)}</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="font-medium">৳{Math.round(course.admission_fee)}</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
+                                        {/* Monthly Fee */}
+                                        {(() => {
+                                            const coupon_details = course.featured_coupon_details;
+                                            const hasDiscount = !isEnrolled && coupon_details && coupon_details.tuition_fee_discount > 0;
+                                            const discountPercent = hasDiscount && coupon_details
+                                                ? Math.ceil(((monthlyFee - coupon_details.discounted_monthly_fee) / monthlyFee) * 100)
+                                                : 0;
+                                            return (
+                                                <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
+                                                    <span>
+                                                        Monthly Fee
+                                                        {hasDiscount && (
+                                                            <span className="ml-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                                                ({discountPercent}% off)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    {hasDiscount && coupon_details ? (
+                                                        <span className="font-medium flex items-center gap-2">
+                                                            <span className="line-through text-body-muted">৳{Math.round(monthlyFee)}</span>
+                                                            <span className="text-emerald-600 dark:text-emerald-400">৳{Math.round(coupon_details.discounted_monthly_fee)}</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="font-medium">৳{Math.round(monthlyFee)}</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                         {!isEnrolled && (
                                             <div className="flex justify-between items-center text-sm bg-white/60 dark:bg-secondary-900/40 p-2.5 rounded-lg">
                                                 <span>Available Batches</span>
@@ -380,32 +685,34 @@ export default function CoursesPage() {
                                     {/* Enrolled: Show batch info and class link */}
                                     {isEnrolled && batch && (
                                         <div className="space-y-3 pt-3 border-t">
-                                            <div className="flex items-center text-sm">
-                                                <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                                                <div>
-                                                    <span className="font-medium">{batch.name}</span>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {batch.timing}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {enrollment && (
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div className="flex items-center text-sm">
-                                                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                                                     <div>
-                                                        <span className="font-medium">Started</span>
+                                                        <span className="font-medium">{batch.name}</span>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {new Date(enrollment.start_month).toLocaleDateString()}
+                                                            {batch.timing}
                                                         </p>
                                                     </div>
                                                 </div>
-                                            )}
+
+                                                {enrollment && (
+                                                    <div className="flex items-center text-sm justify-end">
+                                                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                                        <div>
+                                                            <span className="font-medium">Started</span>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {new Date(enrollment.start_month).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             {/* Class Link */}
                                             {batch.class_link && (
-                                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
-                                                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                                                <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 border">
+                                                    <p className="text-xs font-medium text-muted-foreground">
                                                         Class Link
                                                     </p>
                                                     <div className="flex items-center gap-2">
@@ -432,8 +739,8 @@ export default function CoursesPage() {
 
                                             {/* Group Link */}
                                             {batch.group_link && (
-                                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border">
-                                                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                                                <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5 border">
+                                                    <p className="text-xs font-medium text-muted-foreground">
                                                         Group Link
                                                     </p>
                                                     <div className="flex items-center gap-2">
@@ -516,6 +823,138 @@ export default function CoursesPage() {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Payment Result Modal */}
+            {paymentModal.isOpen && (
+                <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm"
+                        onClick={paymentModal.status !== 'processing' ? closePaymentModal : undefined}
+                    />
+                    
+                    {/* Modal */}
+                    <div className="relative bg-card rounded-2xl shadow-2xl border border-default w-full max-w-md p-6 animate-in zoom-in-95 fade-in duration-200">
+                        {/* Close button (not shown when processing) */}
+                        {paymentModal.status !== 'processing' && (
+                            <button
+                                onClick={closePaymentModal}
+                                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-body-muted" />
+                            </button>
+                        )}
+                        
+                        {/* Icon */}
+                        <div className="flex justify-center mb-4">
+                            {paymentModal.status === 'processing' && (
+                                <div className="h-16 w-16 rounded-full bg-secondary-100 dark:bg-secondary-900/30 flex items-center justify-center">
+                                    <Loader2 className="h-8 w-8 text-secondary animate-spin" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'success' && (
+                                <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'error' && (
+                                <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                    <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'cancelled' && (
+                                <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                    <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className="text-xl font-bold text-heading text-center mb-2">
+                            {paymentModal.title}
+                        </h3>
+                        
+                        {/* Message */}
+                        <p className="text-body-muted text-center mb-4">
+                            {paymentModal.message}
+                        </p>
+                        
+                        {/* Success Details */}
+                        {paymentModal.status === 'success' && (
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 mb-4 space-y-2">
+                                {paymentModal.studentName && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-body-muted">Student:</span>
+                                        <span className="font-medium text-heading">{paymentModal.studentName}</span>
+                                    </div>
+                                )}
+                                {paymentModal.courseName && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-body-muted">Course:</span>
+                                        <span className="font-medium text-heading">{paymentModal.courseName}</span>
+                                    </div>
+                                )}
+                                {paymentModal.batchName && (
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-body-muted">Batch:</span>
+                                        <span className="font-medium text-heading">{paymentModal.batchName}</span>
+                                    </div>
+                                )}
+                                {paymentModal.transactionId && (
+                                    <div className="flex justify-between text-sm pt-2 border-t border-emerald-200 dark:border-emerald-800">
+                                        <span className="text-body-muted">Transaction ID:</span>
+                                        <span className="font-mono text-xs font-medium text-heading">{paymentModal.transactionId}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {/* Transaction ID for errors */}
+                        {paymentModal.status === 'error' && paymentModal.transactionId && (
+                            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-xl p-3 mb-4 text-center">
+                                <span className="text-xs text-body-muted">Transaction ID: </span>
+                                <span className="font-mono text-xs font-medium text-heading">{paymentModal.transactionId}</span>
+                            </div>
+                        )}
+                        
+                        {/* Buttons */}
+                        <div className="flex gap-3">
+                            {paymentModal.status === 'success' && (
+                                <Button
+                                    onClick={closePaymentModal}
+                                    variant="success"
+                                    className="w-full"
+                                >
+                                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                                    Great!
+                                </Button>
+                            )}
+                            {(paymentModal.status === 'error' || paymentModal.status === 'cancelled') && (
+                                <>
+                                    <Button
+                                        onClick={closePaymentModal}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        Close
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            closePaymentModal();
+                                            // Could add retry logic here if needed
+                                        }}
+                                        variant="default"
+                                        className="flex-1"
+                                    >
+                                        <RefreshCcw className="mr-2 h-4 w-4" />
+                                        Try Again
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

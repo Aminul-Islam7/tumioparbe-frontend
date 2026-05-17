@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 import { paymentApi } from '@/lib/api';
@@ -13,6 +14,10 @@ import {
     Loader2,
     CheckSquare,
     Square,
+    X,
+    AlertTriangle,
+    RefreshCcw,
+    XCircle,
 } from 'lucide-react';
 
 // Combined type for display
@@ -33,6 +38,7 @@ interface PaymentItem {
 
 export default function PaymentsPage() {
     const { user } = useAuth(true);
+    const searchParams = useSearchParams();
 
 
     const [loading, setLoading] = useState(true);
@@ -41,8 +47,24 @@ export default function PaymentsPage() {
     const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
     const [processingPayment, setProcessingPayment] = useState(false);
 
+    // Payment callback modal state
+    const [paymentModal, setPaymentModal] = useState<{
+        isOpen: boolean;
+        status: 'success' | 'error' | 'cancelled' | 'processing';
+        title: string;
+        message: string;
+        transactionId?: string;
+        invoiceCount?: number;
+    }>({
+        isOpen: false,
+        status: 'processing',
+        title: '',
+        message: '',
+    });
+
     // Track if initial fetch has been done
     const hasFetched = useRef(false);
+    const paymentCallbackProcessed = useRef(false);
 
     // Fetch data
     const fetchData = async () => {
@@ -81,6 +103,148 @@ export default function PaymentsPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Handle bKash payment callback with robust retry and recovery
+    useEffect(() => {
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 2000;
+
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+        const attemptPaymentExecution = async (paymentID: string, attempt: number = 1): Promise<any> => {
+            try {
+                const response = await paymentApi.executeBkashPayment(paymentID);
+                return { success: true, data: response.data };
+            } catch (error: any) {
+                console.error(`Payment execution attempt ${attempt} failed:`, error);
+                
+                if (attempt < MAX_RETRIES) {
+                    await delay(RETRY_DELAY * attempt);
+                    return attemptPaymentExecution(paymentID, attempt + 1);
+                }
+                
+                // Try recovery endpoint as fallback
+                try {
+                    const recoveryResponse = await paymentApi.recoverPayment(paymentID);
+                    return { success: true, data: recoveryResponse.data, recovered: true };
+                } catch (recoveryError: any) {
+                    return { success: false, error: recoveryError };
+                }
+            }
+        };
+
+        const handlePaymentCallback = async () => {
+            const paymentID = searchParams.get('paymentID');
+            const bkashStatus = searchParams.get('status');
+            
+            if (!paymentID || paymentCallbackProcessed.current) return;
+            
+            paymentCallbackProcessed.current = true;
+            
+            // Store for recovery
+            try {
+                localStorage.setItem('pendingPaymentID', paymentID);
+                localStorage.setItem('pendingPaymentTime', new Date().toISOString());
+            } catch (e) {}
+            
+            setPaymentModal({
+                isOpen: true,
+                status: 'processing',
+                title: 'Processing Payment',
+                message: 'Please wait while we confirm your payment...',
+            });
+            
+            try {
+                if (bkashStatus === 'cancel') {
+                    try {
+                        localStorage.removeItem('pendingPaymentID');
+                        localStorage.removeItem('pendingPaymentTime');
+                    } catch (e) {}
+                    
+                    setPaymentModal({
+                        isOpen: true,
+                        status: 'cancelled',
+                        title: 'Payment Cancelled',
+                        message: 'You cancelled the payment. No charges have been made.',
+                    });
+                } else if (bkashStatus === 'failure') {
+                    try {
+                        localStorage.removeItem('pendingPaymentID');
+                        localStorage.removeItem('pendingPaymentTime');
+                    } catch (e) {}
+                    
+                    setPaymentModal({
+                        isOpen: true,
+                        status: 'error',
+                        title: 'Payment Failed',
+                        message: 'The payment could not be completed. Please try again.',
+                    });
+                } else {
+                    const result = await attemptPaymentExecution(paymentID);
+                    
+                    if (result.success) {
+                        const data = result.data as any;
+                        
+                        if (data.status === 'success') {
+                            try {
+                                localStorage.removeItem('pendingPaymentID');
+                                localStorage.removeItem('pendingPaymentTime');
+                            } catch (e) {}
+                            
+                            const invoiceCount = data.processed_invoices?.length || 1;
+                            setPaymentModal({
+                                isOpen: true,
+                                status: 'success',
+                                title: '🎉 Payment Successful!',
+                                message: result.recovered
+                                    ? 'Your payment was recovered successfully.'
+                                    : (invoiceCount > 1 
+                                        ? `${invoiceCount} invoices have been paid successfully.`
+                                        : 'Your payment has been completed successfully.'),
+                                transactionId: data.transaction_id,
+                                invoiceCount: invoiceCount,
+                            });
+                            
+                            fetchData();
+                        } else {
+                            setPaymentModal({
+                                isOpen: true,
+                                status: 'error',
+                                title: 'Payment Issue',
+                                message: data.message || 'There was an issue with your payment.',
+                                transactionId: data.transaction_id,
+                            });
+                        }
+                    } else {
+                        setPaymentModal({
+                            isOpen: true,
+                            status: 'error',
+                            title: 'Connection Issue',
+                            message: 'We couldn\'t confirm your payment status. If money was deducted, please contact support.',
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Payment callback error:', error);
+                setPaymentModal({
+                    isOpen: true,
+                    status: 'error',
+                    title: 'Something Went Wrong',
+                    message: 'An unexpected error occurred. If you completed the payment, please refresh the page.',
+                });
+            } finally {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        };
+        
+        handlePaymentCallback();
+    }, [searchParams, fetchData]);
+
+    // Close payment modal
+    const closePaymentModal = () => {
+        setPaymentModal(prev => ({ ...prev, isOpen: false }));
+    };
 
     // Combine and sort items - unpaid first, then by date
     const allItems = useMemo((): PaymentItem[] => {
@@ -178,9 +342,9 @@ export default function PaymentsPage() {
     // Get callback URL for bKash
     const getCallbackUrl = () => {
         if (typeof window !== 'undefined') {
-            return `${window.location.origin}/payment/success`;
+            return `${window.location.origin}/dashboard/payments`;
         }
-        return '/payment/success';
+        return '/dashboard/payments';
     };
 
     // Handle single invoice payment
@@ -640,6 +804,107 @@ export default function PaymentsPage() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Result Modal */}
+            {paymentModal.isOpen && (
+                <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm"
+                        onClick={paymentModal.status !== 'processing' ? closePaymentModal : undefined}
+                    />
+                    
+                    {/* Modal */}
+                    <div className="relative bg-card rounded-2xl shadow-2xl border border-default w-full max-w-md p-6 animate-in zoom-in-95 fade-in duration-200">
+                        {/* Close button */}
+                        {paymentModal.status !== 'processing' && (
+                            <button
+                                onClick={closePaymentModal}
+                                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-body-muted" />
+                            </button>
+                        )}
+                        
+                        {/* Icon */}
+                        <div className="flex justify-center mb-4">
+                            {paymentModal.status === 'processing' && (
+                                <div className="h-16 w-16 rounded-full bg-tangerine-100 dark:bg-tangerine-900/30 flex items-center justify-center">
+                                    <Loader2 className="h-8 w-8 text-tangerine-500 animate-spin" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'success' && (
+                                <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'error' && (
+                                <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                    <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                                </div>
+                            )}
+                            {paymentModal.status === 'cancelled' && (
+                                <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                    <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className="text-xl font-bold text-heading text-center mb-2">
+                            {paymentModal.title}
+                        </h3>
+                        
+                        {/* Message */}
+                        <p className="text-body-muted text-center mb-4">
+                            {paymentModal.message}
+                        </p>
+                        
+                        {/* Success Details */}
+                        {paymentModal.status === 'success' && paymentModal.transactionId && (
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 mb-4">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-body-muted">Transaction ID:</span>
+                                    <span className="font-mono text-xs font-medium text-heading">{paymentModal.transactionId}</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Buttons */}
+                        <div className="flex gap-3">
+                            {paymentModal.status === 'success' && (
+                                <Button
+                                    onClick={closePaymentModal}
+                                    variant="success"
+                                    className="w-full"
+                                >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Great!
+                                </Button>
+                            )}
+                            {(paymentModal.status === 'error' || paymentModal.status === 'cancelled') && (
+                                <>
+                                    <Button
+                                        onClick={closePaymentModal}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        Close
+                                    </Button>
+                                    <Button
+                                        onClick={closePaymentModal}
+                                        variant="tangerine"
+                                        className="flex-1"
+                                    >
+                                        <RefreshCcw className="mr-2 h-4 w-4" />
+                                        Try Again
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

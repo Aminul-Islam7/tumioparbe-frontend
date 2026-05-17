@@ -465,6 +465,7 @@ module.exports = {
                 sticky: 'var(--z-sticky)',
                 fixed: 'var(--z-fixed)',
                 sidebar: 'var(--z-sidebar)',
+                header: 'var(--z-header)',
                 navbar: 'var(--z-navbar)',
                 'modal-backdrop': 'var(--z-modal-backdrop)',
                 modal: 'var(--z-modal)',
