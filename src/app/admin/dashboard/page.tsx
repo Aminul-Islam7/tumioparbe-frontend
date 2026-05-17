@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
             description: 'Enrolled students',
         },
         {
-            title: 'Parents & Admins',
+            title: 'Users',
             value: (stats?.total_parents ?? 0) + (stats?.total_admins ?? 0),
             icon: Users,
             color: 'tangerine',
