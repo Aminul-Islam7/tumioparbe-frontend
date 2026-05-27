@@ -148,6 +148,9 @@ export const adminApi = {
     updateEnrollmentFee: (id: number, data: UpdateEnrollmentFeeData) =>
         api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, data),
 
+    updateEnrollment: (id: number, data: Partial<Enrollment>) =>
+        api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, data),
+
     deactivateEnrollment: (id: number) =>
         api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, { is_active: false }),
 
@@ -167,6 +170,9 @@ export const adminApi = {
 
     getStudent: (id: number) =>
         api.get<AdminStudent>(`/accounts/students/${id}/`),
+
+    updateStudent: (id: number, data: Partial<Student>) =>
+        api.patch<AdminStudent>(`/accounts/students/${id}/`, data),
 
 
     // Parent/User Management

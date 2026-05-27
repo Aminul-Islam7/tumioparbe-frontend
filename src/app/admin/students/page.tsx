@@ -26,6 +26,7 @@ import { adminApi } from '@/lib/adminApi';
 import { AdminStudent, AdminEnrollmentInfo, Course, Batch } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -104,8 +105,8 @@ function EnrollmentBadge({ enrollment }: { enrollment: AdminEnrollmentInfo }) {
     const color = courseColor(enrollment.course_id);
     return (
         <span className={cn(
-            'inline-flex flex-col px-2.5 py-1 rounded-lg text-xs border',
-            color.bg, color.text, color.border
+            'inline-flex flex-col px-2.5 py-1 rounded-lg text-xs',
+            color.bg, color.text
         )}>
             <span className="font-semibold leading-tight truncate max-w-[240px]">{enrollment.course_name}</span>
             <span className="opacity-70 leading-tight truncate max-w-[240px]">{enrollment.batch_name}</span>
@@ -440,17 +441,17 @@ function EnrollmentManagerModal({ student, onClose, onSuccess }: EnrollmentManag
 
 function StudentRow({
     student,
-    onEnroll,
-    onManage,
 }: {
     student: AdminStudent;
-    onEnroll: () => void;
-    onManage: () => void;
 }) {
     const activeEnrollments = student.enrollments.filter((e) => e.is_active);
+    const router = useRouter();
 
     return (
-        <tr className="hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors border-b border-default group">
+        <tr 
+            onClick={() => router.push(`/admin/students/${student.id}`)}
+            className="hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors border-b border-default group cursor-pointer"
+        >
             {/* Student */}
             <td className="px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -469,7 +470,14 @@ function StudentRow({
             {/* Parent */}
             <td className="px-4 py-3">
                 <div className="space-y-1 min-w-0">
-                    <p className="text-sm font-medium text-heading truncate max-w-[160px]">{student.parent_name}</p>
+                    <Link
+                        href={`/admin/users/${student.parent_id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-sm font-semibold text-heading hover:text-primary transition-colors truncate max-w-[160px] block"
+                    >
+                        {student.parent_name}
+                    </Link>
+
                     <div className="flex items-center gap-2 flex-wrap">
                         <a
                             href={`tel:${student.parent_phone}`}
@@ -488,7 +496,7 @@ function StudentRow({
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-xs font-medium"
                             >
                                 <Facebook className="w-3 h-3" />
-                                FB
+                                Facebook
                             </a>
                         )}
                     </div>
@@ -504,13 +512,7 @@ function StudentRow({
                         ))}
                     </div>
                 ) : (
-                    <button
-                        onClick={onEnroll}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium border border-dashed border-neutral-300 dark:border-neutral-600 hover:border-primary/40"
-                    >
-                        <Plus className="w-3 h-3" />
-                        Enroll
-                    </button>
+                    <span className="text-xs text-body-subtle italic font-normal">No active enrollments</span>
                 )}
             </td>
 
@@ -521,26 +523,6 @@ function StudentRow({
                     {formatDate(student.created_at)}
                 </div>
             </td>
-
-            {/* Actions */}
-            <td className="px-4 py-3">
-                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    <button
-                        onClick={onManage}
-                        className="p-2 rounded-xl hover:bg-lavender-100 dark:hover:bg-lavender-900/30 text-body-muted hover:text-lavender-600 dark:hover:text-lavender-400 transition-colors"
-                        title="Manage enrollments"
-                    >
-                        <ClipboardList className="w-5 h-5" />
-                    </button>
-                    <Link
-                        href={`/admin/users/${student.parent_id}`}
-                        className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-900/30 text-body-muted hover:text-secondary transition-colors"
-                        title="View parent profile"
-                    >
-                        <UserIcon className="w-5 h-5" />
-                    </Link>
-                </div>
-            </td>
         </tr>
     );
 }
@@ -549,17 +531,17 @@ function StudentRow({
 
 function StudentCard({
     student,
-    onEnroll,
-    onManage,
 }: {
     student: AdminStudent;
-    onEnroll: () => void;
-    onManage: () => void;
 }) {
     const activeEnrollments = student.enrollments.filter((e) => e.is_active);
+    const router = useRouter();
 
     return (
-        <div className="p-4 border-b border-default last:border-0">
+        <div 
+            onClick={() => router.push(`/admin/students/${student.id}`)}
+            className="p-4 border-b border-default last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-900/30 transition-colors cursor-pointer"
+        >
             <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-lavender-100 dark:bg-lavender-900/30 text-lavender-700 dark:text-lavender-300 flex items-center justify-center shrink-0">
                     <CircleUser className="w-6 h-6" />
@@ -576,62 +558,61 @@ function StudentCard({
                                 </span>
                             </div>
                         </div>
-                        <div className="flex gap-1 shrink-0">
-                            <button
-                                onClick={onManage}
-                                className="p-2 rounded-xl hover:bg-lavender-100 dark:hover:bg-lavender-900/30 text-body-muted hover:text-lavender-600 transition-colors"
-                                title="Manage enrollments"
-                            >
-                                <ClipboardList className="w-5 h-5" />
-                            </button>
-                            <Link
-                                href={`/admin/users/${student.parent_id}`}
-                                className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-900/30 text-body-muted hover:text-secondary transition-colors"
-                            >
-                                <UserIcon className="w-5 h-5" />
-                            </Link>
-                        </div>
                     </div>
 
                     {/* Parent */}
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <span className="text-xs font-medium text-heading">{student.parent_name}</span>
+                        <Link
+                            href={`/admin/users/${student.parent_id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs font-semibold text-heading hover:text-primary transition-colors"
+                        >
+                            {student.parent_name}
+                        </Link>
                         <a
                             href={`tel:${student.parent_phone}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 transition-colors text-xs font-medium"
                         >
                             <Phone className="w-3 h-3" />
-                            {student.parent_phone}
+                            Call
                         </a>
                         {student.parent_facebook && (
                             <a
                                 href={student.parent_facebook}
                                 target="_blank"
                                 rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors text-xs font-medium"
                             >
                                 <Facebook className="w-3 h-3" />
-                                FB
+                                Facebook
                             </a>
                         )}
                     </div>
 
                     {/* Enrollments */}
                     {activeEnrollments.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                            {activeEnrollments.map((e) => (
-                                <EnrollmentBadge key={e.enrollment_id} enrollment={e} />
-                            ))}
+                        <div className="space-y-1 mt-2">
+                            {activeEnrollments.map((e) => {
+                                const color = courseColor(e.course_id);
+                                return (
+                                    <div key={e.enrollment_id} className="text-xs">
+                                        <div className={cn("font-semibold", color.text)}>
+                                            {e.course_name}
+                                        </div>
+                                        <div className={cn("opacity-75 mt-0.5 font-medium", color.text)}>
+                                            {e.batch_name}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     ) : (
-                        <button
-                            onClick={onEnroll}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium border border-dashed border-neutral-300 dark:border-neutral-600"
-                        >
-                            <Plus className="w-3 h-3" />
-                            Enroll to a Course
-                        </button>
+                        <span className="text-xs text-body-subtle italic font-normal">No active enrollments</span>
                     )}
+
+
                 </div>
             </div>
         </div>
@@ -1044,11 +1025,10 @@ export default function AdminStudentsPage() {
                                 <StudentCard
                                     key={s.id}
                                     student={s}
-                                    onEnroll={() => setEnrollModal(s)}
-                                    onManage={() => setManageModal(s)}
                                 />
                             ))}
                         </div>
+
 
                         {/* Desktop table */}
                         <div className="hidden md:block overflow-x-auto">
@@ -1060,7 +1040,6 @@ export default function AdminStudentsPage() {
                                             { label: 'Parent', w: 'w-[300px]' },
                                             { label: 'Enrollments', w: '' },
                                             { label: 'Since', w: 'w-[110px]' },
-                                            { label: '', w: 'w-[120px]' },
                                         ].map(({ label, w }) => (
                                             <th
                                                 key={label}
@@ -1076,8 +1055,6 @@ export default function AdminStudentsPage() {
                                         <StudentRow
                                             key={s.id}
                                             student={s}
-                                            onEnroll={() => setEnrollModal(s)}
-                                            onManage={() => setManageModal(s)}
                                         />
                                     ))}
                                 </tbody>

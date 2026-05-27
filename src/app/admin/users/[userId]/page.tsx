@@ -677,13 +677,14 @@ export default function UserDetailPage() {
                             </div>
 
                             <div className="flex items-center justify-end gap-3">
-                                <Button
-                                    variant="ghost"
+                                <button
                                     onClick={cancelSave}
                                     disabled={saving}
+                                    className="px-4 py-2 text-xs font-semibold rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-heading transition-colors"
                                 >
                                     Cancel
-                                </Button>
+                                </button>
+
                                 <Button
                                     onClick={executeSave}
                                     disabled={saving}

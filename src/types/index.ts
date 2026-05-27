@@ -24,6 +24,7 @@ export interface AdminEnrollmentInfo {
     enrollment_id: number;
     batch_id: number;
     batch_name: string;
+    batch_timing?: string;
     course_id: number;
     course_name: string;
     start_month: string;
