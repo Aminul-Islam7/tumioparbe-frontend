@@ -6,6 +6,7 @@ import {
     PaginatedResponse,
     User,
     Student,
+    AdminStudent,
     Coupon,
 } from '@/types';
 
@@ -151,11 +152,22 @@ export const adminApi = {
         api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, { is_active: false }),
 
     // Student Management
-    getAllStudents: (params?: { search?: string; batch?: number; parent?: number }) =>
-        api.get<PaginatedResponse<Student & { parent_name: string; parent_phone: string }>>('/accounts/students/', { params }),
+    getAllStudents: (params?: {
+        search?: string;
+        batch?: number;
+        course?: number;
+        parent?: number;
+        current_class?: string;
+        has_active_enrollment?: 'true' | 'false';
+        min_age?: number;
+        max_age?: number;
+        ordering?: string;
+    }) =>
+        api.get<PaginatedResponse<AdminStudent>>('/accounts/students/', { params }),
 
     getStudent: (id: number) =>
-        api.get<Student>(`/accounts/students/${id}/`),
+        api.get<AdminStudent>(`/accounts/students/${id}/`),
+
 
     // Parent/User Management
     getAllUsers: (params?: { search?: string }) =>

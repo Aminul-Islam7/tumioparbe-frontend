@@ -20,6 +20,36 @@ export interface Student {
     mother_name: string;
 }
 
+export interface AdminEnrollmentInfo {
+    enrollment_id: number;
+    batch_id: number;
+    batch_name: string;
+    course_id: number;
+    course_name: string;
+    start_month: string;
+    tuition_fee: number | null;
+    effective_tuition_fee: number;
+    is_active: boolean;
+}
+
+export interface AdminStudent {
+    id: number;
+    name: string;
+    date_of_birth: string;
+    age: number;
+    school?: string;
+    current_class?: string;
+    father_name: string;
+    mother_name: string;
+    parent_id: number;
+    parent_name: string;
+    parent_phone: string;
+    parent_address: string;
+    parent_facebook?: string;
+    enrollments: AdminEnrollmentInfo[];
+    created_at: string;
+}
+
 export interface FeaturedCouponDetails {
     id: number;
     code: string;

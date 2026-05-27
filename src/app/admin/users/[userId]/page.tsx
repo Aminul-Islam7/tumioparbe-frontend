@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/adminApi';
-import { User, Student } from '@/types';
+import { User, Student, AdminStudent } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +36,7 @@ export default function UserDetailPage() {
     const { user: currentUser } = useAuth();
 
     const [user, setUser] = useState<User | null>(null);
-    const [children, setChildren] = useState<Student[]>([]);
+    const [children, setChildren] = useState<AdminStudent[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingField, setEditingField] = useState<'name' | 'email' | 'address' | 'facebook_profile' | null>(null);
     const [editValue, setEditValue] = useState('');
