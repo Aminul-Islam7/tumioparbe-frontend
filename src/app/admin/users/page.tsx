@@ -229,7 +229,7 @@ export default function AdminUsersPage() {
                                 type="text"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                placeholder="Search by name or phone..."
+                                placeholder="Search by name, phone, or address..."
                                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-default bg-input focus:ring-2 focus:ring-primary/20"
                             />
                         </div>

@@ -776,7 +776,7 @@ export default function AdminStudentsPage() {
                                 type="text"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                placeholder="Search student, parent..."
+                                placeholder="Search student, parent, or address..."
                                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-default bg-input focus:ring-2 focus:ring-primary/20 text-sm"
                             />
                             {searchInput && (
