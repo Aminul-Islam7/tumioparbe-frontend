@@ -131,7 +131,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             href: '/admin/users',
             label: 'Users',
             icon: UserCog,
-            color: 'tangerine',
+            color: 'primary',
         },
         {
             href: '/admin/payments',

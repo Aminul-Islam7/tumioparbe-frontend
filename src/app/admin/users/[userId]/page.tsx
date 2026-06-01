@@ -687,7 +687,7 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-4">
                         <div className={cn(
                             "h-16 w-16 rounded-full flex items-center justify-center shrink-0",
-                            user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400"
+                            user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light"
                         )}>
                             {user.is_admin ? <Shield className="h-8 w-8" /> : <UserIcon className="h-8 w-8" />}
                         </div>
@@ -762,7 +762,7 @@ export default function UserDetailPage() {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-medium">
+                                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light text-xs font-medium">
                                             <UserIcon className="w-3.5 h-3.5" />
                                             Parent
                                         </span>

@@ -323,7 +323,7 @@ export default function AdminUsersPage() {
                                     <div className="flex items-start gap-3">
                                         <div className={cn(
                                             "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
-                                            user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400"
+                                            user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light"
                                         )}>
                                             {user.is_admin ? <Shield className="h-5 w-5" /> : <UserIcon className="h-5 w-5" />}
                                         </div>
@@ -386,10 +386,10 @@ export default function AdminUsersPage() {
                                             Phone
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
-                                            Joined
+                                            Facebook
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-body-muted uppercase tracking-wider">
-                                            Facebook
+                                            Joined
                                         </th>
                                     </tr>
                                 </thead>
@@ -404,7 +404,7 @@ export default function AdminUsersPage() {
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
                                                         "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
-                                                        user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400"
+                                                        user.is_admin ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light"
                                                     )}>
                                                         {user.is_admin ? <Shield className="h-5 w-5" /> : <UserIcon className="h-5 w-5" />}
                                                     </div>
@@ -426,7 +426,7 @@ export default function AdminUsersPage() {
                                                         Admin
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs font-medium">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary dark:text-primary-light text-xs font-medium">
                                                         <UserIcon className="w-3.5 h-3.5" />
                                                         Parent
                                                     </span>
@@ -443,12 +443,6 @@ export default function AdminUsersPage() {
                                                 </a>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <div className="flex items-center gap-1.5 text-sm text-body-muted">
-                                                    <Calendar className="w-3.5 h-3.5 shrink-0" />
-                                                    {user.date_joined ? new Date(user.date_joined).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
                                                 {user.facebook_profile && (
                                                     <a 
                                                         href={user.facebook_profile} 
@@ -462,6 +456,12 @@ export default function AdminUsersPage() {
                                                         <span>View Profile</span>
                                                     </a>
                                                 )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1.5 text-sm text-body-muted">
+                                                    <Calendar className="w-3.5 h-3.5 shrink-0" />
+                                                    {user.date_joined ? new Date(user.date_joined).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
