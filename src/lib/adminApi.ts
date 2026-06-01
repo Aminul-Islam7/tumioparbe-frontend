@@ -88,6 +88,18 @@ export interface UpdateEnrollmentFeeData {
     tuition_fee: number | null;
 }
 
+export interface AdminCreateUserData {
+    name: string;
+    phone: string;
+    address: string;
+    new_password: string;
+    confirm_password: string;
+    facebook_profile?: string;
+    email?: string;
+    is_admin?: boolean;
+    password: string; // current admin's password for verification
+}
+
 // Admin API calls
 export const adminApi = {
     // Dashboard Stats
@@ -199,6 +211,9 @@ export const adminApi = {
 
     updateUserPhone: (id: number, new_phone: string, password: string) =>
         api.post<{ success: boolean; message: string; user: User }>(`/accounts/users/${id}/update_phone/`, { new_phone, password }),
+
+    adminCreateUser: (data: AdminCreateUserData) =>
+        api.post<{ success: boolean; message: string; user: User }>('/accounts/users/admin_create/', data),
 
     // Coupon Management
     getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
