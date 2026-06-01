@@ -20,7 +20,10 @@ import {
     Check,
     X,
     ShieldAlert,
-    Lock
+    Lock,
+    Eye,
+    EyeOff,
+    AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/adminApi';
@@ -28,6 +31,195 @@ import { User, Student, AdminStudent } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+
+
+// ─── Update Phone Modal ───────────────────────────────────────────────────────
+
+interface UpdatePhoneModalProps {
+    user: User;
+    onClose: () => void;
+    onSuccess: (newPhone: string) => void;
+}
+
+const BD_PHONE_RE = /^01[2-9]\d{8}$/;
+
+function UpdatePhoneModal({ user, onClose, onSuccess }: UpdatePhoneModalProps) {
+    const [step, setStep] = useState<'phone' | 'confirm'>('phone');
+    const [newPhone, setNewPhone] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
+
+    const phoneValid = BD_PHONE_RE.test(newPhone.trim());
+    const samePhone = newPhone.trim() === user.phone;
+
+    const handlePhoneNext = () => {
+        setError('');
+        if (!phoneValid) {
+            setError('Enter a valid Bangladesh phone number (e.g. 01XXXXXXXXX).');
+            return;
+        }
+        if (samePhone) {
+            setError('New number is same as current phone.');
+            return;
+        }
+        setStep('confirm');
+    };
+
+    const handleConfirm = async () => {
+        if (!password) { setError('Admin password is required.'); return; }
+        setError('');
+        setSubmitting(true);
+        try {
+            const { adminApi: api } = await import('@/lib/adminApi');
+            await api.updateUserPhone(user.id, newPhone.trim(), password);
+            onSuccess(newPhone.trim());
+            onClose();
+        } catch (err: any) {
+            const msg =
+                err?.response?.data?.message ||
+                err?.response?.data?.detail ||
+                'Failed to update phone number.';
+            setError(msg);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-modal flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="absolute inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-card rounded-t-3xl sm:rounded-2xl shadow-xl w-full sm:max-w-md p-6 animate-slide-up sm:animate-scale-in">
+
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                            <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-heading">Update Phone Number</h2>
+                            <p className="text-xs text-body-muted">Primary login ID · {user.name}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+                        <X className="w-5 h-5 text-body-muted" />
+                    </button>
+                </div>
+
+                {/* Warning banner */}
+                <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>This is the user's <strong>primary login ID</strong>. Changing it will require them to log in with the new number.</span>
+                </div>
+
+                {error && (
+                    <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        {error}
+                    </div>
+                )}
+
+                {step === 'phone' ? (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-heading mb-1.5">Current Phone</label>
+                            <p className="px-4 py-2.5 rounded-xl border border-default bg-surface text-body-muted text-sm font-mono">{user.phone}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-heading mb-1.5">New Phone Number *</label>
+                            <input
+                                type="tel"
+                                value={newPhone}
+                                onChange={(e) => { setNewPhone(e.target.value); setError(''); }}
+                                placeholder="01XXXXXXXXX"
+                                maxLength={11}
+                                autoFocus
+                                className="w-full px-4 py-2.5 rounded-xl border border-default bg-input focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 text-sm font-mono tracking-widest outline-none"
+                                onKeyDown={(e) => { if (e.key === 'Enter') handlePhoneNext(); }}
+                            />
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-default bg-transparent hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500/30 hover:text-amber-600 dark:hover:text-amber-400 text-body-muted transition-colors outline-none"
+                            >
+                                Cancel
+                            </button>
+                            <Button
+                                type="button"
+                                onClick={handlePhoneNext}
+                                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+                                disabled={!newPhone}
+                            >
+                                Next →
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {/* Summary */}
+                        <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/30 border border-default text-sm space-y-1">
+                            <div className="flex justify-between">
+                                <span className="text-body-muted">From</span>
+                                <span className="font-mono font-semibold text-heading">{user.phone}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-body-muted">To</span>
+                                <span className="font-mono font-semibold text-amber-600 dark:text-amber-400">{newPhone.trim()}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-heading mb-1.5">
+                                Confirm with your Admin Password *
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                                    placeholder="Enter admin password"
+                                    autoFocus
+                                    className="w-full px-4 py-2.5 pr-11 rounded-xl border border-default bg-input focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 text-sm outline-none"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm(); }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(p => !p)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-body-muted hover:text-amber-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => { setStep('phone'); setError(''); setPassword(''); }}
+                                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-default bg-transparent hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-500/30 hover:text-amber-600 dark:hover:text-amber-400 text-body-muted transition-colors outline-none"
+                                disabled={submitting}
+                            >
+                                ← Back
+                            </button>
+                            <Button
+                                type="button"
+                                onClick={handleConfirm}
+                                disabled={submitting || !password}
+                                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                                {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</> : 'Confirm Update'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 export default function UserDetailPage() {
     const params = useParams();
@@ -42,6 +234,8 @@ export default function UserDetailPage() {
     const [editValue, setEditValue] = useState('');
     const [saving, setSaving] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+
+    const [updatePhoneModalOpen, setUpdatePhoneModalOpen] = useState(false);
 
     const [adminRoleModal, setAdminRoleModal] = useState<{ isOpen: boolean, action: 'grant' | 'revoke' }>({ isOpen: false, action: 'grant' });
     const [adminPassword, setAdminPassword] = useState('');
@@ -342,7 +536,17 @@ export default function UserDetailPage() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-body-muted mb-0.5">Phone Number</p>
-                                    <p className="font-medium text-heading">{user.phone}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-medium text-heading font-mono">{user.phone}</p>
+                                        <button
+                                            onClick={() => setUpdatePhoneModalOpen(true)}
+                                            className="p-1 text-body-muted hover:text-heading hover:bg-surface rounded-lg transition-colors"
+                                            title="Update Phone Number (Primary Login ID)"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5 shrink-0" />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Primary login ID</p>
                                 </div>
                             </div>
 
@@ -816,6 +1020,16 @@ export default function UserDetailPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Update Phone Modal */}
+            {updatePhoneModalOpen && user && (
+                <UpdatePhoneModal
+                    user={user}
+                    onClose={() => setUpdatePhoneModalOpen(false)}
+                    onSuccess={(newPhone) => {
+                        setUser(prev => prev ? { ...prev, phone: newPhone } : prev);
+                    }}
+                />
             )}
         </div>
     );

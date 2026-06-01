@@ -197,6 +197,9 @@ export const adminApi = {
     revokeAdmin: (id: number, password: string) =>
         api.post<{ success: boolean; message: string; user: User }>(`/accounts/users/${id}/revoke_admin/`, { password }),
 
+    updateUserPhone: (id: number, new_phone: string, password: string) =>
+        api.post<{ success: boolean; message: string; user: User }>(`/accounts/users/${id}/update_phone/`, { new_phone, password }),
+
     // Coupon Management
     getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
         api.get<PaginatedResponse<Coupon>>('/enrollments/coupons/', { params }),

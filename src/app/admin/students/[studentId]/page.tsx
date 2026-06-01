@@ -466,6 +466,8 @@ export default function StudentDetailPage() {
         forceActivate: false
     });
 
+
+
     const handleOpenEditModal = (enrollment: AdminEnrollmentInfo, forceActivate: boolean = false) => {
         setEditEnrollmentModal({
             isOpen: true,
@@ -1039,11 +1041,12 @@ export default function StudentDetailPage() {
                                 <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary rounded-lg shrink-0">
                                     <Phone className="w-5 h-5" />
                                 </div>
-                                <div>
+                                <div className="flex-1 min-w-0">
                                     <p className="text-xs text-body-muted mb-0.5">Parent Phone</p>
                                     <p className="font-medium text-heading">{student.parent_phone}</p>
                                 </div>
                             </div>
+
 
                             {/* Parent Address */}
                             {student.parent_address && (
@@ -1353,6 +1356,8 @@ export default function StudentDetailPage() {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 }

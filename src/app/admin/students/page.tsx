@@ -932,7 +932,7 @@ export default function AdminStudentsPage() {
                                     placeholder="Min age"
                                     min="1"
                                     max="30"
-                                    className="w-20 px-2.5 py-2 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 placeholder:text-body-muted"
+                                    className="w-22 px-2.5 py-2 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 placeholder:text-body-muted"
                                 />
                                 <span className="text-body-muted text-xs">–</span>
                                 <input
@@ -942,7 +942,7 @@ export default function AdminStudentsPage() {
                                     placeholder="Max age"
                                     min="1"
                                     max="30"
-                                    className="w-20 px-2.5 py-2 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 placeholder:text-body-muted"
+                                    className="w-22 px-2.5 py-2 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 placeholder:text-body-muted"
                                 />
                             </div>
                         </div>
@@ -1039,7 +1039,7 @@ export default function AdminStudentsPage() {
                                             { label: 'Student', w: 'w-[300px]' },
                                             { label: 'Parent', w: 'w-[300px]' },
                                             { label: 'Enrollments', w: '' },
-                                            { label: 'Since', w: 'w-[110px]' },
+                                            { label: 'Added', w: 'w-[110px]' },
                                         ].map(({ label, w }) => (
                                             <th
                                                 key={label}
