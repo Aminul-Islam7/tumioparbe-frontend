@@ -23,17 +23,280 @@ import {
     Lock,
     Eye,
     EyeOff,
-    AlertCircle
+    AlertCircle,
+    UserPlus,
+    CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { adminApi } from '@/lib/adminApi';
+import { adminApi, AdminCreateStudentData } from '@/lib/adminApi';
 import { User, Student, AdminStudent } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
 
-// ─── Update Phone Modal ───────────────────────────────────────────────────────
+// ─── Add Child Modal ──────────────────────────────────────────────────────────
+
+interface AddChildModalProps {
+    parentId: number;
+    parentName: string;
+    onClose: () => void;
+    onSuccess: (newChild: AdminStudent) => void;
+}
+
+const EMPTY_CHILD_FORM = {
+    name: '',
+    date_of_birth: '',
+    school: '',
+    current_class: '',
+    father_name: '',
+    mother_name: '',
+};
+
+function AddChildModal({ parentId, parentName, onClose, onSuccess }: AddChildModalProps) {
+    const [form, setForm] = React.useState(EMPTY_CHILD_FORM);
+    const [errors, setErrors] = React.useState<Partial<Record<keyof typeof EMPTY_CHILD_FORM | '_general', string>>>({});
+    const [submitting, setSubmitting] = React.useState(false);
+    const [successMsg, setSuccessMsg] = React.useState('');
+
+    const handleChange = (field: keyof typeof EMPTY_CHILD_FORM, value: string) => {
+        setForm(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const newErrors: typeof errors = {};
+        if (!form.name.trim()) newErrors.name = 'Name is required.';
+        if (!form.date_of_birth) newErrors.date_of_birth = 'Date of birth is required.';
+        if (!form.father_name.trim()) newErrors.father_name = "Father's name is required.";
+        if (!form.mother_name.trim()) newErrors.mother_name = "Mother's name is required.";
+        if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
+
+        setSubmitting(true);
+        setErrors({});
+        try {
+            const payload: AdminCreateStudentData = {
+                name: form.name.trim(),
+                date_of_birth: form.date_of_birth,
+                parent: parentId,
+                school: form.school.trim() || undefined,
+                current_class: form.current_class.trim() || undefined,
+                father_name: form.father_name.trim() || undefined,
+                mother_name: form.mother_name.trim() || undefined,
+            };
+            const res = await adminApi.createStudent(payload);
+            setSuccessMsg(`${form.name} added successfully!`);
+            setTimeout(() => {
+                onSuccess(res.data);
+                onClose();
+            }, 1200);
+        } catch (err: any) {
+            const data = err?.response?.data;
+            if (data && typeof data === 'object') {
+                const fieldErrors: typeof errors = {};
+                for (const [k, v] of Object.entries(data)) {
+                    fieldErrors[k as keyof typeof errors] = Array.isArray(v) ? v[0] : String(v);
+                }
+                setErrors(fieldErrors);
+            } else {
+                setErrors({ _general: data?.message || 'Something went wrong.' });
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-modal flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="absolute inset-0 bg-neutral-900/50 dark:bg-neutral-950/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full sm:max-w-lg bg-card rounded-t-3xl sm:rounded-2xl border border-lavender-200/60 dark:border-lavender-800/40 shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] animate-slide-up sm:animate-scale-in">
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-lavender-100/80 dark:border-lavender-900/30 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400 flex items-center justify-center">
+                            <UserPlus className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-base font-semibold text-heading">Add Child</h2>
+                            <p className="text-xs text-body-muted">Under {parentName}</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        disabled={submitting}
+                        className="p-1.5 rounded-lg hover:bg-lavender-50 dark:hover:bg-lavender-900/20 transition-colors text-body-muted hover:text-lavender-600 dark:hover:text-lavender-400"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="overflow-y-auto flex-1 px-6 py-5">
+                    {successMsg ? (
+                        <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+                            <div className="h-14 w-14 rounded-full bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400 flex items-center justify-center">
+                                <CheckCircle2 className="w-7 h-7" />
+                            </div>
+                            <p className="font-semibold text-heading text-lg">{successMsg}</p>
+                            <p className="text-sm text-body-muted">Child list updated.</p>
+                        </div>
+                    ) : (
+                        <form id="add-child-form" onSubmit={handleSubmit} className="space-y-4">
+                            {errors._general && (
+                                <div className="px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                    {errors._general}
+                                </div>
+                            )}
+
+                            {/* Name */}
+                            <div className="space-y-1.5">
+                                <label htmlFor="child-name" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                    <GraduationCap className="w-3.5 h-3.5 text-body-muted" />
+                                    Full Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="child-name"
+                                    type="text"
+                                    value={form.name}
+                                    onChange={e => handleChange('name', e.target.value)}
+                                    placeholder="e.g. Rafi Islam"
+                                    autoFocus
+                                    className={cn(
+                                        "w-full px-3.5 py-2.5 rounded-xl border bg-input text-heading placeholder:text-body-subtle focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm",
+                                        errors.name ? "border-red-400 dark:border-red-600" : "border-default"
+                                    )}
+                                />
+                                {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+                            </div>
+
+                            {/* Date of Birth */}
+                            <div className="space-y-1.5">
+                                <label htmlFor="child-dob" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-body-muted" />
+                                    Date of Birth <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="child-dob"
+                                    type="date"
+                                    value={form.date_of_birth}
+                                    onChange={e => handleChange('date_of_birth', e.target.value)}
+                                    className={cn(
+                                        "w-full px-3.5 py-2.5 rounded-xl border bg-input text-heading focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm",
+                                        errors.date_of_birth ? "border-red-400 dark:border-red-600" : "border-default"
+                                    )}
+                                />
+                                {errors.date_of_birth && <p className="text-xs text-red-500">{errors.date_of_birth}</p>}
+                            </div>
+
+                            {/* School + Class (2 cols) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label htmlFor="child-school" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                        <BookOpen className="w-3.5 h-3.5 text-body-muted" />
+                                        School
+                                    </label>
+                                    <input
+                                        id="child-school"
+                                        type="text"
+                                        value={form.school}
+                                        onChange={e => handleChange('school', e.target.value)}
+                                        placeholder="e.g. Dhaka Residential Model School"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-default bg-input text-heading placeholder:text-body-subtle focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label htmlFor="child-class" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                        <MapPin className="w-3.5 h-3.5 text-body-muted" />
+                                        Class
+                                    </label>
+                                    <input
+                                        id="child-class"
+                                        type="text"
+                                        value={form.current_class}
+                                        onChange={e => handleChange('current_class', e.target.value)}
+                                        placeholder="e.g. Class 7"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-default bg-input text-heading placeholder:text-body-subtle focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Father + Mother (2 cols) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label htmlFor="child-father" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                        <UserIcon className="w-3.5 h-3.5 text-body-muted" />
+                                        Father's Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="child-father"
+                                        type="text"
+                                        value={form.father_name}
+                                        onChange={e => handleChange('father_name', e.target.value)}
+                                        placeholder="Father's name"
+                                        className={cn(
+                                            "w-full px-3.5 py-2.5 rounded-xl border bg-input text-heading placeholder:text-body-subtle focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm",
+                                            errors.father_name ? "border-red-400 dark:border-red-600" : "border-default"
+                                        )}
+                                    />
+                                    {errors.father_name && <p className="text-xs text-red-500">{errors.father_name}</p>}
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label htmlFor="child-mother" className="text-sm font-medium text-heading flex items-center gap-1.5">
+                                        <UserIcon className="w-3.5 h-3.5 text-body-muted" />
+                                        Mother's Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="child-mother"
+                                        type="text"
+                                        value={form.mother_name}
+                                        onChange={e => handleChange('mother_name', e.target.value)}
+                                        placeholder="Mother's name"
+                                        className={cn(
+                                            "w-full px-3.5 py-2.5 rounded-xl border bg-input text-heading placeholder:text-body-subtle focus:outline-none focus:ring-2 focus:ring-lavender-500/20 focus:border-lavender-500/50 transition-colors text-sm",
+                                            errors.mother_name ? "border-red-400 dark:border-red-600" : "border-default"
+                                        )}
+                                    />
+                                    {errors.mother_name && <p className="text-xs text-red-500">{errors.mother_name}</p>}
+                                </div>
+                            </div>
+                        </form>
+                    )}
+                </div>
+
+                {/* Footer */}
+                {!successMsg && (
+                    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-lavender-100/80 dark:border-lavender-900/30 shrink-0">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={submitting}
+                            className="px-4 py-2 rounded-xl border border-default bg-input text-heading hover:bg-lavender-50 dark:hover:bg-lavender-900/20 hover:border-lavender-300 dark:hover:border-lavender-700 hover:text-lavender-700 dark:hover:text-lavender-400 transition-colors text-sm font-medium disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            form="add-child-form"
+                            disabled={submitting}
+                            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-lavender-600 hover:bg-lavender-700 dark:bg-lavender-500 dark:hover:bg-lavender-600 text-white transition-colors text-sm font-medium shadow-sm disabled:opacity-60"
+                        >
+                            {submitting ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" />Adding...</>
+                            ) : (
+                                <><UserPlus className="w-4 h-4" />Add Child</>
+                            )}
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 
 interface UpdatePhoneModalProps {
     user: User;
@@ -236,6 +499,7 @@ export default function UserDetailPage() {
     const [validationError, setValidationError] = useState<string | null>(null);
 
     const [updatePhoneModalOpen, setUpdatePhoneModalOpen] = useState(false);
+    const [addChildModalOpen, setAddChildModalOpen] = useState(false);
 
     const [adminRoleModal, setAdminRoleModal] = useState<{ isOpen: boolean, action: 'grant' | 'revoke' }>({ isOpen: false, action: 'grant' });
     const [adminPassword, setAdminPassword] = useState('');
@@ -794,13 +1058,22 @@ export default function UserDetailPage() {
 
                     <div className="bg-card rounded-2xl border border-default shadow-sm overflow-hidden">
                         <div className="p-6 border-b border-default flex items-center justify-between">
-                            <div>
-                                <h2 className="text-lg font-semibold text-heading mb-1">Children</h2>
-                                <p className="text-sm text-body-muted">Students registered under this {user.is_admin ? 'admin' : 'parent'}</p>
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400 rounded-xl">
+                                    <Users className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-semibold text-heading mb-1">Children</h2>
+                                    <p className="text-sm text-body-muted">Students registered under this {user.is_admin ? 'admin' : 'parent'}</p>
+                                </div>
                             </div>
-                            <div className="p-3 bg-lavender-100 dark:bg-lavender-900/30 text-lavender-600 dark:text-lavender-400 rounded-xl">
-                                <Users className="w-6 h-6" />
-                            </div>
+                            <button
+                                onClick={() => setAddChildModalOpen(true)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-lavender-100 dark:bg-lavender-900/30 hover:bg-lavender-200 dark:hover:bg-lavender-900/50 text-lavender-700 dark:text-lavender-400 transition-colors text-sm font-medium border border-lavender-200/60 dark:border-lavender-700/40"
+                            >
+                                <UserPlus className="w-4 h-4" />
+                                <span className="hidden sm:inline">Add Child</span>
+                            </button>
                         </div>
                         
                         <div className="p-6">
@@ -1028,6 +1301,17 @@ export default function UserDetailPage() {
                     onClose={() => setUpdatePhoneModalOpen(false)}
                     onSuccess={(newPhone) => {
                         setUser(prev => prev ? { ...prev, phone: newPhone } : prev);
+                    }}
+                />
+            )}
+            {/* Add Child Modal */}
+            {addChildModalOpen && user && (
+                <AddChildModal
+                    parentId={user.id}
+                    parentName={user.name}
+                    onClose={() => setAddChildModalOpen(false)}
+                    onSuccess={(newChild) => {
+                        setChildren(prev => [newChild, ...prev]);
                     }}
                 />
             )}

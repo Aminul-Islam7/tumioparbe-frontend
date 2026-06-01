@@ -100,6 +100,16 @@ export interface AdminCreateUserData {
     password: string; // current admin's password for verification
 }
 
+export interface AdminCreateStudentData {
+    name: string;
+    date_of_birth: string;
+    parent: number;
+    school?: string;
+    current_class?: string;
+    father_name?: string;
+    mother_name?: string;
+}
+
 // Admin API calls
 export const adminApi = {
     // Dashboard Stats
@@ -185,6 +195,9 @@ export const adminApi = {
 
     updateStudent: (id: number, data: Partial<Student>) =>
         api.patch<AdminStudent>(`/accounts/students/${id}/`, data),
+
+    createStudent: (data: AdminCreateStudentData) =>
+        api.post<AdminStudent>('/accounts/students/', data),
 
 
     // Parent/User Management
