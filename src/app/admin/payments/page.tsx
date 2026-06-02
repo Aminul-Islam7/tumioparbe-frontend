@@ -466,7 +466,7 @@ export default function AdminPaymentsPage() {
                         <button
                             onClick={recoverSelectedPayments}
                             disabled={recovering}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-secondary hover:bg-secondary-dark rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
                         >
                             {recovering ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -477,7 +477,7 @@ export default function AdminPaymentsPage() {
                         </button>
                         <button
                             onClick={clearSelection}
-                            className="text-sm text-body-muted hover:text-heading"
+                            className="text-sm text-body-muted hover:text-heading hover:underline transition-all"
                         >
                             Clear selection
                         </button>

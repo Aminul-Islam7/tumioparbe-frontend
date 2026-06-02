@@ -8,6 +8,9 @@ import {
     Student,
     AdminStudent,
     Coupon,
+    AdminInvoice,
+    InvoiceStats,
+    EnrollmentForSelect,
 } from '@/types';
 
 // Extended types for admin views
@@ -231,6 +234,64 @@ export const adminApi = {
     // Coupon Management
     getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
         api.get<PaginatedResponse<Coupon>>('/enrollments/coupons/', { params }),
+
+    // Invoice Management
+    getInvoices: (params?: {
+        is_paid?: string;
+        course?: number;
+        batch?: number;
+        student?: number;
+        parent?: number;
+        enrollment?: number;
+        month_from?: string;
+        month_to?: string;
+        search?: string;
+        overdue?: string;
+        ordering?: string;
+        offset?: number;
+        limit?: number;
+    }) =>
+        api.get<AdminInvoice[]>('/payments/admin-invoices/', { params }),
+
+    getInvoiceStats: (params?: {
+        is_paid?: string;
+        course?: number;
+        batch?: number;
+        student?: number;
+        parent?: number;
+        month_from?: string;
+        month_to?: string;
+        search?: string;
+        overdue?: string;
+    }) =>
+        api.get<InvoiceStats>('/payments/admin-invoices/stats/', { params }),
+
+    createInvoice: (data: {
+        enrollment: number;
+        month: string;
+        amount: number;
+        is_paid?: boolean;
+        description?: string;
+    }) =>
+        api.post<AdminInvoice>('/payments/admin-invoices/create_manual/', data),
+
+    updateInvoice: (id: number, data: { amount?: number; month?: string }) =>
+        api.patch<AdminInvoice>(`/payments/admin-invoices/${id}/`, data),
+
+    deleteInvoice: (id: number) =>
+        api.delete<{ message: string }>(`/payments/admin-invoices/${id}/`),
+
+    markInvoicePaid: (id: number) =>
+        api.post<AdminInvoice>(`/payments/admin-invoices/${id}/mark_paid/`),
+
+    markInvoiceUnpaid: (id: number) =>
+        api.post<AdminInvoice>(`/payments/admin-invoices/${id}/mark_unpaid/`),
+
+    searchEnrollmentsForInvoice: (search?: string) =>
+        api.get<EnrollmentForSelect[]>('/payments/admin-invoices/enrollments_for_select/', { params: { search } }),
+
+    generateInvoices: (data?: { course?: number; batch?: number; month_from?: string; month_to?: string }) =>
+        api.post<{ message: string; details: Record<string, number>; total_created: number }>('/payments/admin-invoices/generate_invoices/', data),
 };
 
 export default adminApi;

@@ -240,3 +240,53 @@ export interface DashboardStats {
     pending_invoices: number;
     total_paid: number;
 }
+
+// Admin Invoice (enriched with context)
+export interface AdminInvoice {
+    id: number;
+    enrollment: number;
+    month: string;
+    amount: string;
+    is_paid: boolean;
+    coupon: number | null;
+    created_at: string | null;
+    updated_at: string | null;
+    // Enriched
+    student_name: string | null;
+    student_id: number | null;
+    course_name: string | null;
+    course_id: number | null;
+    batch_name: string | null;
+    batch_id: number | null;
+    parent_name: string | null;
+    parent_phone: string | null;
+    parent_id: number | null;
+    enrollment_active: boolean | null;
+    month_display: string;
+    // Payment
+    payment_method: string | null;
+    payment_date: string | null;
+    transaction_id: string | null;
+    // Computed
+    is_overdue: boolean;
+}
+
+export interface InvoiceStats {
+    total_count: number;
+    total_amount: number;
+    paid_count: number;
+    paid_amount: number;
+    pending_count: number;
+    pending_amount: number;
+    overdue_count: number;
+    overdue_amount: number;
+}
+
+export interface EnrollmentForSelect {
+    id: number;
+    student_name: string;
+    student_id: number;
+    course_name: string;
+    batch_name: string;
+    tuition_fee: string;
+}
