@@ -35,6 +35,34 @@ export interface AdminEnrollmentDetails {
         name: string;
         course_id: number;
     };
+    student_details?: {
+        id: number;
+        parent: number;
+        name: string;
+        date_of_birth: string;
+        school?: string;
+        current_class?: string;
+        father_name?: string;
+        mother_name?: string;
+    };
+    batch_details?: {
+        id: number;
+        course: number;
+        name: string;
+        timing: string;
+        group_link?: string;
+        class_link?: string;
+        tuition_fee?: number;
+        is_visible: boolean;
+        student_count?: number;
+    };
+    student_name?: string | null;
+    parent_name?: string | null;
+    parent_phone?: string | null;
+    parent_id?: number | null;
+    parent_address?: string | null;
+    course_name?: string | null;
+    batch_name?: string | null;
     tuition_fee: number | null;
     effective_tuition_fee: number;
     fee_type: 'individual' | 'batch' | 'course';
@@ -164,11 +192,14 @@ export const adminApi = {
         }>(`/courses/batches/${sourceBatchId}/transfer_students/`, data),
 
     // Enrollment Management
-    getEnrollments: (params?: { batch?: number; student?: number; is_active?: boolean }) =>
+    getEnrollments: (params?: { batch?: number; student?: number; is_active?: boolean; offset?: number; limit?: number }) =>
         api.get<PaginatedResponse<AdminEnrollmentDetails>>('/enrollments/enrollments/', { params }),
 
     getEnrollment: (id: number) =>
         api.get<AdminEnrollmentDetails>(`/enrollments/enrollments/${id}/`),
+
+    createEnrollment: (data: { student: number; batch: number; start_month: string; tuition_fee?: number | null }) =>
+        api.post<AdminEnrollmentDetails>('/enrollments/enrollments/', data),
 
     updateEnrollmentFee: (id: number, data: UpdateEnrollmentFeeData) =>
         api.patch<Enrollment>(`/enrollments/enrollments/${id}/`, data),

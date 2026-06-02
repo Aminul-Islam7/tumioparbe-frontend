@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/adminApi';
-import { AdminStudent, Course, Batch, Student } from '@/types';
+import { AdminStudent, Course, Batch, Student, AdminEnrollmentInfo } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
