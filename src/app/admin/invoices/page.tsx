@@ -734,17 +734,16 @@ function CreateEditModal({ mode, invoice, onClose, onSuccess }: CreateEditModalP
                     </div>
 
                     {!isEdit && (
-                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors">
-                            {/* Sky-colored toggle */}
-                            <div onClick={() => setIsPaid(p => !p)}
-                                className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0 cursor-pointer', isPaid ? 'bg-secondary' : 'bg-neutral-300 dark:bg-neutral-600')}>
-                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', isPaid ? 'translate-x-[18px]' : 'translate-x-0.5')} />
-                            </div>
+                        <div onClick={() => setIsPaid(p => !p)} className="flex items-center justify-between gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors select-none">
                             <div>
                                 <p className="text-sm font-medium text-heading">Mark as paid</p>
                                 <p className="text-xs text-body-muted">Creates a manual payment record</p>
                             </div>
-                        </label>
+                            {/* Sky-colored toggle */}
+                            <div className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0', isPaid ? 'bg-secondary' : 'bg-neutral-300 dark:bg-neutral-600')}>
+                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', isPaid ? 'translate-x-[18px]' : 'translate-x-0.5')} />
+                            </div>
+                        </div>
                     )}
 
                     <div className="flex gap-3 pt-2">
@@ -1295,13 +1294,13 @@ export default function AdminInvoicesPage() {
                             {/* Status */}
                             <div className="col-span-2 sm:col-span-3 lg:col-span-4">
                                 <label className="block text-xs font-medium text-body-muted mb-1.5">Status</label>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="inline-flex rounded-xl border border-default bg-input p-1 gap-0.5">
                                     {STATUS_OPTS.map(opt => (
                                         <button key={opt.value} onClick={() => setStatusFilter(opt.value)}
-                                            className={cn('px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors',
+                                            className={cn('px-3 py-1 text-xs font-medium rounded-lg transition-colors',
                                                 statusFilter === opt.value
-                                                    ? 'bg-secondary text-secondary-foreground border-secondary'
-                                                    : 'border-default bg-input text-body-muted hover:text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800')}>
+                                                    ? 'bg-secondary text-secondary-foreground shadow-sm'
+                                                    : 'text-body-muted hover:text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800')}>
                                             {opt.label}
                                         </button>
                                     ))}

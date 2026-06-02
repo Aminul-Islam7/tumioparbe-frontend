@@ -416,16 +416,15 @@ function EditFeeModal({ enrollment, onClose, onSuccess }: EditFeeModalProps) {
                     )}
 
                     <div className="space-y-3">
-                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors">
-                            <div onClick={() => setUseDefault(p => !p)}
-                                className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0 cursor-pointer', useDefault ? 'bg-primary' : 'bg-neutral-300 dark:bg-neutral-600')}>
-                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', useDefault ? 'translate-x-[18px]' : 'translate-x-0.5')} />
-                            </div>
+                        <div onClick={() => setUseDefault(p => !p)} className="flex items-center justify-between gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors select-none">
                             <div>
                                 <p className="text-sm font-semibold text-heading">Use default fee</p>
                                 <p className="text-xs text-body-muted">Reverts back to standard batch/course fee levels</p>
                             </div>
-                        </label>
+                            <div className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0', useDefault ? 'bg-primary' : 'bg-neutral-300 dark:bg-neutral-600')}>
+                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', useDefault ? 'translate-x-[18px]' : 'translate-x-0.5')} />
+                            </div>
+                        </div>
 
                         {!useDefault && (
                             <div>
@@ -664,16 +663,15 @@ function CreateEnrollmentModal({ onClose, onSuccess }: CreateModalProps) {
 
                     {/* Custom Tuition Fee */}
                     <div className="space-y-3 pt-2">
-                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors">
-                            <div onClick={() => setUseCustomFee(p => !p)}
-                                className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0 cursor-pointer', useCustomFee ? 'bg-primary' : 'bg-neutral-300 dark:bg-neutral-600')}>
-                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', useCustomFee ? 'translate-x-[18px]' : 'translate-x-0.5')} />
-                            </div>
+                        <div onClick={() => setUseCustomFee(p => !p)} className="flex items-center justify-between gap-3 cursor-pointer p-3 rounded-xl border border-default hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors select-none">
                             <div>
                                 <p className="text-sm font-semibold text-heading">Apply custom tuition fee</p>
                                 <p className="text-xs text-body-muted">Overrides standard course/batch fees</p>
                             </div>
-                        </label>
+                            <div className={cn('w-10 h-6 rounded-full relative transition-colors shrink-0', useCustomFee ? 'bg-primary' : 'bg-neutral-300 dark:bg-neutral-600')}>
+                                <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', useCustomFee ? 'translate-x-[18px]' : 'translate-x-0.5')} />
+                            </div>
+                        </div>
 
                         {useCustomFee && (
                             <div>
@@ -1249,14 +1247,14 @@ export default function AdminEnrollmentsPage() {
                             {/* Active Status */}
                             <div className="col-span-2 sm:col-span-3 lg:col-span-4">
                                 <label className="block text-xs font-medium text-body-muted mb-1.5">Status</label>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="inline-flex rounded-xl border border-default bg-input p-1 gap-0.5">
                                     {STATUS_OPTS.map(opt => (
                                         <button key={opt.value} onClick={() => setStatusFilter(opt.value)}
-                                            className={cn('px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors',
+                                            className={cn('px-3 py-1 text-xs font-medium rounded-lg transition-colors',
                                                 statusFilter === opt.value
-                                                    ? 'bg-primary text-primary-foreground border-primary'
-                                                    : 'border-default bg-input text-body-muted hover:text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800')}>
-                                            {opt.label}
+                                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                                    : 'text-body-muted hover:text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800')}>
+                                            {opt.value === 'all' ? 'All' : opt.value === 'active' ? 'Active' : 'Inactive'}
                                         </button>
                                     ))}
                                 </div>
