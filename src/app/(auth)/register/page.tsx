@@ -390,7 +390,7 @@ export default function Register() {
                                         id="name"
                                         name="name"
                                         type="text"
-                                        placeholder="Mother or Father of Student"
+                                        placeholder="Parent account name"
                                         className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
                                             errors.name && touched.name
                                                 ? 'border-red-500'
@@ -412,7 +412,7 @@ export default function Register() {
                                         id="address"
                                         name="address"
                                         type="text"
-                                        placeholder="Your address"
+                                        placeholder="e.g. Mirpur, Dhaka"
                                         className={`flex h-10 w-full rounded-md border bg-background dark:bg-background/50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bubblegum focus-visible:ring-offset-2 ${
                                             errors.address && touched.address
                                                 ? 'border-red-500'

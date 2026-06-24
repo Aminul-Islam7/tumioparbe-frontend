@@ -266,6 +266,18 @@ export const adminApi = {
     getCoupons: (params?: { course?: number; is_active?: boolean; is_public?: boolean }) =>
         api.get<PaginatedResponse<Coupon>>('/enrollments/coupons/', { params }),
 
+    getCoupon: (id: number) =>
+        api.get<Coupon>(`/enrollments/coupons/${id}/`),
+
+    createCoupon: (data: Partial<Coupon>) =>
+        api.post<Coupon>('/enrollments/coupons/', data),
+
+    updateCoupon: (id: number, data: Partial<Coupon>) =>
+        api.patch<Coupon>(`/enrollments/coupons/${id}/`, data),
+
+    deleteCoupon: (id: number) =>
+        api.delete<{ message?: string }>(`/enrollments/coupons/${id}/`),
+
     // Invoice Management
     getInvoices: (params?: {
         is_paid?: string;
