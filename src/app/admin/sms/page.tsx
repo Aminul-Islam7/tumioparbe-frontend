@@ -580,9 +580,10 @@ function SMSLogsTab({
 }) {
     const [logs, setLogs] = useState<SMSLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const pageSize = 20;
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [filteredTotal, setFilteredTotal] = useState(0);
+    const [unfilteredTotal, setUnfilteredTotal] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
 
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
@@ -591,23 +592,34 @@ function SMSLogsTab({
     const [endDate, setEndDate] = useState('');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+    const pageRef = useRef(1);
+    const loadingMoreRef = useRef(false);
+    const hasMoreRef = useRef(true);
+
+    const pageSize = 20;
+
     const clearFilters = () => {
         setSearch('');
         setTypeFilter('');
         setStatusFilter('');
         setStartDate('');
         setEndDate('');
-        setPage(1);
     };
 
     const hasActiveFilters = Boolean(search || typeFilter || statusFilter || startDate || endDate);
     const activeFiltersCount = [typeFilter, statusFilter, startDate, endDate].filter(Boolean).length;
 
-    const fetchLogs = useCallback(async () => {
+    // Fetch initial page 1 on filter change
+    const fetchInitial = useCallback(async () => {
         setLoading(true);
+        setLogs([]);
+        pageRef.current = 1;
+        hasMoreRef.current = true;
+        setHasMore(true);
+
         try {
             const params: Record<string, string> = {
-                page: String(page),
+                page: '1',
                 page_size: String(pageSize),
             };
             if (search) params.search = search;
@@ -617,18 +629,152 @@ function SMSLogsTab({
             if (endDate) params.end_date = endDate;
 
             const res = await api.get('/common/sms/', { params });
-            setLogs(res.data.results || res.data);
-            setTotal(res.data.count || (res.data.results || res.data).length);
+            const results = res.data.results || res.data;
+            const count = res.data.count || results.length;
+            const totalCount = res.data.total_count || count;
+
+            setLogs(results);
+            setFilteredTotal(count);
+            setUnfilteredTotal(totalCount);
+            const more = results.length < count;
+            hasMoreRef.current = more;
+            setHasMore(more);
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
         }
-    }, [page, search, typeFilter, statusFilter, startDate, endDate]);
+    }, [search, typeFilter, statusFilter, startDate, endDate]);
 
-    useEffect(() => { fetchLogs(); }, [fetchLogs]);
+    useEffect(() => {
+        fetchInitial();
+    }, [fetchInitial]);
 
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    // Fetch next page batch (20 items)
+    const fetchNextPage = useCallback(async () => {
+        if (loadingMoreRef.current || !hasMoreRef.current) return;
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+
+        const nextPage = pageRef.current + 1;
+        try {
+            const params: Record<string, string> = {
+                page: String(nextPage),
+                page_size: String(pageSize),
+            };
+            if (search) params.search = search;
+            if (typeFilter) params.message_type = typeFilter;
+            if (statusFilter) params.status = statusFilter;
+            if (startDate) params.start_date = startDate;
+            if (endDate) params.end_date = endDate;
+
+            const res = await api.get('/common/sms/', { params });
+            const newResults = res.data.results || [];
+            const count = res.data.count || filteredTotal;
+
+            setLogs(prev => {
+                const combined = [...prev, ...newResults];
+                const more = combined.length < count;
+                hasMoreRef.current = more;
+                setHasMore(more);
+                return combined;
+            });
+            setFilteredTotal(count);
+            if (res.data.total_count) setUnfilteredTotal(res.data.total_count);
+            pageRef.current = nextPage;
+        } catch (e) {
+            console.error(e);
+        } finally {
+            loadingMoreRef.current = false;
+            setLoadingMore(false);
+        }
+    }, [search, typeFilter, statusFilter, startDate, endDate, filteredTotal]);
+
+    const [scrollOffset, setScrollOffset] = useState(0);
+    const tableRef = useRef<HTMLTableElement>(null);
+    const observerRef = useRef<HTMLDivElement>(null);
+
+    // Track scroll position using capture phase so ANY scroll container (main, window, divs) updates DOM windowing instantly
+    useEffect(() => {
+        const handleScroll = (e?: Event) => {
+            let currentScroll = 0;
+            const target = e?.target as HTMLElement | Document;
+
+            if (target && 'scrollTop' in target && typeof (target as HTMLElement).scrollTop === 'number') {
+                currentScroll = (target as HTMLElement).scrollTop;
+            } else {
+                const mainEl = document.querySelector('main');
+                currentScroll = (mainEl && mainEl.scrollTop > 0) ? mainEl.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0);
+            }
+
+            // Only trigger state update on >= 15px scroll diff to prevent React re-render lag
+            setScrollOffset(prev => Math.abs(prev - currentScroll) >= 15 ? currentScroll : prev);
+
+            // Guaranteed fallback check on active scroll container
+            const el = (target && 'scrollHeight' in target && (target as HTMLElement).scrollHeight) ? (target as HTMLElement) : document.querySelector('main');
+            if (el && el.scrollHeight && el.clientHeight) {
+                const distanceToBottom = el.scrollHeight - (el.scrollTop + el.clientHeight);
+                if (distanceToBottom < 250 && hasMoreRef.current && !loadingMoreRef.current) {
+                    fetchNextPage();
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+        handleScroll();
+        return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+    }, [fetchNextPage]);
+
+    // IntersectionObserver for fail-safe infinite lazy loading
+    useEffect(() => {
+        const target = observerRef.current;
+        if (!target) return;
+
+        const mainEl = document.querySelector('main');
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMoreRef.current && !loadingMoreRef.current) {
+                    fetchNextPage();
+                }
+            },
+            {
+                root: mainEl || null,
+                rootMargin: '100px',
+                threshold: 0.1,
+            }
+        );
+
+        observer.observe(target);
+        return () => observer.disconnect();
+    }, [fetchNextPage]);
+
+    // Virtual DOM Windowing math (unmounts upper & lower offscreen rows dynamically without collapsing layout)
+    const ROW_HEIGHT = 54;
+    const MOBILE_CARD_HEIGHT = 140;
+    const VIEWPORT_HEIGHT = typeof window !== 'undefined' ? window.innerHeight : 900;
+    const OVERSCAN = 25;
+
+    // Desktop Table Windowing
+    const visibleStartIndex = Math.max(0, Math.floor(scrollOffset / ROW_HEIGHT) - OVERSCAN);
+    const visibleEndIndex = Math.min(logs.length, Math.ceil((scrollOffset + VIEWPORT_HEIGHT) / ROW_HEIGHT) + OVERSCAN);
+    const topSpacerHeight = visibleStartIndex * ROW_HEIGHT;
+    const bottomSpacerHeight = Math.max(0, (logs.length - visibleEndIndex) * ROW_HEIGHT);
+    const visibleLogs = logs.slice(visibleStartIndex, visibleEndIndex);
+
+    // Mobile Cards Windowing
+    const mobileVisibleStartIndex = Math.max(0, Math.floor(scrollOffset / MOBILE_CARD_HEIGHT) - OVERSCAN);
+    const mobileVisibleEndIndex = Math.min(logs.length, Math.ceil((scrollOffset + VIEWPORT_HEIGHT) / MOBILE_CARD_HEIGHT) + OVERSCAN);
+    const mobileTopSpacerHeight = mobileVisibleStartIndex * MOBILE_CARD_HEIGHT;
+    const mobileBottomSpacerHeight = Math.max(0, (logs.length - mobileVisibleEndIndex) * MOBILE_CARD_HEIGHT);
+    const mobileVisibleLogs = logs.slice(mobileVisibleStartIndex, mobileVisibleEndIndex);
+
+
+
+
+
+
+
 
     return (
         <div className="space-y-4">
@@ -640,7 +786,7 @@ function SMSLogsTab({
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body-muted" />
                         <input
                             value={search}
-                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            onChange={e => setSearch(e.target.value)}
                             placeholder="Search logs…"
                             className="w-full h-11 pl-9 pr-4 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                         />
@@ -663,7 +809,7 @@ function SMSLogsTab({
                     </button>
                     <button
                         type="button"
-                        onClick={fetchLogs}
+                        onClick={fetchInitial}
                         aria-label="Refresh SMS logs"
                         title="Refresh"
                         className="h-11 w-11 rounded-xl border border-default bg-input text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shadow-sm inline-flex items-center justify-center shrink-0"
@@ -683,7 +829,7 @@ function SMSLogsTab({
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body-muted" />
                             <input
                                 value={search}
-                                onChange={e => { setSearch(e.target.value); setPage(1); }}
+                                onChange={e => setSearch(e.target.value)}
                                 placeholder="Phone or message…"
                                 className="w-full h-11 pl-9 pr-4 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                             />
@@ -695,7 +841,7 @@ function SMSLogsTab({
                         <Select
                             options={TYPE_OPTIONS}
                             value={typeFilter}
-                            onChange={val => { setTypeFilter(String(val)); setPage(1); }}
+                            onChange={val => setTypeFilter(String(val))}
                             placeholder="All Types"
                             className="w-full h-11"
                         />
@@ -706,7 +852,7 @@ function SMSLogsTab({
                         <Select
                             options={STATUS_OPTIONS}
                             value={statusFilter}
-                            onChange={val => { setStatusFilter(String(val)); setPage(1); }}
+                            onChange={val => setStatusFilter(String(val))}
                             placeholder="All Statuses"
                             className="w-full h-11"
                         />
@@ -717,7 +863,7 @@ function SMSLogsTab({
                         <input
                             type="date"
                             value={startDate}
-                            onChange={e => { setStartDate(e.target.value); setPage(1); }}
+                            onChange={e => setStartDate(e.target.value)}
                             className="w-full h-11 px-3 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                         />
                     </div>
@@ -727,17 +873,17 @@ function SMSLogsTab({
                         <input
                             type="date"
                             value={endDate}
-                            onChange={e => { setEndDate(e.target.value); setPage(1); }}
+                            onChange={e => setEndDate(e.target.value)}
                             className="w-full h-11 px-3 rounded-xl border border-default bg-input text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                         />
                     </div>
 
                     <button
                         type="button"
-                        onClick={fetchLogs}
+                        onClick={fetchInitial}
                         aria-label="Refresh SMS logs"
                         title="Refresh"
-                        className="hidden md:inline-flex h-11 w-11 rounded-xl border border-default bg-input text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shadow-sm items-center justify-center shrink-0"
+                        className="hidden md:inline-flex h-11 w-11 rounded-xl border border-default bg-input text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors shadow-sm inline-flex items-center justify-center shrink-0"
                     >
                         <RefreshCw className="w-4 h-4" />
                     </button>
@@ -756,7 +902,7 @@ function SMSLogsTab({
                 </div>
             </div>
 
-            {/* Table (Desktop) & Cards (Mobile) */}
+            {/* Mobile Cards Container */}
             <div className="md:hidden space-y-3">
                 {loading ? (
                     Array.from({ length: 5 }).map((_, i) => (
@@ -781,27 +927,39 @@ function SMSLogsTab({
                         No SMS logs found
                     </div>
                 ) : (
-                    logs.map(log => (
-                        <SMSLogMobileCard
-                            key={log.id}
-                            log={log}
-                            onClick={() => setSelectedLog(log)}
-                        />
-                    ))
+                    <>
+                        {mobileTopSpacerHeight > 0 && <div style={{ height: `${mobileTopSpacerHeight}px`, width: '100%' }} />}
+                        {mobileVisibleLogs.map(log => (
+                            <SMSLogMobileCard
+                                key={log.id}
+                                log={log}
+                                onClick={() => setSelectedLog(log)}
+                            />
+                        ))}
+                        {mobileBottomSpacerHeight > 0 && <div style={{ height: `${mobileBottomSpacerHeight}px`, width: '100%' }} />}
+                        {loadingMore && (
+                            <div className="text-center py-4 text-xs text-body-muted flex items-center justify-center gap-2">
+                                <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+                                Loading next items…
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
-            {/* Desktop Table - Simplified with 5 Essential Columns */}
+            {/* Desktop Table Container */}
             <div className="hidden md:block bg-card rounded-2xl border border-default shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-default flex items-center justify-between">
                     <div>
                         <h3 className="font-semibold text-heading text-base">SMS Logs</h3>
-                        <p className="text-xs text-body-muted">Click any row to view complete recipients list, cost & details</p>
+                        <p className="text-xs text-body-muted">Click any row to view complete recipients list & details</p>
                     </div>
-                    <span className="text-xs text-body-muted font-medium bg-page-subtle px-3 py-1 rounded-xl border border-default">{total} records</span>
+                    <span className="text-xs text-body-muted font-medium bg-page-subtle px-3 py-1 rounded-xl border border-default">
+                        Showing {filteredTotal} of {unfilteredTotal} records
+                    </span>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table ref={tableRef} className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-default bg-page-subtle">
                                 {['Time', 'Type', 'To / Recipients', 'Message Preview', 'Status'].map(h => (
@@ -825,63 +983,88 @@ function SMSLogsTab({
                                         No SMS logs found
                                     </td>
                                 </tr>
-                            ) : logs.map(log => {
-                                const sc = STATUS_CONFIG[log.status] || STATUS_CONFIG.PENDING;
-                                return (
-                                    <tr
-                                        key={log.id}
-                                        onClick={() => setSelectedLog(log)}
-                                        className="border-b border-default hover:bg-page-subtle transition-colors cursor-pointer group"
-                                    >
-                                        <td className="px-4 py-3.5 text-sm text-body-muted whitespace-nowrap">{formatDate(log.created_at)}</td>
-                                        <td className="px-4 py-3.5 whitespace-nowrap">
-                                            <span className={cn('px-2.5 py-1 rounded-full text-xs font-semibold', TYPE_COLOR[log.message_type] || 'text-body-muted bg-neutral-100')}>
-                                                {log.message_type_display}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3.5 font-mono text-sm text-body whitespace-nowrap">
-                                            {log.phone_number}
-                                            {log.recipient_count > 1 && (
-                                                <span
-                                                    title={`Sent to ${log.recipient_count} recipients`}
-                                                    className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-semibold bg-primary/10 text-primary border border-primary/20"
-                                                >
-                                                    +{log.recipient_count - 1} others
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-sm text-body">
-                                            <p className="truncate max-w-xs md:max-w-md text-heading font-medium group-hover:text-primary transition-colors">
-                                                {log.message}
-                                            </p>
-                                        </td>
-                                        <td className="px-4 py-3.5 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold', sc.color)}>
-                                                    {sc.icon}{log.status_display}
-                                                </span>
-                                                <span className="text-xs font-mono font-medium text-body-muted bg-page-subtle px-2 py-0.5 rounded-md border border-default" title={`${log.successful_count} of ${log.recipient_count} SMS delivered`}>
-                                                    {log.successful_count}/{log.recipient_count}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            ) : (
+                                <>
+                                    {/* Top Spacer Row (unmounts off-screen upper rows from DOM without collapsing height) */}
+                                    {topSpacerHeight > 0 && (
+                                        <tr className="border-0">
+                                            <td colSpan={5} className="p-0 border-0">
+                                                <div style={{ height: `${topSpacerHeight}px`, width: '100%' }} />
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {/* Active Visible Rows (~25 rows rendered in DOM) */}
+                                    {visibleLogs.map(log => {
+                                        const sc = STATUS_CONFIG[log.status] || STATUS_CONFIG.PENDING;
+                                        return (
+                                            <tr
+                                                key={log.id}
+                                                onClick={() => setSelectedLog(log)}
+                                                className="border-b border-default hover:bg-page-subtle transition-colors cursor-pointer group h-[54px]"
+                                            >
+                                                <td className="px-4 py-3.5 text-sm text-body-muted whitespace-nowrap">{formatDate(log.created_at)}</td>
+                                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                                    <span className={cn('px-2.5 py-1 rounded-full text-xs font-semibold', TYPE_COLOR[log.message_type] || 'text-body-muted bg-neutral-100')}>
+                                                        {log.message_type_display}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3.5 font-mono text-sm text-body whitespace-nowrap">
+                                                    {log.phone_number}
+                                                    {log.recipient_count > 1 && (
+                                                        <span
+                                                            title={`Sent to ${log.recipient_count} recipients`}
+                                                            className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-sans font-semibold bg-primary/10 text-primary border border-primary/20"
+                                                        >
+                                                            +{log.recipient_count - 1} others
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3.5 text-sm text-body">
+                                                    <p className="truncate max-w-xs md:max-w-md text-heading font-medium group-hover:text-primary transition-colors">
+                                                        {log.message}
+                                                    </p>
+                                                </td>
+                                                <td className="px-4 py-3.5 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold', sc.color)}>
+                                                            {sc.icon}{log.status_display}
+                                                        </span>
+                                                        <span className="text-xs font-mono font-medium text-body-muted bg-page-subtle px-2 py-0.5 rounded-md border border-default" title={`${log.successful_count} of ${log.recipient_count} SMS delivered`}>
+                                                            {log.successful_count}/{log.recipient_count}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+
+                                    {/* Bottom Spacer Row (unmounts off-screen lower rows from DOM without collapsing height) */}
+                                    {bottomSpacerHeight > 0 && (
+                                        <tr className="border-0">
+                                            <td colSpan={5} className="p-0 border-0">
+                                                <div style={{ height: `${bottomSpacerHeight}px`, width: '100%' }} />
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            )}
                         </tbody>
                     </table>
                 </div>
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="p-4 border-t border-default flex items-center justify-between">
-                        <span className="text-xs text-body-muted">Page {page} of {totalPages}</span>
-                        <div className="flex gap-2">
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 border border-default rounded-xl bg-input text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-xs font-semibold disabled:opacity-50">Previous</button>
-                            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 border border-default rounded-xl bg-input text-heading hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-xs font-semibold disabled:opacity-50">Next</button>
-                        </div>
+
+
+                {/* Footer Loading Indicator */}
+                {loadingMore && (
+                    <div className="p-3 border-t border-default bg-page-subtle/50 flex items-center justify-center text-xs text-primary font-semibold gap-2">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Loading next items…
                     </div>
                 )}
             </div>
+
+            {/* Sentinel element for IntersectionObserver infinite scroll trigger */}
+            <div ref={observerRef} className="h-4 w-full pointer-events-none" />
         </div>
     );
 }
