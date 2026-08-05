@@ -20,6 +20,8 @@ import {
     Activity,
     GraduationCap,
     UserCog,
+    MessageSquare,
+    Phone,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
@@ -163,6 +165,24 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             icon: Activity,
             color: 'lavender',
         },
+        {
+            href: '/admin/sms',
+            label: 'SMS',
+            icon: MessageSquare,
+            color: 'tangerine',
+        },
+        {
+            href: '/admin/voip',
+            label: 'VoIP Calls',
+            icon: Phone,
+            color: 'emerald',
+        },
+        {
+            href: '/admin/settings',
+            label: 'Settings',
+            icon: Settings,
+            color: 'lavender',
+        },
     ];
 
     // Bottom nav links - limited set for mobile
@@ -209,6 +229,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         '/admin/enrollments': { title: 'Enrollments' },
         '/admin/invoices': { title: 'Invoices' },
         '/admin/activity': { title: 'Activity Log' },
+        '/admin/sms': { title: 'SMS Management' },
+        '/admin/voip': { title: 'VoIP Calls' },
+        '/admin/settings': { title: 'Settings' },
     };
 
     // Get page info, handle dynamic routes
